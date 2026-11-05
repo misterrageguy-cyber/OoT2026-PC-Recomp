@@ -1,3 +1,6 @@
+> **The project website has moved:** [Ocarina of Time — PC Native Build](https://ocarina-pc-native-build.github.io/).
+> Active website repository: [ocarina-pc-native-build/ocarina-pc-native-build.github.io](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io).
+
 # OoT2026-PC-Recomp
 
 ### Ocarina of Time · Switch 2 → Windows x64
@@ -84,3 +87,4 @@ This is an unofficial project and is not affiliated with Nintendo.
 ---
 
 *All progress claims refer to local development reports. Tested startup and menu features are explicitly distinguished from gameplay that has not yet been verified.*
+
