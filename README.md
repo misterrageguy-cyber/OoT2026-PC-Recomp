@@ -8,7 +8,7 @@ I’m working on a native Windows x64 recompilation of the Switch 2 version of *
 
 This project page documents my current development progress and the next steps. **There is no playable release yet.**
 
-**Maintainer:** [misterrageguy-cyber](https://github.com/misterrageguy-cyber)  
+**Maintainer:**  https://github.com/HotDevilSauce
 **Status updated:** November 5, 2026  
 **Latest reported local development commits:** `3555ea1` and `5971bd8`
 
