@@ -50,6 +50,9 @@ Type: filesandordirs; Name: "{app}\launcher"
 ; Withdraw old bundled recordings when upgrading; user-imported mods and saves live elsewhere.
 Type: files; Name: "{app}\data\voices\OOT_YoungLink.zip"
 Type: files; Name: "{app}\data\voices\OOT_AdultLink.zip"
+Type: files; Name: "{app}\engine\docs\images\linux-builder-newer-game.png"
+Type: files; Name: "{app}\engine\docs\images\setup-runtime-incomplete.png"
+Type: files; Name: "{app}\engine\docs\images\windows-portable-folders.png"
 
 [Icons]
 Name: "{group}\Ocarina Reborn"; Filename: "{app}\OcarinaReborn.exe"; IconFilename: "{app}\OcarinaReborn.ico"

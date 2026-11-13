@@ -238,8 +238,9 @@ static void log_flush(void) {
     /* (a crash report on the writer itself, in its own write: it holds log_write_lock) */
     if (GetCurrentThreadId() == log_writer) { log_drain_raw(); return; }
     static char *batch[2048];
-    AcquireSRWLockExclusive(&log_write_lock);
+    /* Ocarina Reborn: match log_main lock order, including fatal/exit flushes. */
     AcquireSRWLockExclusive(&log_lock);
+    AcquireSRWLockExclusive(&log_write_lock);
     const int n = log_take_locked(batch);
     ReleaseSRWLockExclusive(&log_lock);
     log_write(batch, n);

@@ -30,9 +30,11 @@ import enemy_health  # noqa: E402
 import ui  # noqa: E402
 import advisor  # noqa: E402
 import performance  # noqa: E402
+import diagnostics  # noqa: E402
 import mods_manager  # noqa: E402
 import classic_voices  # noqa: E402
 import tunic_colors  # noqa: E402
+import amiibo  # noqa: E402
 import gamepad  # noqa: E402
 
 INSTALL = Path(__file__).resolve().parent.parent
@@ -1839,6 +1841,26 @@ class App(tk.Tk):
             self.settings_status = (T('Nicht gespeichert', 'Not saved yet'), ui.SUB)
             self.settings_page(tab, True)
 
+        def choose_amiibo(remove=False):
+            if self.busy:
+                return
+            try:
+                if remove:
+                    amiibo.clear(game)
+                    message = T('amiibo entfernt.', 'Amiibo removed.')
+                else:
+                    selected = filedialog.askopenfilename(parent=self,
+                        title=T('Eigene amiibo-Datei auswählen', 'Select your amiibo file'),
+                        filetypes=[('amiibo (.bin)', '*.bin')])
+                    if not selected:
+                        return
+                    amiibo.select(game, selected)
+                    message = T('Bereit für den nächsten amiibo-Scan im Spiel.', 'Ready for the next in-game amiibo scan.')
+                self.settings_status = (message, ui.GOLD)
+            except (OSError, ValueError) as e:
+                self.settings_status = (str(e), RED)
+            self.settings_page(tab, True)
+
         # the rows of this tab: (key, name, help, cost, labels, current label, pick)
         rows = []
         if tab < len(game_settings.SECTIONS):
@@ -1931,7 +1953,10 @@ class App(tk.Tk):
             x, w = self.content(ctx)
             (hy, _), (tby, _), (gy, gh), (hpy, hph), (fy, fh) = layout(
                 ctx, top, [(76, 30, 0), (44, 24, 0), (330, 18, 1), (84, 16, 0.15), (60, 18, 0)])
+            amiibo_tab = tab < len(game_settings.SECTIONS) and game_settings.SECTIONS[tab][1] == 'amiibo'
             self.heading(ctx, x, hy, T('Einstellungen', 'Settings'),
+                         T('Wähle eine Figur für den nächsten amiibo-Scan. Kein Neustart nötig.',
+                           'Choose a figure for the next amiibo scan. No restart needed.') if amiibo_tab else
                          T('Dieselben Einstellungen wie im Spielmenü (F1). Sie gelten ab dem nächsten Spielstart.',
                            'The same settings as the in-game menu (F1). They apply at the next start of the game.'),
                          icon='settings', w=w)
@@ -1982,6 +2007,29 @@ class App(tk.Tk):
                 h = ctx.dropdown(rx + cw - dw - 20 * s, ry + (rh - min(48 * s, rh - 10 * s)) / 2, dw,
                                  min(48 * s, rh - 10 * s), labels, shown, pick, size=18)
                 h.enter = lambda info=info: explain(*info)
+            if tab < len(game_settings.SECTIONS) and game_settings.SECTIONS[tab][1] == 'amiibo':
+                model = amiibo.selected_id(game)
+                py = gy + 30 * s
+                ctx.text(x + 30 * s, py, T('Eigene amiibo-Datei', 'Your amiibo file'), 26, 'semibold', ui.TEXT)
+                ctx.text(x + 30 * s, py + 48 * s,
+                         T('Ausgewählte Figur: ', 'Selected model: ') + model if model else
+                         T('Keine Figur ausgewählt', 'No amiibo selected'), 18, 'regular', ui.SUB)
+                ctx.button(x + 30 * s, py + 90 * s, 270 * s, 46 * s,
+                           T('.bin auswählen', 'Choose .bin'), choose_amiibo, kind='primary', size=20)
+                ctx.button(x + 320 * s, py + 90 * s, 170 * s, 46 * s,
+                           T('Entfernen', 'Remove'), lambda: choose_amiibo(True), size=18)
+                ctx.text(x + 30 * s, py + 160 * s,
+                         T('1. Eigene amiibo-Datei auswählen (532, 540 oder 572 Bytes).\n'
+                           '2. Im Spiel die amiibo-Funktion aktivieren und einen Scan starten.\n'
+                           'Auch während des Spiels unter F1 → Gameplay → Load amiibo (.bin).\n'
+                           'Die Auswahl gilt sofort. Die normalen Belohnungsgrenzen bleiben bestehen.\n'
+                           'Nur Lesen: keine Spielstände auf amiibos schreiben. Keine Figuren enthalten.',
+                           '1. Choose your own amiibo file (532, 540 or 572 bytes).\n'
+                           '2. Enable the game\'s amiibo feature and start a scan.\n'
+                           'Change files in game: F1 → Gameplay → Load amiibo (.bin).\n'
+                           'Selection applies immediately. Normal reward limits still apply.\n'
+                           'Read-only: no saving data to tags. Amiibo files are not included.'),
+                         17, 'regular', ui.SUB, width=w - 60 * s)
             if tab < len(game_settings.SECTIONS) and game_settings.SECTIONS[tab][1] == 'Tunic':
                 color = tunic_colors.hex_color(cur | self.pending_settings)
                 py = gy + 106 * s
@@ -2016,10 +2064,18 @@ class App(tk.Tk):
             ctx.panel(x, hpy, w, hph, r=14, fill=ui.CELL, alpha=0.9, border=ui.LINE)
             ctx.icon(x + 34 * s, hpy + hph / 2, 'info', 24, ui.ACCENT_HI)
             ctx.text(x + 66 * s, hpy + 14 * s, '', 17, 'semibold', ui.TEXT, key='help_title')
-            ctx.text(x + 66 * s, hpy + 40 * s, T('Fahre über eine Einstellung, um zu sehen, was sie macht.',
+            ctx.text(x + 66 * s, hpy + 40 * s,
+                     T('Die Originaldatei bleibt unverändert. Wenn gerade gescannt wird, den Scan nach einem Wechsel neu starten.',
+                       'Your original file stays unchanged. If a scan is in progress, restart it after switching figures.') if amiibo_tab else
+                     T('Fahre über eine Einstellung, um zu sehen, was sie macht.',
                                                  'Point at a setting to see what it does.'), 17, 'regular', ui.SUB,
                      key='help_text', width=w - 100 * s)
             ctx.button(x, fy, 170 * s, fh, T('Zurück', 'Back'), back, icon='back', size=19)
+            if amiibo_tab:
+                text, col = self.settings_status
+                ctx.text(x + 200 * s, fy + fh / 2, text, 18, 'regular', col, anchor='w',
+                         key='status', width=w - 220 * s)
+                return
             rw = ctx.text_width(T('Grafik zurücksetzen', 'Reset graphics'), 19, 'semibold') + 70 * s
             ctx.button(x + 186 * s, fy, rw, fh, T('Grafik zurücksetzen', 'Reset graphics'), reset, icon='refresh', size=19)
             text, col = self.settings_status
@@ -2330,6 +2386,7 @@ class App(tk.Tk):
             return
         env = self.game_env()
         measured_settings = None
+        diagnostic_settings = None
         measured_hardware = performance.hardware_signature(self.facts)
         try:
             opts = game_settings.read(game)
@@ -2339,17 +2396,39 @@ class App(tk.Tk):
                     'shader_threads', 'pipeline_precompile', 'mesh_shaders', 'texture_saving',
                     'view_distance', 'grass', 'shadow_distance')
             log('game settings: ' + ', '.join(f'{k}={opts.get(k, game_settings.DEFAULTS.get(k, "game default"))}' for k in keys))
+            diagnostic_settings = {k: opts.get(k, game_settings.DEFAULTS.get(k, 'game default')) for k in keys}
         except Exception as e:   # (the options file unreadable: the game starts anyway)
             log(f'game settings not read: {e}')
         log(f'display (primary): {display_info()}')
         log('game start')
-        p = subprocess.Popen([str(game_exe(game))], cwd=str(game), env=env)
+        run = None
+        try:
+            run = diagnostics.start(DIRS['CrashDumps'], game, INFO, diagnostic_settings, measured_hardware, env)
+        except Exception as e:
+            log(f'run diagnostics could not start: {e}')
+        try:
+            p = subprocess.Popen([str(game_exe(game))], cwd=str(game), env=env)
+        except OSError as e:
+            log(f'game could not start: {e}')
+            if run:
+                try:
+                    run['record']['launch_error'] = str(e)
+                    diagnostics.finish(run, -1, game)
+                except Exception as diag_error:
+                    log(f'run diagnostics could not finish: {diag_error}')
+            messagebox.showerror('Ocarina Reborn', str(e))
+            return
         self.music.stop()
         self.withdraw()
 
         def wait():
             code = p.wait()
             log(f'game exit code {code}')
+            if run:
+                try:
+                    diagnostics.finish(run, code, game)
+                except Exception as e:
+                    log(f'run diagnostics could not finish: {e}')
             session = session_from_game_log(game)
             for line in session:
                 log('  ' + line)
@@ -2426,8 +2505,8 @@ class App(tk.Tk):
                 z.write(f, f'game-logs/{f.name}')
             for f in sorted(DIRS['PrepareLogs'].glob('*.log')):
                 z.write(f, f'prepare-logs/{f.name}')
-            for f in sorted(DIRS['CrashDumps'].glob('*'))[-10:]:
-                z.write(f, f'crash/{f.name}')
+            for f, name in diagnostics.package_files(DIRS['CrashDumps'], game):
+                z.write(f, name)
             for f in DIRS['ShaderDumps'].rglob('*.txt'):
                 z.write(f, f'shader-dumps/{f.relative_to(DIRS["ShaderDumps"]).as_posix()}')
         log(f'debug package {out.name}')

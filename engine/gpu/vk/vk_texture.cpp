@@ -4282,9 +4282,12 @@ void texture_frame(uint64_t completed) {
     uint64_t budget = preset_texture_budget((uint64_t)std::max(opts.vram_mb, 0), preset_budget, vram_env,
                                             dev.props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, own);
     if (ocr_gb > 0) {
-        budget = (uint64_t)ocr_gb << 30;
+        // The manual row must preserve the same shared-memory cap as the engine presets.
+        budget = preset_texture_budget((uint64_t)ocr_gb << 10, true, false,
+                                        dev.props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, own);
         static bool told;
-        if (!told) told = true, logf("[OcarinaReborn/GFX] texture memory %d GB (held under 3/4 of what the driver allows)", ocr_gb);
+        if (!told) told = true, logf("[OcarinaReborn/GFX] texture memory requested %d GB, hardware cap %llu MB (driver and pressure limits also apply)",
+                                    ocr_gb, (unsigned long long)(budget >> 20));
     }
     if (preset_budget && known) {
         // Safety clamp: do not exceed 75% of driver-allowed memory on constrained VRAM (prevents VK_ERROR_DEVICE_LOST)

@@ -1,5 +1,3 @@
-> **Distribution notice:** Public installer downloads are paused. Previous packages have been withdrawn during a media cleanup. See [DISTRIBUTION.md](DISTRIBUTION.md). Historical installation instructions below do not indicate an available download.
-
 # Ocarina Reborn
 
 This repository contains the **Ocarina Reborn launcher, patched engine and build scripts**, and hosts installer releases for RecompStore. The website is [ocarina-pc-native-build.github.io](https://ocarina-pc-native-build.github.io/).
@@ -8,15 +6,15 @@ This repository contains the **Ocarina Reborn launcher, patched engine and build
 
 A native Windows x64 version of **The Legend of Zelda: Ocarina of Time (Switch 2)**, built on your PC from your own `.nup` game file.
 
-**Current release: v1.0.5 · November 13, 2026**
+**Current release: v1.0.6 · November 14, 2026**
 
 [Download the latest release](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/latest) · [Website](https://ocarina-pc-native-build.github.io/) · [Discord](https://discord.gg/vDPAcc6JnY)
 
 ## Source code
 
-The actual **v1.0.5 source** is here: [engine and renderer](engine/), [Hookshot game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The upstream [Hookshot Builder source](engine/builder/) is also retained; our distributed launcher is the Ocarina Reborn launcher linked above.
+The actual **v1.0.6 source** is here: [engine and renderer](engine/), [Hookshot game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The upstream [Hookshot Builder source](engine/builder/) is also retained; our distributed launcher is the Ocarina Reborn launcher linked above.
 
-`engine/` contains the already-patched sources used by the released installer, including custom tunic colors and the classic counters fix. The launcher includes automatic classic-voice preparation. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.0.5 source archives contain this project source; the website lives in its separate repository.
+`engine/` contains the already-patched sources used by the released installer, including custom tunic colors and the classic counters fix. Classic-voice preparation imports a user-selected ZIP; recordings are not bundled. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.0.6 source archives contain this project source; the website lives in its separate repository.
 
 ## Get started
 
@@ -38,16 +36,17 @@ You need Windows x64, a Vulkan-capable graphics card and your own supported game
 
 NVIDIA's DLSS files are downloaded separately through the launcher after accepting NVIDIA's license.
 
-## What's new in v1.0.5
+## What's new in v1.0.6
 
-- **Custom tunic colors:** choose a color for Young Link and Adult Link's regular, Goron and Zora tunics.
-- **Launcher → Settings → Tunic:** color picker, RGB values, HEX entry and a preview.
-- **F1 → Gameplay:** the same saved color with red, green and blue sliders; also works when starting the game directly.
-- **Original:** restore the original tunic colors without installing or removing mods manually.
+- Launcher updates resume with original project graphics and no bundled recordings or launcher music.
+- Audio stop/reset and playback-status fixes; the reported boss/ocarina music case still needs confirmation.
+- Loading-memory safeguards, integrated-GPU texture limits and improved crash/GPU diagnostics.
+- Experimental read-only import of your own amiibo .bin files in the launcher and F1 menu; no tag files or keys included.
+- Discord link removed from the F1 menu.
 
-Save and restart the game to apply your choice. Inventory icons and prerecorded movies keep their original appearance. Update over your existing installation, then let the launcher update the game components. No clean reinstall or game-file reimport is needed; saves and settings stay.
+Update over the existing installation and let the launcher update the game components. Saves and settings stay; an existing working installation does not need uninstalling or game-file reimport.
 
-[Full release notes and SHA-256](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/tag/v1.0.5) · [All releases](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases)
+[Full release notes and SHA-256](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/tag/v1.0.6) · [All releases](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases)
 
 ## Feedback and troubleshooting
 

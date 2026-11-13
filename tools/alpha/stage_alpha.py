@@ -107,9 +107,11 @@ REBRAND = {
                         ('"Hookshot: out of memory"', '"Ocarina Reborn: out of memory"')],
     'host/mf_av1.c': [('"Hookshot\'s movies need', '"Ocarina Reborn\'s movies need'),
                       ('"Hookshot", MB_YESNO', '"Ocarina Reborn", MB_YESNO')],
-    # (the launcher starts the game with HOS_DISCORD=0: Discord would show Hookshot's own Discord application)
-    'gpu/vk/vk_menu.cpp': [(r'"Shows \"Playing Hookshot\" and the time played in your Discord status, while Discord runs on this PC."',
-                            r'"Off in Ocarina Reborn: nothing is shown in your Discord status."')],
+    # Ocarina Reborn: omit the Discord status row from the F1 menu.
+    'gpu/vk/vk_menu.cpp': [(
+        '    {TAB_GAMEPLAY, "Discord status", &opts.discord, 0, 1, 1, tx_onoff,\n'
+        r'     "Shows \"Playing Hookshot\" and the time played in your Discord status, while Discord runs on this PC.", nullptr, false,'
+        '\n     true},\n', '')],
     'gpu/vk/vk_main.cpp': [('SetConsoleTitleA("Hookshot")', 'SetConsoleTitleA("Ocarina Reborn")'),
                            ('"Hookshot: graphics card"', '"Ocarina Reborn: graphics card"'),
                            (r'\n\nHookshot needs a GPU', r'\n\nOcarina Reborn needs a GPU')],
@@ -704,6 +706,12 @@ def rebrand(H, icon):
     engine_v21.apply_counters(H)
     import engine_tunic
     engine_tunic.apply(H)
+    import engine_audio
+    engine_audio.apply(H)
+    import engine_amiibo
+    engine_amiibo.apply(H)
+    import engine_stability
+    engine_stability.apply(H)
     rename_files(H)
     (H / 'NOTICE-OCARINA-REBORN.txt').write_text(
         'Ocarina Reborn builds the game with Hookshot (https://github.com/NotRexed/Hookshot), GPL-3.0 (LICENSE).\n'
@@ -847,6 +855,12 @@ def main():
     for rel in media['files']:
         if rel.startswith('engine/') and (O / rel).parent.is_dir():
             shutil.copy2(ROOT / rel, O / rel)
+    # The pinned upstream tools can contain old screenshots. Remove them after copying too.
+    for name in ('linux-builder-newer-game.png', 'setup-runtime-incomplete.png', 'windows-portable-folders.png'):
+        retired = (O / 'engine/docs/images' / name).resolve()
+        if not retired.is_relative_to(O):
+            raise SystemExit('Retired media path escaped the stage')
+        retired.unlink(missing_ok=True)
     check_distribution(O)
     print('staged', O)
 

@@ -94,7 +94,8 @@ typedef struct {
     int nwb, pending_wb;                       /* (pending: appended, not yet applied by an update) */
     uint64_t rel[MAX_REL];                     /* released, for GetReleasedWaveBuffer */
     int nrel, nrel_seen;                       /* (seen: the first nrel_seen, released by the last update) */
-    int64_t played;
+/* Ocarina Reborn: coherent voice stop/reset and playback status. */
+    int64_t played, played_reported;  /* snapshot returned at the last renderer update */
     int64_t pos;                               /* sample frame within the current wave buffer */
     int started_wb;                            /* the current one's start was set up */
     double frac;
@@ -1146,9 +1147,11 @@ static void apply(const Cmd *k) {   /* (with the lock held) */
             memcpy(v->bq_a[k->i0], k->a, sizeof k->a);
             break;
         case OP_VOICE_STATE:
-            if (k->i0 == PLAY_STOPPED && v->state != PLAY_STOPPED) {   /* stopped: every queued buffer is released */
+            if (k->i0 == PLAY_STOPPED) {   /* every stop cancels queued buffers, including a primed stopped voice */
                 for (int i = 0; i < v->nwb; i++) release_wb(v, v->wb[i]);
                 v->nwb = 0;
+                v->played = 0;
+                v->pos = 0;
                 v->started_wb = 0;
                 v->frac = 0;
                 memset(v->prev, 0, sizeof v->prev);
@@ -1243,10 +1246,17 @@ static void submit(const Cmd *k) {   /* (with the lock held) */
     if (immediate || ncmds == cmds_cap) apply(k);
     else cmds[ncmds++] = *k;
 }
-static void commit(void) {   /* (with the lock held) */
+/* Audio: mixer fallback preserves the client status snapshot. */
+static void apply_pending(void) {   /* (with the lock held; no status publication) */
     for (int i = 0; i < ncmds; i++) apply(&cmds[i]);
     ncmds = 0;
-    for (int i = 0; i < MAX_VOICES; i++) voices[i].nrel_seen = voices[i].nrel;   /* (the finished buffers, to the game) */
+}
+static void commit(void) {   /* (client RequestUpdateAudioRenderer, with the lock held) */
+    apply_pending();
+    for (int i = 0; i < MAX_VOICES; i++) {
+        voices[i].nrel_seen = voices[i].nrel;
+        voices[i].played_reported = voices[i].played;
+    }   /* completed buffers and sample positions describe the same renderer update */
 }
 
 /* The mixer's next deadline. `next` was the one just woken for; one frame is `period` later, on that same grid.
@@ -1330,7 +1340,7 @@ static DWORD WINAPI renderer_main(void *p) {
         next = audio_mix_deadline(hos_now_ns(), next, period);
         if (!renderer_running) continue;
         au_lock();
-        if (ncmds && hos_now_ns() - last_update_ns > 50000000) commit();   /* (no update came: see "parameter updates") */
+        if (ncmds && hos_now_ns() - last_update_ns > 50000000) apply_pending();   /* controls only: status waits for the client update */
         render_frame(pcm, out_channels);
         au_unlock();
         if (gain_frames-- <= 0) gain_want = audio_player_gain(), gain_frames = 20;   /* (the menu read every 100 ms) */
@@ -1352,6 +1362,8 @@ HLE(_ZN2nn5audio17OpenAudioRendererEPNS0_19AudioRendererHandleEPNS_2os11SystemEv
     au_unlock();
     if (!renderer_thread) renderer_thread = CreateThread(NULL, 0, renderer_main, NULL, 0, NULL);
     hos_log("audio: renderer opened");
+    hos_log("audio: voice stop/reset fix active (queued loops and playback status)");
+    hos_log("audio: timeout status snapshot fix active (client update boundary)");
     RET(0);
 }
 HLE(_ZN2nn5audio18StartAudioRendererENS0_19AudioRendererHandleE) { renderer_running = 1; RET(0); }
@@ -1824,7 +1836,7 @@ HLE(_ZN2nn5audio18GetWaveBufferCountEPKNS0_9VoiceTypeE) {
 HLE(_ZN2nn5audio25GetVoicePlayedSampleCountEPKNS0_9VoiceTypeE) {
     au_lock();
     Voice *v = voice_of(ARG(0));
-    RET(v ? v->played : 0);
+    RET(v ? v->played_reported : 0);
     au_unlock();
 }
 HLE(_ZN2nn5audio20IsVoiceDroppedFlagOnEPKNS0_9VoiceTypeE) { RET(0); }

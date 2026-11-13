@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include "ocr_crash.h"
 #ifndef _WIN32
 #include <dlfcn.h>
 #include <execinfo.h>
@@ -95,6 +96,7 @@ static uint64_t peek_guest(uint64_t a) {
 }
 
 static LONG WINAPI report_crash(EXCEPTION_POINTERS *info) {
+    ocr_crash_report("unhandled exception", info->ExceptionRecord->ExceptionCode, info->ContextRecord);
     EXCEPTION_RECORD *rec = info->ExceptionRecord;
     const uint64_t rip = info->ContextRecord->Rip;
     HMODULE mod = NULL;
@@ -222,6 +224,7 @@ static LONG CALLBACK report_fatal(EXCEPTION_POINTERS *info) {
 }
 
 void hos_commit_init(void) {
+    ocr_crash_init();
     AddVectoredExceptionHandler(1, commit_on_touch);
     AddVectoredExceptionHandler(0, report_fatal);
     SetUnhandledExceptionFilter(report_crash);

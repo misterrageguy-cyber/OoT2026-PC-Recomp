@@ -35,6 +35,39 @@ def hardware_signature(facts):
 # VK_ERROR_OUT_OF_HOST_MEMORY (-1) and a confirmed Windows commit retry are specific
 # evidence; failed shader translation and VK_ERROR_UNKNOWN (-13) are not.
 HOST_MEMORY_ERROR = re.compile(r"vk: submit \d+ failed \(-1\)|mem: commit .*Windows grew the page file")
+GPU_SUBMIT_ERROR = re.compile(r'vk: (?:batched |segment )?submit \d+ failed \((-2|-4)\)')
+
+
+def gpu_failures(lines):
+    """Specific Vulkan results, independent of FPS samples or the process exit code."""
+    result = dict(device_memory_errors=0, device_lost_errors=0)
+    for line in lines:
+        match = GPU_SUBMIT_ERROR.search(line)
+        if (match and match[1] == '-2') or 'VK_ERROR_OUT_OF_DEVICE_MEMORY' in line:
+            result['device_memory_errors'] += 1
+        if (match and match[1] == '-4') or 'VK_ERROR_DEVICE_LOST' in line:
+            result['device_lost_errors'] += 1
+    return result
+
+
+def gpu_failure_advice(summary, de=True):
+    t = lambda d, e: d if de else e
+    advice = []
+    if summary.get('device_memory_errors', 0):
+        advice.append(('warn', t(
+            'Der Renderer meldete erschöpften GPU-Speicher (VK_ERROR_OUT_OF_DEVICE_MEMORY). '
+            'Texturspeicher auf 2 GB stellen und andere GPU-intensive Programme schließen. '
+            'Integrierte Grafik teilt sich den Arbeitsspeicher mit dem Spiel.',
+            'The renderer ran out of GPU memory (VK_ERROR_OUT_OF_DEVICE_MEMORY). '
+            'Set Texture memory to 2 GB and close other GPU-intensive programs. '
+            'Integrated graphics shares system RAM with the game.')))
+    if summary.get('device_lost_errors', 0):
+        advice.append(('warn', t(
+            'Die GPU-Verbindung ging verloren (VK_ERROR_DEVICE_LOST). Das Spiel neu starten und das Debug-Paket senden. '
+            'Dieser Fehler allein beweist keinen Speicher- oder Treiberdefekt.',
+            'The GPU device was lost (VK_ERROR_DEVICE_LOST). Restart the game and send the Debug Package. '
+            'This error alone does not establish a memory or driver fault.')))
+    return advice
 
 
 def memory_events(lines):
@@ -92,7 +125,7 @@ def summarize(lines):
     # loading/compilation pauses above are excluded, and no CPU model is used as a proxy for measured pressure.
     cpu_slow = sum(r['seconds'] for r in steady if r['fps'] < 55 and r['cpu'] >= 12 and
                    r['gpu'] > .1 and r['cpu'] > 1.2 * r['gpu'])
-    return dict(schema=2, host_memory_events=host_memory_events, seconds=seconds, frames=int(frames), fps=frames / seconds,
+    return dict(schema=2, **gpu_failures(lines), host_memory_events=host_memory_events, seconds=seconds, frames=int(frames), fps=frames / seconds,
                 p95_worst_window=max(r['p95'] for r in rows), p99_worst_window=max(r['p99'] for r in rows),
                 worst_ms=max(r['worst'] for r in rows), over50=int(sum(r['h50'] for r in rows)),
                 over100=int(sum(r['h100'] for r in rows)),
@@ -132,6 +165,7 @@ def describe(summary, de=True):
     ]
     if s.get('host_memory_events', 0):
         lines.insert(0, memory_advice(de))
+    lines[0:0] = gpu_failure_advice(s, de)
     if cpu_pressure(s):
         lines.insert(-1, ('warn', t(
             f"In {s['cpu_slow_seconds']:.0f} s unter 55 FPS brauchte der Renderer auf der CPU deutlich länger als die GPU. "
@@ -208,12 +242,14 @@ def suggest(summary, current, measured_settings, de=True):
             changes['frame_rate_cap'] = 0
             reasons.append(t('Das bisherige FPS-Limit liegt über 60: zum Vergleich auf 60 begrenzen.',
                              'The current frame-rate limit is above 60: cap it at 60 for the comparison.'))
-    if summary['vram_pressure_seconds'] >= 15:
+    if summary.get('device_memory_errors', 0) or summary['vram_pressure_seconds'] >= 15:
         lower_budget = {'2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
+        if summary.get('device_memory_errors', 0):
+            lower_budget['0'] = 1
         if values['texture_memory'] in lower_budget:
             changes['texture_memory'] = lower_budget[values['texture_memory']]
-            reasons.append(t('Das gemeldete Speicherbudget war länger fast voll: Texturcache eine Stufe kleiner testen.',
-                             'Reported memory budget was nearly full for a sustained period: test one smaller texture-cache step.'))
+            reasons.append(t('GPU-Speicherfehler oder anhaltend knappes Speicherbudget: kleineren Texturcache testen.',
+                             'GPU memory errors or sustained memory pressure: test a smaller texture cache.'))
     if changes and values['quality_preset'] != '0':
         changes['quality_preset'] = 0
     if not changes:

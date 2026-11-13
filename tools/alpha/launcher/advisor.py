@@ -59,7 +59,8 @@ def gpus():
 
 def is_integrated(name):
     n = name.lower()
-    return any(k in n for k in INTEGRATED)
+    plain = ' '.join(re.sub(r'\(tm\)|\(r\)|[™®]', '', n).split())
+    return plain in ('amd radeon graphics', 'radeon graphics') or any(k in n for k in INTEGRATED)
 
 
 def power():
@@ -150,7 +151,8 @@ def build_preset(key, facts, dlss_ready=False):
     name, gb = main_gpu(facts) if facts else ('', None)
     n = name.lower()
     tm = texture_memory_for(gb)
-    s['texture_memory'] = tm if tm is not None else 0
+    # UMA's reserved/reported video memory is not a dedicated card's spare texture cache.
+    s['texture_memory'] = 1 if is_integrated(name) else tm if tm is not None else 0
     if 'nvidia' in n:
         s['nvidia_reflex'] = 1
         if dlss_ready:
@@ -254,6 +256,11 @@ def diagnose(lines, settings=None, de=True):
     summary = performance.summarize(lines)
     if summary:
         return performance.describe(summary, de)
+    gpu_advice = performance.gpu_failure_advice(performance.gpu_failures(lines), de)
+    if gpu_advice:
+        if performance.memory_events(lines):
+            gpu_advice.append(performance.memory_advice(de))
+        return gpu_advice
     if performance.memory_events(lines):
         return [performance.memory_advice(de)]
     if any('stats2 seconds ' in line for line in lines):

@@ -1351,7 +1351,7 @@ def show_prepared(line):
 def prepare_shaders(cmd, folder=None, silence=PREPARE_SILENCE):
     """The shaders prepared now, under the builder's progress bar, not at the game's first start behind a black window (minutes on
     some GPUs, issue 711): ocarina_reborn --prepare-shaders (host/hos_main.c, gpu/vk/vk_main.cpp), the same work as that first start, in
-    the game's folder and environment, as the builders' Play starts it. A PC whose Vulkan can't (exit 3), a run silent for `silence` seconds (then stopped), or
+    the game's folder and environment, as the builders' Play starts it. A run ending with exit 3 (not a Vulkan diagnosis by itself), a run silent for `silence` seconds (then stopped), or
     any other failure leaves the work to the first start, as before: never a failed build. Returns its exit code (None: stopped)"""
     try:
         code = run(cmd, check=False, show=show_prepared, cwd=folder or os.path.dirname(cmd[0]) or None,
@@ -1362,7 +1362,7 @@ def prepare_shaders(cmd, folder=None, silence=PREPARE_SILENCE):
     if code is None:
         not_prepared("the game printed nothing for %s and was stopped" % span(silence))
     elif code == 3:
-        not_prepared("no usable Vulkan here")
+        not_prepared("shader preparation stopped with exit status 3; see the preceding error output")
     elif code == 4:   # (gpu/vk/vk_main.cpp prepare_watchdog: nothing moved for minutes, the driver stuck after a fault in it)
         not_prepared("the GPU driver stopped responding")
     elif code:

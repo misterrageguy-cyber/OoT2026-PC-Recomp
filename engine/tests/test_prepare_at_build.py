@@ -56,7 +56,7 @@ class PrepareShadersTests(unittest.TestCase):
         self.assertFalse(any(l.startswith("@@") for l in lines))
         self.assertIn("error no usable Vulkan here", lines)
         self.assertEqual(len(not_prepared(lines)), 1)
-        self.assertIn("(no usable Vulkan here)", lines[-1])
+        self.assertIn("shader preparation stopped with exit status 3", lines[-1])
 
     def test_a_crash_leaves_them_to_the_first_start(self):
         code, lines = prepared(stub("import sys; print('@@stage shaders Preparing shaders'); sys.exit(5)"))

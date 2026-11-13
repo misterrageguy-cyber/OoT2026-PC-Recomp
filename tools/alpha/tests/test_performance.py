@@ -20,6 +20,24 @@ def sample(*, frames=200, seconds=5, cpu=8, gpu=23, used=2, budget=4, known=True
 
 
 class Measurements(unittest.TestCase):
+    def test_device_memory_errors_are_not_host_memory_or_device_loss(self):
+        lines = [sample()] * 6 + ['[hos Presentation Thread] vk: submit 92402 failed (-2)']
+        s = performance.summarize(lines)
+        self.assertEqual(s['device_memory_errors'], 1)
+        self.assertEqual(s['device_lost_errors'], 0)
+        self.assertEqual(s['host_memory_events'], 0)
+        self.assertIn('VK_ERROR_OUT_OF_DEVICE_MEMORY', advisor.diagnose(lines, de=False)[0][1])
+        settings = {'texture_memory': 0, 'resolution': 4}
+        self.assertEqual(performance.suggest(s, settings, performance.signature(settings))[0]['texture_memory'], 1)
+
+    def test_gpu_errors_without_fps_samples_and_unknown_error(self):
+        for prefix in ('submit', 'batched submit', 'segment submit'):
+            self.assertIn('VK_ERROR_OUT_OF_DEVICE_MEMORY', advisor.diagnose([f'vk: {prefix} 42 failed (-2)'], de=False)[0][1])
+        lost = advisor.diagnose(['vk: submit 7925 failed (-4)'], de=False)
+        self.assertIn('VK_ERROR_DEVICE_LOST', lost[0][1])
+        self.assertNotIn('ran out of', lost[0][1])
+        self.assertEqual(advisor.diagnose(['vk: submit 42 failed (-13)'], de=False), [])
+
     def test_weighted_fps_and_hitch_counts(self):
         s = performance.summarize([sample(), sample(frames=100, seconds=10, worst=160, h50=4, h100=2)])
         self.assertEqual(s['fps'], 300 / 15)

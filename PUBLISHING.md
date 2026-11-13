@@ -1,32 +1,15 @@
-> Public downloads are paused after the distribution review. Old release links and checksums below are historical; do not re-upload previous installers or media. Use the current main source and its distribution guard.
+# Publishing Ocarina Reborn
 
-> **Distribution notice:** Public installer downloads are paused. Previous packages have been withdrawn during a media cleanup. See [DISTRIBUTION.md](DISTRIBUTION.md). Historical installation instructions below do not indicate an available download.
+The launcher checks `https://api.github.com/repos/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/latest`. Preserve that repository and the exact asset name `Ocarina-Reborn-Alpha-Setup.exe` so existing installations can update.
 
-# Publishing and maintenance
+1. Increase the numeric version in `tools/alpha/VERSION` (v1.0.6 follows v1.0.5); keep build-info and installer resources consistent.
+2. Build a fresh installer from the cleaned source. Both staging recipes must pass the distribution guard. Keep the installer AppId and per-user installation path unchanged.
+3. Run the project tests, native build/smoke checks and upgrade checks. Verify no game files, private keys, bundled recordings or unverified project media enter the source archive or installer.
+4. Publish the corresponding launcher/engine/build source and source archive. Tag that source commit in both the source repository and the website repository (source/vX.Y.Z branch); the release tag must identify actual project source, not only website files.
+5. Create draft releases in BOTH repositories. Upload the installer, its SHA-256 text file, the source ZIP and its SHA-256 file. Verify uploaded sizes and SHA-256 digests.
+6. Keep exactly one 64-character lowercase checksum in the release body: the installer's SHA-256. Old launchers read the first such value. Source hashes belong in the separate checksum file.
+7. Publish as a stable, non-prerelease release and mark it latest. Update the website and confirm the previous launcher offers the new version and verifies the same installer checksum.
 
-The website is static HTML and CSS. It requires no build step, dependencies, analytics service, or API keys.
+The source repository is `misterrageguy-cyber/OoT2026-PC-Recomp`. The update/website repository is `ocarina-pc-native-build/ocarina-pc-native-build.github.io`. Never push to unrelated remotes.
 
-## GitHub Pages
-
-1. Place this package in the root of `misterrageguy-cyber/OoT2026-PC-Recomp`.
-2. In the repository, open **Settings → Pages**.
-3. Choose **Deploy from a branch**, select the branch containing these files and **/ (root)**, then save.
-4. Use the published URL shown by GitHub after deployment succeeds.
-
-Reference: [GitHub Pages publishing documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
-
-Keep `index.html`, `README.md`, `ROADMAP.md`, `CHANGELOG.md`, and `.nojekyll` together so that local links resolve.
-
-## Add Buy Me a Coffee later
-
-Once the account exists, verify its exact profile URL before adding it.
-
-- In `index.html`, replace the pending support label with an anchor pointing to that profile, and remove the “Coming soon” and unavailable-page text.
-- In `README.md`, replace the “coming soon” line with a link to the verified profile.
-- Optionally create `.github/FUNDING.yml` containing `buy_me_a_coffee: YOUR_VERIFIED_USERNAME` after replacing the example with the actual username. Do not publish the example value.
-
-The present website intentionally has no active payment link.
-
-## Update project progress
-
-Update the website and README together. Preserve the scope of each test, separate measured results from targets, and add new development milestones to the changelog. Only mark roadmap items complete after the corresponding functionality has been tested.
+Older releases withdrawn during the media cleanup remain withdrawn. Do not republish old installers, restore old assets or merge history from pre-cleanup clones. User game files, saves, settings and local imports stay outside the installer and public source.

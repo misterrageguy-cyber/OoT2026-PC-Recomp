@@ -3,13 +3,18 @@ import argparse
 import datetime
 import json
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'tools/alpha'))
+import distribution_guard
 
 
 def stage(runtime, output):
     runtime, output = runtime.resolve(), output.resolve()
+    distribution_guard.check(ROOT)
     version = (ROOT / 'tools/alpha/VERSION').read_text().strip()
     required = ['python/python.exe', 'engine/python/python.exe', 'engine/llvm-mingw/bin/clang.exe',
                 'engine/cpm', 'engine/third_party/sdl2/SDL2.dll', 'engine/third_party/sdl2/SDL3.dll']
@@ -38,11 +43,11 @@ def stage(runtime, output):
     (output / 'engine/third_party/sdl2').mkdir(parents=True, exist_ok=True)
     for name in ('SDL2.dll', 'SDL3.dll'):
         shutil.copy2(runtime / 'engine/third_party/sdl2' / name, output / 'engine/third_party/sdl2' / name)
-    for name in ('ocarina_reborn.ico', 'ocarina_reborn.res'):
-        src = runtime / 'engine/work' / name
-        if src.is_file():
-            (output / 'engine/work').mkdir(exist_ok=True)
-            shutil.copy2(src, output / 'engine/work' / name)
+    # Resource files must come from our reviewed source art, never the donor's old icon.
+    (output / 'engine/work').mkdir(exist_ok=True)
+    subprocess.run([str(output / 'engine/python/python.exe'), '-I',
+                    str(output / 'engine/nx2/make_icon.py'),
+                    str(ROOT / 'tools/alpha/ocarina-icon.png'), str(output / 'engine/work')], check=True)
     if (runtime / 'amd-fsr4').is_dir():
         shutil.copytree(runtime / 'amd-fsr4', output / 'amd-fsr4')
     shutil.copy2(ROOT / 'tools/alpha/ocarina_prepare.py', output / 'ocarina_prepare.py')
@@ -53,6 +58,7 @@ def stage(runtime, output):
     info.update(version=version, commit='source-v' + version,
                 stamp=datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
     (output / 'build-info.json').write_text(json.dumps(info, indent=2))
+    distribution_guard.check(output)
     print('Source staged:', output)
 
 

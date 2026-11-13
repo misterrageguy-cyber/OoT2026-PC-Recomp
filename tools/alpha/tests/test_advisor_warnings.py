@@ -25,6 +25,24 @@ class PcWarnings(unittest.TestCase):
 
 
 class LowEndFixes(unittest.TestCase):
+    def test_plain_amd_name_and_shared_memory_profile(self):
+        for name in ('AMD Radeon Graphics', 'AMD Radeon(TM) Graphics', 'AMD Radeon™ Graphics'):
+            with self.subTest(name=name):
+                facts = {'gpus': [(name, 6.0)], 'cpu_threads': 16, 'ram_gb': 10.7}
+                self.assertTrue(advisor.is_integrated(name))
+                key, s, *_ = advisor.recommend(facts)
+                self.assertEqual(key, 'performance')
+                self.assertEqual(s['texture_memory'], 1)
+                self.assertEqual(s['output_res'], '1280x720')
+                self.assertEqual(s['dlss'], 0)
+                self.assertNotIn('fps_target', s)
+                self.assertEqual(advisor.build_preset('quality', facts)['texture_memory'], 1)
+
+    def test_dedicated_amd_selected_over_plain_integrated_name(self):
+        facts = {'gpus': [('AMD Radeon Graphics', 6.0), ('AMD Radeon RX 7800 XT', 16.0)]}
+        self.assertFalse(advisor.is_integrated('AMD Radeon RX 7800 XT'))
+        self.assertEqual(advisor.main_gpu(facts)[0], 'AMD Radeon RX 7800 XT')
+
     RX6600 = {'gpus': [('AMD Radeon RX 6600', 8.0), ('Virtual Desktop Monitor', None)], 'cpu_threads': 12, 'cpu_cores': 6,
               'ram_gb': 15.9, 'laptop': False, 'plan': 'Razer Cortex Power Plan'}
 

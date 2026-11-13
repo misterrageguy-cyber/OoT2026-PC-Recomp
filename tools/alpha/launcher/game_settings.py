@@ -134,8 +134,8 @@ SECTIONS = [
         ('texture_memory', 'Texturspeicher', 'Texture memory',
          [(0, 'Auto', 'Auto'), (1, '2 GB', '2 GB'), (2, '4 GB', '4 GB'), (3, '6 GB', '6 GB'), (4, '8 GB', '8 GB'),
           (5, '12 GB', '12 GB'), (6, '16 GB', '16 GB')],
-         'Höchstens so viel Grafikspeicher für Texturen. Mehr = weniger Nachladen. Das Spiel bleibt immer unter 3/4 deiner Karte.',
-         'The most video memory for textures. More = fewer reloads. The game always stays under 3/4 of your card.', 'medium'),
+         'Obergrenze für den Texturcache. Mehr kann Nachladen verringern. Treiberlimit und bei integrierter Grafik der gemeinsame RAM begrenzen den tatsächlich nutzbaren Cache.',
+         'Upper limit for the texture cache. More can reduce reloads. The driver limit and shared RAM on integrated graphics can reduce the actual cache size.', 'medium'),
     ]),
     ('Shader', 'Shaders', [
         ('pipeline_precompile', 'Pipelines vorbauen', 'Pipeline precompile', OFF_ON,
@@ -171,6 +171,7 @@ SECTIONS = [
          'Echtzeit: das Spiel bleibt gleich schnell, auch wenn die FPS fallen. Pro Bild: es wird mit den FPS langsamer, wie auf der Konsole.',
          'Real time: the game keeps its speed when the fps drop. Per frame: it slows down with the fps, as on the console.', ''),
     ]),
+    ('amiibo', 'amiibo', []),
     ('Tunika', 'Tunic', [
         ('custom_tunic_color', 'Eigene Tunika-Farbe', 'Custom tunic color',
          [(0, 'Original', 'Original'), (1, 'Eigene Farbe', 'Custom color')],

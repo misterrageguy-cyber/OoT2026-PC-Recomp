@@ -35,6 +35,8 @@ Remove-Item -LiteralPath $Resource, $Object
 & "$CompilerBin\clang.exe" -O2 -shared -D_WIN32_WINNT=0x0A00 "$SourceRoot\tools\alpha\launcher\chrome.c" -o "$Stage\launcher\ocr_chrome.dll" -lcomctl32 -lshell32 -luser32
 if ($LASTEXITCODE) { throw 'Launcher window compilation failed' }
 if ($StageOnly) { Write-Host "Ready: $Stage"; exit 0 }
+& $Python "$SourceRoot\tools\alpha\distribution_guard.py" $Stage
+if ($LASTEXITCODE) { throw 'Distribution contents check failed' }
 if (-not (Test-Path -LiteralPath $Iscc)) { throw 'Install Inno Setup 6 or pass -Iscc with the compiler path.' }
 $Dist = Join-Path $SourceRoot 'build\dist'
 New-Item -ItemType Directory -Path $Dist -Force | Out-Null

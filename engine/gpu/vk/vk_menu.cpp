@@ -44,6 +44,7 @@
 #include "vk_fsr3.h"      // (the Upscaler row: whether AMD FSR 3.1 runs on this GPU)
 #include "vk_fsr3fi.h"    // (the Frame generation row: whether FSR 3.1 makes the frame)
 #include "vk_fsr4.h"
+#include "ocr_amiibo_menu.h"
 namespace mkwvk { int ocr_tunic = 0, ocr_tunic_r = 80, ocr_tunic_g = 160, ocr_tunic_b = 75; }
 namespace mkwvk { int ocr_counters = 0; std::atomic<int> ocr_rupees{-1}; }   // (Classic counters row; the wallet, -1: none)
 #define OCR_OPT_RUPEES 4084   /* (Ocarina Reborn) rx_option_set from the game side: the wallet, host/ocr_counters.c */
@@ -1266,6 +1267,10 @@ Row rows[] = {
      "RGB color component (0-255). Enable Custom tunic color, then save and restart. Lighting affects the result.", nullptr, true, true},
     {TAB_GAMEPLAY, "Tunic blue", &ocr_tunic_b, 0, 255, 1, tx_tunic_rgb,
      "RGB color component (0-255). Enable Custom tunic color, then save and restart. Lighting affects the result.", nullptr, true, true},
+    {TAB_GAMEPLAY, "Load amiibo (.bin)", nullptr, 0, 0, 0, nullptr,
+     "Choose your own raw amiibo .bin (532/540/572 bytes), then close F1 and use the in-game amiibo scan. Read-only: rewards, no tag save writes. Normal game limits apply."},
+    {TAB_GAMEPLAY, "Remove amiibo", nullptr, 0, 0, 0, nullptr,
+     "Removes the selected tag from the virtual reader. Your original .bin is unchanged."},
     {TAB_GAMEPLAY, "FPS counter", &opts.show_fps, 0, fps_stats::kLevels - 1, 1, tx_fps_level,
      "Frames per second in the top right corner, and as much more as you choose.", hn_fps, false, true},
     {TAB_GAMEPLAY, "FPS counter position", &opts.fps_corner, 0, 3, 1, tx_fps_corner,
@@ -1296,9 +1301,6 @@ Row rows[] = {
      "The game's own language, its text. Applies after a restart.", nullptr, true, true},
     {TAB_GAMEPLAY, "Menu language", &opts.menu_lang, 0, i18n::lang_count(), 1, tx_menu_lang, "The language of this menu.",
      hn_menu_lang, false, true},
-    {TAB_GAMEPLAY, "Discord status", &opts.discord, 0, 1, 1, tx_onoff,
-     "Off in Ocarina Reborn: nothing is shown in your Discord status.", nullptr, false,
-     true},
     {TAB_GAMEPLAY, "Skip opening", &opts.skip_opening, 0, 1, 1, tx_onoff,
      "Skips the new-game opening (the story movie and Navi waking Link) and leaves later cutscenes, the Deku Tree "
      "meeting, and the title screen alone.", nullptr, false, true},
@@ -3024,6 +3026,8 @@ void row_value_cell(ui::Ctx& c, const Row& r, ImVec2 va, ImVec2 vb, bool selecte
         choice_cell(c, va, vb, cheat_button_text(r.cheat), selected, false, false, r.cheat == 9);
     } else if (!r.value) {
         if (pending == &r) choice_cell(c, va, vb, "Press again to confirm", selected, false, false);
+        else if (!strcmp(r.name, "Load amiibo (.bin)")) choice_cell(c, va, vb, ocr_amiibo_menu::busy ? "Choosing..." : "Choose file", selected, false, false);
+        else if (!strcmp(r.name, "Remove amiibo")) choice_cell(c, va, vb, "Remove", selected, false, false);
         else if (is_share_row(r)) choice_cell(c, va, vb, share_value.empty() ? "Save" : share_value, selected, false, false);   // (an action, not a page)
         else if (&r == &rows[kBugReportRow]) choice_cell(c, va, vb, bug_report_cell(), selected, false, false);   // (how the last report went)
         else {
@@ -3102,6 +3106,8 @@ void draw_options(ui::Ctx& c) {
     const Row& selr = rows[tab_row_to_global(cur_tab, sel)];
     const char* hint = selr.value && selr.hint ? selr.hint(*selr.value, -1) : nullptr;
     if (is_share_row(selr) && !share_said.empty()) hint = share_said.c_str();   // (what the last save did)
+    const std::string amiibo_hint = ocr_amiibo_menu::message();
+    if ((!strcmp(selr.name, "Load amiibo (.bin)") || !strcmp(selr.name, "Remove amiibo")) && !amiibo_hint.empty()) hint = amiibo_hint.c_str();
     if (&selr == &rows[kBugReportRow]) hint = bug_report_hint();   // (the Bug report: where it was saved, or why not)
     const std::string pending_line = (cur_tab == TAB_GRAPHICS || cur_tab == TAB_DEBUG) && restart_pending() ? restart_line(c, 16 * s, hx1 - hx0 - 66 * s) : "";
     static float help_tall = 0, help_tall_w = 0;
@@ -5057,6 +5063,8 @@ void menu_tick() {
         } else if (r.cheat >= 0) cheat_press(r.cheat, press, changed);   // (a debug tool: on the Debug tab itself)
         else if (press[7] && is_motion_row(r)) cur_tab = TAB_MOTION, tab_selected[TAB_MOTION] = 0, press[7] = false, changed = true;
         else if (press[7] && is_share_row(r)) share_pipeline_list(), press[7] = false, changed = true;
+        else if (press[7] && !strcmp(r.name, "Load amiibo (.bin)")) ocr_amiibo_menu::choose(app_window()), press[7] = false, changed = true;
+        else if (press[7] && !strcmp(r.name, "Remove amiibo")) ocr_amiibo_menu::clear(), press[7] = false, changed = true;
         else if (press[7] && &r == &rows[kBugReportRow]) bug_report_save(), press[7] = false, changed = true;
         else if (press[7] && !r.value && can_bind()) page = 1, csel = 0, ccol = menu_hit::kCtlPrimary, changed = true;
         if ((press[3] || press[4] || press[7]) && r.value) {   // (Enter, or A, as Right)
