@@ -23,7 +23,7 @@ def run_capture(command):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="hookshot-漢-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-漢-") as temporary:
         child = Path(temporary) / "child.py"
         child.write_text('import sys\nprint("child-output:\\ufffd" + sys.argv[1], flush=True)\n', encoding="utf-8")
         legacy_command = [sys.executable, "-I", "-u", str(child), temporary]

@@ -1,11 +1,11 @@
 """Windows paths as UTF-8: the game exe's manifest makes its code page UTF-8 (nx2/win_manifest.py), so a game folder named
 outside the system's ANSI code page (Japanese on a Western Windows, an emoji anywhere) opens; before, the game closed at start.
 
-Everywhere: the manifest resource's bytes, that nx2/build.py links it into hookshot.exe, that host/hos_main.c checks at start,
+Everywhere: the manifest resource's bytes, that nx2/build.py links it into ocarina_reborn.exe, that host/hos_main.c checks at start,
 and that host/ and gpu/vk convert no text with the ANSI code page (CP_ACP and the like: UTF-8 is the one code page of the game's
 char strings). With a compiler for Windows: tests/utf8_paths_test.c (host/hos_main.c's narrow_paths_ok pasted in) built with the
 manifest, and once without it. On Windows both run from a folder named "ゲーム Zélda 🎮": with the manifest the A functions,
-fopen, argv, getenv and the log (stderr freopen'd, as hookshot_log.txt) are UTF-8 and the paths round-trip; without it the
+fopen, argv, getenv and the log (stderr freopen'd, as ocarina_reborn_log.txt) are UTF-8 and the paths round-trip; without it the
 start-up check refuses the folder (as the game used to fail).
 Elsewhere the build is checked to carry the manifest resource (HOOKSHOT_MINGW=<llvm-mingw> on Linux).
 
@@ -58,15 +58,15 @@ def check_manifest():
 
 def check_build_links_it():
     src = (ROOT / "nx2" / "build.py").read_text(encoding="utf-8")
-    start = src.index('exe = os.path.join(out, "hookshot.exe")')
+    start = src.index('exe = os.path.join(out, "ocarina_reborn.exe")')
     link = src[start:src.index("capture_output=True", start)]
-    assert "win_manifest.write(" in link, "nx2/build.py links hookshot.exe without nx2/win_manifest.py's resource"
+    assert "win_manifest.write(" in link, "nx2/build.py links ocarina_reborn.exe without nx2/win_manifest.py's resource"
 
 
 def check_start_up():
     src = (ROOT / "host" / "hos_main.c").read_text(encoding="utf-8")
     main = src.index("int main(int argc, char **argv) {\n#else")
-    first = src[main:src.index("load_hookshot_env();", main)]
+    first = src[main:src.index("load_ocarina_reborn_env();", main)]
     assert "narrow_paths_ok(argc, argv)" in first, "host/hos_main.c's main checks its folder's path before anything opens a file"
 
 
@@ -121,17 +121,17 @@ def check_probe(cc_arg):
         return
     template = (ROOT / "tests" / "utf8_paths_test.c").read_text(encoding="utf-8")
     assert template.count("/* ACTUAL_NARROW_PATHS_OK */") == 1
-    with tempfile.TemporaryDirectory(prefix="hookshot-utf8-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-utf8-") as temp:
         build = Path(temp) / "build"
         run_dir = Path(temp) / "ゲーム Zélda 🎮"
         build.mkdir()
         run_dir.mkdir()
         source = build / "probe.c"
         source.write_text(template.replace("/* ACTUAL_NARROW_PATHS_OK */", narrow_paths_ok_source()), encoding="utf-8")
-        res = win_manifest.write(str(build / "hookshot_manifest.res"))
+        res = win_manifest.write(str(build / "ocarina_reborn_manifest.res"))
         target = [] if os.name == "nt" or "mingw32" in os.path.basename(cc) else ["--target=x86_64-w64-mingw32"]
         flags = target + ["-std=c11", "-O0", "-Wall", "-Wextra", "-Werror", "-D_CRT_SECURE_NO_WARNINGS", "-fuse-ld=lld",
-                          "-include", str(ROOT / "gpu" / "vk" / "compat" / "hookshot_env.h")]   # (env_on: narrow_paths_ok's)
+                          "-include", str(ROOT / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")]   # (env_on: narrow_paths_ok's)
         libs = ["-luser32"]
         with_manifest, without = build / "probe.exe", build / "probe_ansi.exe"
         subprocess.run([cc] + flags + [str(source), res, "-o", str(with_manifest)] + libs, check=True)

@@ -38,7 +38,7 @@ class ReachedGame(Exception):
 
 class LinuxPreflightTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="hookshot-linux-preflight-")
+        self.temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-linux-preflight-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name).resolve()
         self.stack = contextlib.ExitStack()

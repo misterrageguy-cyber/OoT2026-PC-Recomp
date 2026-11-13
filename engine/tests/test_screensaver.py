@@ -28,7 +28,7 @@ def main():
     procedure = wndproc(args.source.read_text(encoding="utf-8"))
     template = (ROOT / "tests/screensaver_test.c").read_text(encoding="utf-8")
     assert template.count("/* ACTUAL_WNDPROC */") == 1
-    with tempfile.TemporaryDirectory(prefix="hookshot-screensaver-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-screensaver-") as temp:
         source, executable = Path(temp) / "fixture.c", Path(temp) / "fixture.exe"
         source.write_text(template.replace("/* ACTUAL_WNDPROC */", procedure), encoding="utf-8")
         priority = {"creationflags": getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)}

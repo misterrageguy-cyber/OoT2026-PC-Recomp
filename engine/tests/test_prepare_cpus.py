@@ -116,7 +116,7 @@ def main():
         if "const unsigned cpus = usable_cpus();" not in body(shader, fn):
             raise SystemExit("FAIL: %s does not size its readers by usable_cpus" % fn.split("(")[0])
 
-    with tempfile.TemporaryDirectory(prefix="hookshot-prepare-cpus-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-prepare-cpus-") as temp:
         temp = Path(temp)
         (temp / "cpus.inc").write_text(code + "\n", encoding="utf-8")
         (temp / "check.cpp").write_text(CHECK, encoding="utf-8")

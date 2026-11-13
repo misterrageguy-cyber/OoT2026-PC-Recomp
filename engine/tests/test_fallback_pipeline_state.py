@@ -32,7 +32,7 @@ HEAD = r"""
 #include <string>
 #include <utility>
 #include <vector>
-#include "compat/hookshot_env.h"
+#include "compat/ocarina_reborn_env.h"
 
 // Only the collaborators outside pipeline-state construction are stood in.
 namespace Shader {
@@ -312,7 +312,7 @@ def main():
     start = source.index("    uint64_t vaddr[16]{};")
     end = source.index("    if (g_fine) fine_ns[FT_VERTEX]", start)
     cache = cache.replace("/* BIND_VERTICES */", source[start:end])
-    with tempfile.TemporaryDirectory(prefix="hookshot-fallback-pipeline-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-fallback-pipeline-") as temp:
         cpp, exe = Path(temp) / "pipeline.cpp", Path(temp) / "pipeline.exe"
         cpp.write_text(fixture + cache + MAIN, encoding="utf-8")
         subprocess.run([args.cxx, "-std=c++20", "-O1", "-Wall", "-Wextra", "-Werror",

@@ -16,7 +16,7 @@ SOURCE = Path(__file__).resolve().parents[1] / "nx2" / "build.py"
 
 class CpmDiscoveryTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-cpm-fixture-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-cpm-fixture-")
         self.addCleanup(temporary.cleanup)
         self.base = Path(temporary.name)
         self.tools = self.base / "portable builder \u03a9" / "tools"

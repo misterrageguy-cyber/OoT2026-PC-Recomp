@@ -2,7 +2,7 @@
 
 Auto is what the renderer chose before the row (mailbox where the driver has it; on Windows immediate when it has no
 mailbox), On is FIFO and Off immediate. The row is saved as vsync= and no Quality preset sets it. The environment's
-switches apply where the mode is chosen (menu_vsync), so they never reach hookshot_options.ini. Compile menu_vsync with
+switches apply where the mode is chosen (menu_vsync), so they never reach ocarina_reborn_options.ini. Compile menu_vsync with
 the menu's Options, run create_swapchain's own choice of mode over the lists drivers give (as on Windows and on Linux),
 and check the swapchain and present code by their text. No game or GPU is needed.
 
@@ -38,7 +38,7 @@ def block(text, marker):
 FIXTURE = r"""
 #include <cstdio>
 #include <cstdlib>
-#include "hookshot_env.h"
+#include "ocarina_reborn_env.h"
 #ifdef _WIN32
 static int setenv(const char* name, const char* value, int) { return _putenv_s(name, value); }
 static int unsetenv(const char* name) { return _putenv_s(name, ""); }

@@ -36,7 +36,7 @@ def tree_sha(folder):
 
 class TreeIsTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-deps-pins-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-deps-pins-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.tree, self.downloads = self.root / "unpacked", self.root / "downloads"

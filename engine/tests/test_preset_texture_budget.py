@@ -65,7 +65,7 @@ def main():
     helper = block(source, "uint64_t preset_texture_budget(")
     frame = block(source, "void texture_frame(uint64_t completed)")
     assert "preset_texture_budget(" in frame and "own);" in frame, "texture_frame: the budget does not go through the helper"
-    with tempfile.TemporaryDirectory(prefix="hookshot-preset-texture-budget-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-preset-texture-budget-") as temp:
         src, exe = Path(temp) / "fixture.cpp", Path(temp) / "fixture.exe"
         src.write_text(FIXTURE.replace("/* ACTUAL_HELPER */", helper), encoding="utf-8")
         subprocess.run([a.cxx, "-std=c++17", "-O0", "-Wall", "-Wextra", "-Werror", str(src), "-o", str(exe)], check=True)

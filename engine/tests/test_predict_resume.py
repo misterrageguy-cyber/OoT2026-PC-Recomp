@@ -1,8 +1,8 @@
 """A prediction that a start began and did not finish is run again at the next start.
 
-The predicted pipelines are built after the programs are translated and hookshot_prepared.bin says so. A start closed (or ended)
+The predicted pipelines are built after the programs are translated and ocarina_reborn_prepared.bin says so. A start closed (or ended)
 during the prediction left the rest unbuilt for good: the next start found the programs prepared, skipped the prediction, and play
-compiled those pipelines as they were first drawn. predict_run (gpu/vk/vk_draw.cpp) now keeps hookshot_pipelines.bin.predicting from
+compiled those pipelines as they were first drawn. predict_run (gpu/vk/vk_draw.cpp) now keeps ocarina_reborn_pipelines.bin.predicting from
 its start to its end (not removed when stopped), and every caller (the Builder's run, the start-up screen, the console start) runs
 the prediction when the marker is there even if nothing was translated. The marker counts the starts that ended inside it (two
 and it is let go); a start closed in it writes the count back unchanged, so closing the window is not taken for a crash.

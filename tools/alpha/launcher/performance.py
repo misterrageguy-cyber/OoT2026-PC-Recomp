@@ -15,7 +15,8 @@ PIPELINE = re.compile(r'new pipelines (\d+), waits [\d.]+ \(([\d.]+) ms\)')
 DEFAULTS = dict(output_res='2048x1152', resolution=0, dlss=0, frame_generation=0, frame_rate_cap=0,
                 texture_memory=0, texture_saving=0, texture_detail=1, texture_filtering=0,
                 shader_threads=0, shader_cache=1, pipeline_precompile=1, soft_shadows=1,
-                anisotropic_filtering=4, quality_preset=0, handheld_profile=0, frame_pacing=1)
+                anisotropic_filtering=4, quality_preset=0, handheld_profile=0, frame_pacing=1,
+                view_distance=1, grass=2, shadow_distance=1)
 OUTPUTS = {'0': '2048x1152', '1': '2560x1440', '2': '3840x2160', '3': '1920x1080', '4': '5120x1440'}
 
 
@@ -31,7 +32,27 @@ def hardware_signature(facts):
             'threads': facts.get('cpu_threads'), 'ram_gb': facts.get('ram_gb')}
 
 
+# VK_ERROR_OUT_OF_HOST_MEMORY (-1) and a confirmed Windows commit retry are specific
+# evidence; failed shader translation and VK_ERROR_UNKNOWN (-13) are not.
+HOST_MEMORY_ERROR = re.compile(r"vk: submit \d+ failed \(-1\)|mem: commit .*Windows grew the page file")
+
+
+def memory_events(lines):
+    return sum(bool(HOST_MEMORY_ERROR.search(line)) for line in lines)
+
+
+def memory_advice(de=True):
+    return ('warn',
+            'Windows-Speicher war erschöpft; der Renderer meldete Speicherfehler oder Windows musste die Auslagerungsdatei vergrößern. '
+            'RAM-Schutz auf Stark stellen, Hintergrundprogramme schließen und die Windows-Auslagerungsdatei systemverwaltet lassen.'
+            if de else
+            'Windows memory was exhausted: the renderer reported host-memory errors or Windows had to grow the page file. '
+            'Set RAM guard to Strong, close background programs and keep the Windows page file system-managed.')
+
+
 def summarize(lines):
+    lines = list(lines)
+    host_memory_events = memory_events(lines)
     rows = []
     excluded = 0
     for line in lines:
@@ -67,7 +88,11 @@ def summarize(lines):
     steady_seconds = sum(r['seconds'] for r in steady)
     gpu_slow = sum(r['seconds'] for r in steady if r['fps'] < 55 and r['cpu'] > .1 and
                    r['gpu'] > 18.0 and r['gpu'] > 1.25 * r['cpu'])
-    return dict(schema=2, seconds=seconds, frames=int(frames), fps=frames / seconds,
+    # The renderer's CPU counter does not include all game logic. Require both valid counters and a clear gap;
+    # loading/compilation pauses above are excluded, and no CPU model is used as a proxy for measured pressure.
+    cpu_slow = sum(r['seconds'] for r in steady if r['fps'] < 55 and r['cpu'] >= 12 and
+                   r['gpu'] > .1 and r['cpu'] > 1.2 * r['gpu'])
+    return dict(schema=2, host_memory_events=host_memory_events, seconds=seconds, frames=int(frames), fps=frames / seconds,
                 p95_worst_window=max(r['p95'] for r in rows), p99_worst_window=max(r['p99'] for r in rows),
                 worst_ms=max(r['worst'] for r in rows), over50=int(sum(r['h50'] for r in rows)),
                 over100=int(sum(r['h100'] for r in rows)),
@@ -75,8 +100,14 @@ def summarize(lines):
                 gpu_ms=sum(r['gpu'] * r['frames'] for r in rows) / frames,
                 vram_peak_gb=max((r['used'] for r in known), default=0),
                 vram_pressure_seconds=sum(r['seconds'] for r in known if r['used'] / r['budget'] > .90),
-                steady_seconds=steady_seconds, gpu_slow_seconds=gpu_slow,
+                steady_seconds=steady_seconds, gpu_slow_seconds=gpu_slow, cpu_slow_seconds=cpu_slow,
                 frame_generation=any(r['fg'] for r in rows), windows=len(rows), excluded_windows=excluded)
+
+
+def cpu_pressure(summary):
+    """Several slow samples, not a single hitch or a tiny fraction of a long session."""
+    steady = summary.get('steady_seconds', 0)
+    return steady >= 30 and summary.get('cpu_slow_seconds', 0) >= max(15, .15 * steady)
 
 
 def describe(summary, de=True):
@@ -84,7 +115,7 @@ def describe(summary, de=True):
         return []
     t = lambda d, e: d if de else e
     s = summary
-    return [
+    lines = [
         ('ok' if s['fps'] >= 55 and not s['over100'] else 'warn', t(
             f"{s['fps']:.1f} echte Spiel-FPS über {s['seconds']:.0f} s ausgewertete Renderzeit (Zwischenbilder nicht mitgezählt).",
             f"{s['fps']:.1f} actual game fps over {s['seconds']:.0f} s of analyzed rendering (generated frames excluded).")),
@@ -99,6 +130,15 @@ def describe(summary, de=True):
         ('tip', t('Abschnitte mit offenem F1-Menü und sehr wenigen Zeichenbefehlen werden ausgelassen. Ladephasen können enthalten sein.',
                   'Windows with the F1 menu open or very few draw calls are excluded. Loading may still be included.')),
     ]
+    if s.get('host_memory_events', 0):
+        lines.insert(0, memory_advice(de))
+    if cpu_pressure(s):
+        lines.insert(-1, ('warn', t(
+            f"In {s['cpu_slow_seconds']:.0f} s unter 55 FPS brauchte der Renderer auf der CPU deutlich länger als die GPU. "
+            'Sichtweite und Gras reduzieren; ein 60-FPS-Limit testen.',
+            f"During {s['cpu_slow_seconds']:.0f} s below 55 fps, renderer CPU time was clearly higher than GPU time. "
+            'Reduce view distance and grass; test a 60 fps limit.')))
+    return lines
 
 
 AUTO_MIN_SECONDS = 60   # (Reborn Auto: a run shorter than this says too little to compare)
@@ -155,6 +195,19 @@ def suggest(summary, current, measured_settings, de=True):
             changes['resolution'] = lower[values['resolution']]
             reasons.append(t('Die GPU war in vielen ruhigen Abschnitten langsam: Render-Auflösung eine Stufe senken.',
                              'GPU time was high in many steady windows: reduce render resolution by one step.'))
+    elif cpu_pressure(summary):
+        # Lower scene work, not image resolution, when CPU rendering is the measured limit.
+        for key, lower in (('view_distance', {'4': 3, '3': 2, '2': 1, '1': 0}),
+                           ('grass', {'4': 3, '3': 2, '2': 1, '1': 0})):
+            if values[key] in lower:
+                changes[key] = lower[values[key]]
+        if any(k in changes for k in ('view_distance', 'grass')):
+            reasons.append(t('Hohe Renderer-CPU-Zeit bei FPS-Einbrüchen: Sichtweite und Gras jeweils eine Stufe kleiner testen.',
+                             'High renderer CPU time during FPS drops: test one lower step for view distance and grass.'))
+        if values['frame_rate_cap'] in ('1', '2', '3', '4', '5', '6'):
+            changes['frame_rate_cap'] = 0
+            reasons.append(t('Das bisherige FPS-Limit liegt über 60: zum Vergleich auf 60 begrenzen.',
+                             'The current frame-rate limit is above 60: cap it at 60 for the comparison.'))
     if summary['vram_pressure_seconds'] >= 15:
         lower_budget = {'2': 1, '3': 2, '4': 3, '5': 4, '6': 5}
         if values['texture_memory'] in lower_budget:

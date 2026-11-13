@@ -37,7 +37,7 @@ def production_code(path):
 
 class ShaderStampCacheTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="hookshot-shader-stamp-")
+        self.temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-shader-stamp-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.files = {
@@ -228,7 +228,7 @@ class NgxSdkTests(unittest.TestCase):
         self.assertEqual({n.name for n in functions}, names)
         self.ns = {"os": os}
         exec(compile(ast.Module(body=functions, type_ignores=[]), str(BUILD_SCRIPT), "exec"), self.ns)
-        self.temp = tempfile.TemporaryDirectory(prefix="hookshot-ngx-")
+        self.temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-ngx-")
         self.addCleanup(self.temp.cleanup)
         self.sdk = Path(self.temp.name)
         (self.sdk / "lib").mkdir()

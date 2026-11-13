@@ -1,11 +1,11 @@
 """Linker options that name a file reach the linker whole, whatever the build files folder is called (nx2/build.py linker).
 
-The link map (hookshot.map, the Vulkan back end's map) and the link order (hot_order.txt) are in the build files folder,
+The link map (ocarina_reborn.map, the Vulkan back end's map) and the link order (hot_order.txt) are in the build files folder,
 which the player chooses (make_game.py --work, the builders' build files folder). The compiler splits a -Wl, option at
 every comma, and toolchain.link_opt is one, so a build files folder named x,y stopped the link of the game:
 
     ld.lld: error: cannot open /home/.../work/x: No such file or directory
-    ld.lld: error: cannot open y/sa/build/hookshot.map: No such file or directory
+    ld.lld: error: cannot open y/sa/build/ocarina_reborn.map: No such file or directory
     ld.lld: error: cannot open y/hot_order.txt: No such file or directory
 
 (lld-link and llvm-mingw's lld the same with /map: and /order:@). build.py's linker() passes them through -Xlinker, one
@@ -90,7 +90,7 @@ class NoValueThroughWl(unittest.TestCase):
 
 class LinkerCase(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.TemporaryDirectory(prefix="hookshot-link-comma-")
+        tmp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-link-comma-")
         self.addCleanup(tmp.cleanup)
         self.work = os.path.join(tmp.name, "Games, Zelda")
         os.makedirs(self.work)
@@ -105,20 +105,20 @@ class LinkerCase(unittest.TestCase):
 class LinkerKeepsPathsWhole(LinkerCase):
     def test_linux(self):
         linker, hot_order = link_functions(True, "", self.work)
-        mapfile = os.path.join(self.work, "sa", "build", "hookshot.map")
+        mapfile = os.path.join(self.work, "sa", "build", "ocarina_reborn.map")
         self.assertEqual(linker("-Map=" + mapfile), ["-Xlinker", "-Map=" + mapfile])
         self.assertEqual(hot_order(), ["-Xlinker", "--symbol-ordering-file=" + self.order,
                                        "-Xlinker", "--no-warn-symbol-ordering"])
 
     def test_msvc_target(self):
         linker, hot_order = link_functions(False, "", self.work)
-        self.assertEqual(linker("/map:C:/Games, Zelda/hookshot.map"), ["-Xlinker", "/map:C:/Games, Zelda/hookshot.map"])
+        self.assertEqual(linker("/map:C:/Games, Zelda/ocarina_reborn.map"), ["-Xlinker", "/map:C:/Games, Zelda/ocarina_reborn.map"])
         self.assertEqual(hot_order(), ["-Xlinker", "/order:@" + self.order.replace("\\", "/"), "-Xlinker", "/ignore:4037"])
 
     def test_llvm_mingw(self):
         linker, hot_order = link_functions(False, r"C:\llvm-mingw", self.work)
-        self.assertEqual(linker("/map:C:/Games, Zelda/hookshot.map"),
-                         ["-Xlinker", "-Xlink=/map:C:/Games, Zelda/hookshot.map"])
+        self.assertEqual(linker("/map:C:/Games, Zelda/ocarina_reborn.map"),
+                         ["-Xlinker", "-Xlink=/map:C:/Games, Zelda/ocarina_reborn.map"])
         self.assertEqual(hot_order(), ["-Xlinker", "-Xlink=/order:@" + self.order.replace("\\", "/"),
                                        "-Xlinker", "-Xlink=/ignore:4037"])
 

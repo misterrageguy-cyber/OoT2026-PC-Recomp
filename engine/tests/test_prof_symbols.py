@@ -1,8 +1,8 @@
 """The profile readers (scripts/prof.py, crit.py, hotlist.py) name frames from both builds.
 
-Windows samples name hookshot.exe / hookshot_vk.dll, read through the linker maps; Linux samples name hookshot /
-hookshot_vk.so, read through the binaries' own symbols (nm). Before, the Linux names were unknown: crit.py counted every
-Linux thread as never running (0.0%) and named nothing. A small position-independent executable called hookshot prints
+Windows samples name ocarina_reborn.exe / ocarina_reborn_vk.dll, read through the linker maps; Linux samples name ocarina_reborn /
+ocarina_reborn_vk.so, read through the binaries' own symbols (nm). Before, the Linux names were unknown: crit.py counted every
+Linux thread as never running (0.0%) and named nothing. A small position-independent executable called ocarina_reborn prints
 its functions' offsets from its load address, as a sample has them; crit.py and hotlist.py must name and count them. A
 synthetic linker map checks the Windows path. The ELF part needs a C compiler and nm (skipped without them).
 python -I -B tests/test_prof_symbols.py [--cc gcc]
@@ -49,15 +49,15 @@ def check(cond, what):
 
 
 def windows_map(tmp):
-    """the linker-map path, unchanged: a frame in hookshot.exe named from hookshot.map"""
+    """the linker-map path, unchanged: a frame in ocarina_reborn.exe named from ocarina_reborn.map"""
     maps = tmp / "win"
     maps.mkdir()
-    (maps / "hookshot.map").write_text(
+    (maps / "ocarina_reborn.map").write_text(
         " Address         Publics by Value              Rva+Base               Lib:Object\n\n"
         " 0001:00000000       f_80002000                 0000000140001000 f   code.obj\n"
         " 0001:00000100       f_80002400                 0000000140001100 f   code.obj\n")
     samples = tmp / "win_all.txt"
-    samples.write_text("".join("%d sead::MainThread|hookshot.exe+1010;hookshot.exe+1110\n" % (2 * i) for i in range(1, 6)))
+    samples.write_text("".join("%d sead::MainThread|ocarina_reborn.exe+1010;ocarina_reborn.exe+1110\n" % (2 * i) for i in range(1, 6)))
     out = run("crit.py", [str(samples)], maps)
     check("100.0%  sead::MainThread" in out, "crit.py: the Windows main thread runs in every sample\n" + out)
     hot = tmp / "win_hot.txt"
@@ -73,7 +73,7 @@ def linux_elf(tmp, cc):
     maps.mkdir()
     src = tmp / "probe.c"
     src.write_text(PROBE)
-    exe = maps / "hookshot"
+    exe = maps / "ocarina_reborn"
     subprocess.run([cc, "-O1", "-fPIE", "-pie", "-o", str(exe), str(src)], check=True)
     r = subprocess.run([str(exe)], capture_output=True, text=True)
     check(r.returncode == 0, "the probe runs")
@@ -86,14 +86,14 @@ def linux_elf(tmp, cc):
     samples = tmp / "linux_all.txt"
     samples.write_text("".join(lines))
     out = run("crit.py", [str(samples)], maps)
-    check("100.0%  sead::MainThread" in out, "crit.py: a Linux thread in hookshot is running\n" + out)
+    check("100.0%  sead::MainThread" in out, "crit.py: a Linux thread in ocarina_reborn is running\n" + out)
     check("0.0%  Presentation_Thread" in out, "crit.py: a Linux thread in libc is blocked\n" + out)
     hot = tmp / "linux_hot.txt"
     run("hotlist.py", [str(samples), str(hot)], maps)
     check(hot.read_text().split()[0] == "f_80001000", "hotlist.py: the lifted function named from the ELF symbols, first")
     sys.path.insert(0, str(SCRIPTS))
     import prof
-    addrs, names = prof.load_symbols(str(maps))["hookshot"]
+    addrs, names = prof.load_symbols(str(maps))["ocarina_reborn"]
     check("prof_symbol_probe" in names and addrs[names.index("prof_symbol_probe")] == probe,
           "prof.load_symbols: the symbol's offset is the one a sample gives")
 

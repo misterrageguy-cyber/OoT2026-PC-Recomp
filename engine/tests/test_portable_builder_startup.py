@@ -30,7 +30,7 @@ def main():
         subprocess.run([args.dotnet, "publish", str(project / "HookshotBuilder.csproj"), "--configuration", "Release",
                         "-p:NuGetAudit=false", "--output", str(published), "--disable-build-servers", "-v", "quiet"], check=True)
         shutil.copytree(published, app)
-        marker = home / ".hookshot-portable"
+        marker = home / ".ocarina_reborn-portable"
         marker.write_text("Hookshot Builder portable home v1\n", encoding="utf-8")
         script = app / "tools/nx2/make_game.py"
         script.parent.mkdir(parents=True)
@@ -79,7 +79,7 @@ def main():
         home.parent.rename(moved)
         app = moved / app.relative_to(home.parent)
         home = moved / "HookshotBuilder"
-        marker = home / ".hookshot-portable"
+        marker = home / ".ocarina_reborn-portable"
         run({}, True)
         run({"HOOKSHOT_SETUP_BASE": "relative", "HOOKSHOT_BUILDER_PORTABLE": "1"}, False)
         marker.write_text("broken")

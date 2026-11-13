@@ -13,7 +13,7 @@ import unittest
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "builder" / "linux" / "hookshot_builder.py"
+SOURCE = ROOT / "builder" / "linux" / "ocarina_reborn_builder.py"
 spec = importlib.util.spec_from_file_location("make_game_jobs", ROOT / "nx2" / "make_game.py")
 make_game = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(make_game)
@@ -78,7 +78,7 @@ class BuildHarness:
 
 class BuilderBuildJobsTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="hookshot-builder-jobs-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-builder-jobs-")
         self.addCleanup(self.temporary.cleanup)
         self.folder = Path(self.temporary.name)
 
@@ -98,7 +98,7 @@ class BuilderBuildJobsTests(unittest.TestCase):
                                                   prepare="1"))
         self.assertEqual(harness.events[3][1], dict(target=gui.read, args=(gui.proc,), daemon=True))
 
-    def test_positive_hookshot_jobs_is_passed_on(self):
+    def test_positive_ocarina_reborn_jobs_is_passed_on(self):
         harness = BuildHarness(self.folder, {"HOOKSHOT_JOBS": "4", "RX_JOBS": "2"})
         harness.run()
         self.assert_started(harness, 4)
@@ -200,13 +200,13 @@ class MakeGameJobsTests(unittest.TestCase):
         # (the "compilers at once" line was printed even when --jobs was given, with a number the build did not use)
         self.assertEqual(self.chosen(5, {"HOOKSHOT_JOBS": "3"}), (5, []))
 
-    def test_hookshot_jobs_then_automatic(self):
+    def test_ocarina_reborn_jobs_then_automatic(self):
         self.assertEqual(self.chosen(0, {"HOOKSHOT_JOBS": "3"}), (3, []))
         self.assertEqual(self.chosen(0, {"HOOKSHOT_JOBS": "0"}), (9, [1]))
         self.assertEqual(self.chosen(0, {"HOOKSHOT_JOBS": ""}), (9, [1]))
         self.assertEqual(self.chosen(0, {}), (9, [1]))
 
-    def test_invalid_hookshot_jobs_stops_with_its_message(self):
+    def test_invalid_ocarina_reborn_jobs_stops_with_its_message(self):
         with contextlib.redirect_stdout(io.StringIO()), self.assertRaises(SystemExit):
             self.chosen(0, {"HOOKSHOT_JOBS": "n"})
 

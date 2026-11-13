@@ -1,4 +1,4 @@
-"""The Python Windows builder's update keeps a folder's NVIDIA DLSS by the license accepted (builder/py/hookshot_builder/window.py,
+"""The Python Windows builder's update keeps a folder's NVIDIA DLSS by the license accepted (builder/py/ocarina_reborn_builder/window.py,
 update_build): the settings' DlssLicense (the WPF builder's builder-settings.json, which both builders share), or for a license
 accepted before the record, the SDK's LICENSE.txt. With the SDK's files alone as the record, an SDK deleted or a new builder
 folder made the update build without DLSS, and its runtime went.
@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def update_build():
     """update_build, from window.py's Builder class, as a function of (self, tools, folder) over a namespace of stand-ins"""
-    tree = ast.parse((ROOT / "builder/py/hookshot_builder/window.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "builder/py/ocarina_reborn_builder/window.py").read_text(encoding="utf-8"))
     method = next(n for c in tree.body if isinstance(c, ast.ClassDef) for n in c.body
                   if isinstance(n, ast.FunctionDef) and n.name == "update_build")
     return method

@@ -184,7 +184,7 @@ def main():
     for bw, bh in ASTC:
         for w, h in [(1365, 1365), (13, 13), (6144, 6144), (1536, 3072), (171, 171), (1, 1), (0, 0)]:
             cases.append((w, h, 1, bw, bh))
-    with tempfile.TemporaryDirectory(prefix="hookshot-native-astc-count-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-native-astc-count-") as temp:
         out = compile_run(a.cxx, temp, "units", FIXTURE.replace("/* ACTUAL_HELPER */", helper), cases)
         accounting_checks(source, create, helper, a.cxx, temp)
     assert len(out) == len(cases), (len(out), len(cases))

@@ -30,7 +30,7 @@ def check(what, ok):
 
 def main():
     budget = 200000
-    with tempfile.TemporaryDirectory(prefix="hookshot-chunk-split-") as d:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-chunk-split-") as d:
         small = [function(0x80000000 + 16 * i, 2000) for i in range(60)]
         big = [function(0x81000000 + 16 * i, 2000) for i in range(40)] + [function(0x81100000, 300000)] + \
               [function(0x81200000 + 16 * i, 2000) for i in range(200)]
@@ -65,7 +65,7 @@ def main():
 
 def stopped_part_way(budget):
     """A worker that stops after its first file (killed for memory) leaves the chunk whole: the lift's own run cuts it again"""
-    with tempfile.TemporaryDirectory(prefix="hookshot-chunk-stop-") as d:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-chunk-stop-") as d:
         big = [function(0x81000000 + 16 * i, 2000) for i in range(40)] + [function(0x81100000, 300000)] +               [function(0x81200000 + 16 * i, 2000) for i in range(200)]
         path = os.path.join(d, "code_001.c")
         Path(path).write_text(PREAMBLE + "".join(big), newline=chr(10))
@@ -111,7 +111,7 @@ def read_parts(path, made):
 def finished_but_lost(budget):
     """A worker that finished the cut but whose result was lost (another worker stopped and broke the pool): the lift's own run
     finds the chunk cut already and keeps its parts; an earlier lift's parts beside a chunk that is small now still go"""
-    with tempfile.TemporaryDirectory(prefix="hookshot-chunk-lost-") as d:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-chunk-lost-") as d:
         big = [function(0x81000000 + 16 * i, 2000) for i in range(40)] + [function(0x81100000, 300000)] + \
               [function(0x81200000 + 16 * i, 2000) for i in range(200)]
         path = os.path.join(d, "code_001.c")

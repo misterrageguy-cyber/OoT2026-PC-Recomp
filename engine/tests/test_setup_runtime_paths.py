@@ -107,7 +107,7 @@ def main():
         for name, old, new in replacements:
             assert source.count(old) == 1, name
             variants.append((name, source.replace(old,new)))
-    with tempfile.TemporaryDirectory(prefix="hookshot-runtime-paths-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-runtime-paths-") as tmp:
         root = Path(tmp)
         folder = root / 'HookshotBuilder/versions/fixture/HookshotBuilder'
         folder.mkdir(parents=True)

@@ -16,10 +16,10 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILDER = ROOT / "builder/linux"
-SOURCE = BUILDER / "hookshot_builder.py"
+SOURCE = BUILDER / "ocarina_reborn_builder.py"
 
 SERVICE = "0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-hookshot@0123abcd.service\n"
-SCOPE = "0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome-hookshot-4242.scope\n"
+SCOPE = "0::/user.slice/user-1000.slice/user@1000.service/app.slice/app-gnome-ocarina_reborn-4242.scope\n"
 TOOL = "/usr/bin/systemd-run"
 PREFIX = [TOOL, "--user", "--scope", "--collect", "--quiet", "--"]
 
@@ -30,7 +30,7 @@ def functions(*names):
     found = {node.name: node for node in tree.body
              if isinstance(node, ast.FunctionDef) and (node.name in names or node.name in helpers)}
     missing = set(names) - set(found)
-    assert not missing, "hookshot_builder.py no longer has %s: update this test" % ", ".join(sorted(missing))
+    assert not missing, "ocarina_reborn_builder.py no longer has %s: update this test" % ", ".join(sorted(missing))
     namespace = dict(os=os, shutil=shutil, signal=signal, socket=socket, subprocess=subprocess, time=time)
     exec(compile(ast.Module(body=list(found.values()), type_ignores=[]), str(SOURCE), "exec"), namespace)
     return namespace
@@ -105,16 +105,16 @@ def check_play(directory):
     namespace = functions("play")
     namespace.update(
         HERE=str(BUILDER), own_scope=lambda env: list(PREFIX), start_scoped=scoped,
-        linux_update=SimpleNamespace(game_exe=lambda f: str(Path(f) / "hookshot")),
+        linux_update=SimpleNamespace(game_exe=lambda f: str(Path(f) / "ocarina_reborn")),
         make_game=SimpleNamespace(game_env=lambda: {"PATH": "/usr/bin"}),
         subprocess=SimpleNamespace(Popen=popen, DEVNULL=subprocess.DEVNULL))
-    exe = os.path.abspath(str(folder / "hookshot"))
+    exe = os.path.abspath(str(folder / "ocarina_reborn"))
 
     # The diagnostics script, in the scope.
     namespace["play"](str(folder))
     command = launched[-1]
     assert command[:len(PREFIX)] == PREFIX and command[len(PREFIX):len(PREFIX) + 2] == ["/bin/sh", "-c"], command
-    assert command[-2:] == ["hookshot-play", exe], command
+    assert command[-2:] == ["ocarina_reborn-play", exe], command
 
     # The game alone (the script could not be read), in the scope too.
     namespace["HERE"] = str(Path(directory) / "no-builder")
@@ -197,7 +197,7 @@ def check_handoff(directory, case):
     namespace.update(
         HERE=str(BUILDER),
         own_scope=lambda env: own_scope(env, str(parent), lambda *a, **kw: TOOL, probe),
-        linux_update=SimpleNamespace(game_exe=lambda f: str(Path(f) / "hookshot")),
+        linux_update=SimpleNamespace(game_exe=lambda f: str(Path(f) / "ocarina_reborn")),
         make_game=SimpleNamespace(game_env=lambda: {"PATH": "/usr/bin"}),
         os=SimpleNamespace(path=os.path, killpg=killpg), signal=SimpleNamespace(SIGKILL=9),   # (Windows has no SIGKILL)
         subprocess=SimpleNamespace(Popen=popen, DEVNULL=subprocess.DEVNULL, TimeoutExpired=subprocess.TimeoutExpired))
@@ -245,7 +245,7 @@ def main():
     parser.add_argument("--case", choices=("failed", "delayed", "timeout", "ready", "exec-error"))
     args = parser.parse_args()
     SOURCE = args.source
-    with tempfile.TemporaryDirectory(prefix="hookshot-play-scope-") as directory:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-play-scope-") as directory:
         if args.case:
             check_handoff(directory, args.case)
         else:

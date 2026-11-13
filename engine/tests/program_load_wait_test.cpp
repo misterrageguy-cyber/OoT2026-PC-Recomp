@@ -31,7 +31,7 @@ program_life::Table table;
 #include "load_types.inc"
 std::atomic<int> works{0};
 std::atomic<bool> hold{false};
-// the job's work: a program for each key (the real one reads them from hookshot_programs.bin)
+// the job's work: a program for each key (the real one reads them from ocarina_reborn_programs.bin)
 void load_work(LoadJob& job) {
     works++;
     while (hold.load()) std::this_thread::sleep_for(std::chrono::milliseconds(1));

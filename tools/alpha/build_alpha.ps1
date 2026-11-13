@@ -24,12 +24,17 @@ if (-not (Test-Path "$Alpha\licensing-server\keys\public.hex")) { throw 'run lic
 # 2. OcarinaReborn.exe (icon and version info)
 # (one version for the exe, the installer and the launcher: tools\alpha\VERSION, raised by one for each release)
 $Ver = (Get-Content "$Alpha\VERSION" -Raw).Trim()
-$VerComma = (@($Ver -split '\.') + @('0')) -join ','
+if ($Ver -notmatch '^(\d+)\.(\d+)\.(\d+)(?:-(\d+))?$') { throw 'VERSION must be X.Y.Z or X.Y.Z-N' }
+$Revision = if ($Matches[4]) { $Matches[4] } else { '0' }
+$VerComma = @($Matches[1], $Matches[2], $Matches[3], $Revision) -join ','
+$FileVersion = $VerComma.Replace(',', '.')
 Push-Location "$Alpha\exe"
 (Get-Content ocarina_reborn.rc -Raw).Replace('VER_COMMA', $VerComma).Replace('VER_TEXT', "`"$Ver`"") |
     Set-Content -Encoding ascii versioned.rc
 & "$Llvm\bin\llvm-windres.exe" versioned.rc -O coff -o rc.o
+if ($LASTEXITCODE) { throw 'Launcher resource compilation failed' }
 & "$Llvm\bin\clang.exe" -O2 -municode -mwindows -static ocarina_reborn.c rc.o -o OcarinaReborn.exe
+if ($LASTEXITCODE) { throw 'Launcher compilation failed' }
 Remove-Item rc.o, versioned.rc
 Pop-Location
 # the launcher window's frame (ocr_chrome.dll: its window procedure in C, see launcher\chrome.c)
@@ -58,7 +63,7 @@ if ($LASTEXITCODE) { throw 'staging failed' }
 
 # 4. installer
 New-Item -ItemType Directory -Force $Dist | Out-Null
-& $Iscc "/DStage=$Stage" "/DOut=$Dist" "/DAppVersion=$Ver" "$Alpha\installer.iss"
+& $Iscc "/DStage=$Stage" "/DOut=$Dist" "/DAppVersion=$Ver" "/DAppFileVersion=$FileVersion" "$Alpha\installer.iss"
 if ($LASTEXITCODE) { throw 'Inno Setup failed' }
 
 # 5. checksum, build info, README

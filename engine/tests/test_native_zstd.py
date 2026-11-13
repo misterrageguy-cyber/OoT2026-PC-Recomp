@@ -41,7 +41,7 @@ ZSTD = ROOT / "third_party/zstd/lib"
 SOURCES = ["common/debug.c", "common/entropy_common.c", "common/error_private.c", "common/fse_decompress.c", "common/xxhash.c",
            "common/zstd_common.c", "decompress/huf_decompress.c", "decompress/zstd_ddict.c", "decompress/zstd_decompress.c",
            "decompress/zstd_decompress_block.c"]
-ENV_ON_H = ROOT / "gpu/vk/compat/hookshot_env.h"
+ENV_ON_H = ROOT / "gpu/vk/compat/ocarina_reborn_env.h"
 BROKEN = ("                S_STAGED(g) = (uint32_t)staged;\n", "")   # (the staging fill never stored)
 
 # the guest window: base, size, and where things are in it

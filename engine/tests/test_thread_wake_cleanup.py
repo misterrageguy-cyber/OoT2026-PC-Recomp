@@ -121,7 +121,7 @@ class ThreadWakeCleanupTests(unittest.TestCase):
         compiler = COMPILER or shutil.which("gcc") or shutil.which("clang")
         if not compiler:
             raise unittest.SkipTest("no C compiler")
-        cls.temporary = tempfile.TemporaryDirectory(prefix="hookshot-thread-cleanup-")
+        cls.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-thread-cleanup-")
         cls.addClassCleanup(cls.temporary.cleanup)
         directory = Path(cls.temporary.name)
         production = (ROOT / "host/hos_thread.c").read_text(encoding="utf-8")

@@ -28,7 +28,7 @@ def put(path, text):
 
 class DriveTypeTests(unittest.TestCase):
     def test_a_partition_reads_the_disk_above_it(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-disk-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-") as tmp:
             sda = os.path.join(tmp, "devices", "pci", "block", "sda")
             put(os.path.join(sda, "queue", "rotational"), "1\n")
             os.makedirs(os.path.join(sda, "sda1"))
@@ -38,7 +38,7 @@ class DriveTypeTests(unittest.TestCase):
             self.assertIs(disk._device_rotational(os.path.join(sda, "sda1")), False)
 
     def test_a_device_mapper_disk_follows_its_slaves(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-disk-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-") as tmp:
             dm = os.path.join(tmp, "devices", "virtual", "block", "dm-0")
             put(os.path.join(dm, "queue", "rotational"), "0\n")   # (dm reports its own, not what it lies on)
             sda = os.path.join(tmp, "devices", "pci", "block", "sda")
@@ -53,17 +53,17 @@ class DriveTypeTests(unittest.TestCase):
             self.assertIs(disk._device_rotational(dm), True)   # (one spinning slave makes the build slow)
 
     def test_an_unknown_device_is_not_guessed(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-disk-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-") as tmp:
             self.assertIsNone(disk._device_rotational(os.path.join(tmp, "nowhere")))
 
     def test_only_a_block_device_file_has_a_node(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-disk-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-") as tmp:
             put(os.path.join(tmp, "tmpfs"), "")   # (a mount's source is a name as often as a file: "tmpfs", "tank/games")
             self.assertIsNone(disk._block_node(os.path.join(tmp, "tmpfs")))
             self.assertIsNone(disk._block_node(os.path.join(tmp, "nowhere")))
 
     def test_spinning_picks_the_system_reader(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-disk-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-") as tmp:
             with mock.patch.object(disk.os, "name", "nt"), \
                  mock.patch.object(disk, "_windows_spinning", return_value=True) as windows, \
                  mock.patch.object(disk, "_linux_spinning") as linux:
@@ -78,7 +78,7 @@ class DriveTypeTests(unittest.TestCase):
                 windows.assert_not_called()
 
     def test_a_folder_made_later_is_measured_at_its_existing_parent(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-disk-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-") as tmp:
             self.assertEqual(disk.existing_parent(os.path.join(tmp, "Games", "Hookshot")), os.path.abspath(tmp))
 
 
@@ -87,7 +87,7 @@ class MountTests(unittest.TestCase):
     """A PC with its system on an SSD (ext4) and a Btrfs mounted at "My Games", as /proc/self/mountinfo and /sys show them"""
 
     def setUp(self):
-        tmp = tempfile.TemporaryDirectory(prefix="hookshot-disk-")
+        tmp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-disk-")
         self.addCleanup(tmp.cleanup)
         self.tmp = os.path.realpath(tmp.name)
         self.sysfs = os.path.join(self.tmp, "sys")
@@ -193,12 +193,12 @@ class BuilderTests(unittest.TestCase):
         self.assertIn("MessageBoxButton.OKCancel", source)
 
     def test_the_python_builder_asks(self):
-        source = (ROOT / "builder" / "py" / "hookshot_builder" / "window.py").read_text(encoding="utf-8")
+        source = (ROOT / "builder" / "py" / "ocarina_reborn_builder" / "window.py").read_text(encoding="utf-8")
         self.assertIn("hard_drive_warning()", source)
         self.assertIn("core.spinning", source)
 
     def test_the_linux_builder_asks(self):
-        source = (ROOT / "builder" / "linux" / "hookshot_builder.py").read_text(encoding="utf-8")
+        source = (ROOT / "builder" / "linux" / "ocarina_reborn_builder.py").read_text(encoding="utf-8")
         self.assertIn("slow_disk_warning(out)", source)
         self.assertIn("askokcancel", source)
 

@@ -130,23 +130,23 @@ int wmain(int argc, wchar_t **argv) {
         run(root / "downloaded-setup.exe", home, 0, {"HOOKSHOT_SETUP_BASE": str(home), "HOOKSHOT_BUILDER_PORTABLE": "1"})
         game = tree / "Game"
         game.mkdir()
-        (game / ".hookshot_builder_home").write_text("../HookshotBuilder", encoding="utf-8")
-        (game / "hookshot_version.txt").write_text("version=v-authored\nbuilder_local=1\n")
-        run(game / "hookshot.exe", home, 0)
+        (game / ".ocarina_reborn_builder_home").write_text("../HookshotBuilder", encoding="utf-8")
+        (game / "ocarina_reborn_version.txt").write_text("version=v-authored\nbuilder_local=1\n")
+        run(game / "ocarina_reborn.exe", home, 0)
         moved = root / "Relocated ü, tree"
         tree.rename(moved)
         home, game = moved / "HookshotBuilder", moved / "Game"
-        run(game / "hookshot.exe", home, 0)
-        (game / ".hookshot_builder_home").unlink()
-        run(game / "hookshot.exe", home, 2)
+        run(game / "ocarina_reborn.exe", home, 0)
+        (game / ".ocarina_reborn_builder_home").unlink()
+        run(game / "ocarina_reborn.exe", home, 2)
         run(root / "standard-setup.exe", profile / "HookshotBuilder", 3)
         run(root / "downloaded-setup.exe", home, 2, {"HOOKSHOT_SETUP_BASE": "relative"})
         run(root / "downloaded-setup.exe", home, 2, {"HOOKSHOT_SETUP_BASE": str(profile), "HOOKSHOT_BUILDER_PORTABLE": "1"})
         readonly = root / "write-protected fixture"
         readonly.mkdir()
         run(root / "downloaded-setup.exe", readonly, 4, {"HOOKSHOT_SETUP_BASE": str(readonly)})
-        assert not (readonly / ".hookshot-portable").exists()
-        marker = home / ".hookshot-portable"
+        assert not (readonly / ".ocarina_reborn-portable").exists()
+        marker = home / ".ocarina_reborn-portable"
         marker.write_text("broken")
         run(moved / "Setup.exe", home, 2)
         assert not profile.exists(), "No persistent AppData writes expected during fixture startup"

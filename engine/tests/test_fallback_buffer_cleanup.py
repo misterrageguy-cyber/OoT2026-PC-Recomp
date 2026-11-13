@@ -51,7 +51,7 @@ def main():
     flags = subprocess.CREATE_NO_WINDOW | subprocess.BELOW_NORMAL_PRIORITY_CLASS if os.name == "nt" else 0
     env = dict(os.environ)
     env["PATH"] = str(Path(cxx).parent) + os.pathsep + env.get("PATH", "")
-    with tempfile.TemporaryDirectory(prefix="hookshot-fallback-init-") as folder:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-fallback-init-") as folder:
         tmp = Path(folder)
         (tmp / "fallback_actual.inc").write_text(actual + "\n", encoding="utf-8")
         exe = tmp / ("fallback.exe" if os.name == "nt" else "fallback")

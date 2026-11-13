@@ -90,7 +90,7 @@ int main(int argc,char** argv) {
   if(!equal){std::cerr<<label<<": reader returned "<<got.size()<<" records, expected "<<expected.size()<<'\n';++failures;}
  };
  // Both preparation inputs and state_record's read-before-append share this exact reader.
- for(const char* name:{"hookshot_pipeline_states.bin","hookshot_pipeline_states_shipped.bin"}){
+ for(const char* name:{"ocarina_reborn_pipeline_states.bin","ocarina_reborn_pipeline_states_shipped.bin"}){
   const auto path=std::filesystem::path(argv[1])/name;
   write(path,{maximum});check(path,{maximum},"valid maximum counts");
   write(path,{bad_answers});check(path,{},"answer count above array");

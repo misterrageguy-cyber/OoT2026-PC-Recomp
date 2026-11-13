@@ -40,7 +40,7 @@ class BuilderStatusTests(unittest.TestCase):
         self.assertIsNone(make_game.reported("compiled in 10s"))
 
     def test_the_builder_asks_make_game(self):
-        source = (ROOT / "builder" / "linux" / "hookshot_builder.py").read_text(encoding="utf-8")
+        source = (ROOT / "builder" / "linux" / "ocarina_reborn_builder.py").read_text(encoding="utf-8")
         start = source.index("def check_version")
         body = source[start:source.index("\n    def ", start + 1)]
         self.assertIn("make_game.reported", body)

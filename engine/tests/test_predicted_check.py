@@ -2,7 +2,7 @@
 
 predict_run (gpu/vk/vk_draw.cpp) builds the predicted pipelines into the driver's own disk cache alone and lets them go. On a driver
 without such a cache, or with one too small, that work leaves nothing. predict_run now writes a sample of what it built
-(hookshot_pipelines.bin.predicted, stamped with program_cache_stamp), and the next start asks the driver for each, without
+(ocarina_reborn_pipelines.bin.predicted, stamped with program_cache_stamp), and the next start asks the driver for each, without
 compiling and with an empty pipeline cache of its own as play does, on a thread behind the game: "the driver's shader cache kept N
 of M predicted pipelines". The process that built them does not ask (the driver would answer from memory). The driver cache
 folders' size is logged at the start and after the prediction.

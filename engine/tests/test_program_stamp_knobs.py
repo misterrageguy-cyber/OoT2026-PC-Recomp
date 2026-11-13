@@ -1,6 +1,6 @@
 """Every switch the shader translation reads is in the program cache's stamp.
 
-hookshot_programs.bin keeps translated programs; vk_shader.cpp translator_stamp hashes the environment variables whose names
+ocarina_reborn_programs.bin keeps translated programs; vk_shader.cpp translator_stamp hashes the environment variables whose names
 start with one of its prefixes, so changing one translates the programs again. A switch that changes the translation but
 is left out of the list does nothing for the programs already cached (RX_VK_NO_INVARIANT and the NaN guard were
 such a case once; RX_VK_NO_CBUF_LOAD_RULE, RX_VK_PTR_SPLIT_FALLBACK and others were until this check). Read every

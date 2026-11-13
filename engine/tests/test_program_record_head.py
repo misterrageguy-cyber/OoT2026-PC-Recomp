@@ -1,4 +1,4 @@
-"""A program record's head is read whole by both readers of hookshot_programs.bin.
+"""A program record's head is read whole by both readers of ocarina_reborn_programs.bin.
 
 program_cache_save writes, before a program's stages, its kind, texture answers and questions, workgroup, shared memory and the
 mesh fallback's five words. program_cache_read read all of them; program_cache_each (the prediction's, vk_predict.cpp) stopped

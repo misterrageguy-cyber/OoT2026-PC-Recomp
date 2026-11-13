@@ -208,7 +208,7 @@ def main():
     at = pad.index("\n", pad.index("pads[slot].motion_only = 0;")) + 1
     connection = pad[at:pad.index(";", at) + 1].strip()
     code += FIXTURE.replace("ACTUAL_CONNECTION", connection)
-    with tempfile.TemporaryDirectory(prefix="hookshot-sdl-diagnostics-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-sdl-diagnostics-") as temp:
         src, exe = Path(temp) / "test.c", Path(temp) / "test.exe"
         src.write_text(code, encoding="utf-8")
         subprocess.run([args.cc,"-std=c11","-Wall","-Wextra","-Werror",str(src),"-o",str(exe)],check=True)

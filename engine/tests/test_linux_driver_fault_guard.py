@@ -124,7 +124,7 @@ def main():
     start, end = source.index(START) + len(START), source.index(END)
     guard = source[start:end]
     failures = []
-    with tempfile.TemporaryDirectory(prefix="hookshot-fault-guard-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-fault-guard-") as tmp:
         cpp = Path(tmp) / "guard.cpp"
         cpp.write_text(HEAD + guard + MAIN, encoding="utf-8")
         binary = Path(tmp) / "guard"

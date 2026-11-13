@@ -52,12 +52,12 @@ int wmain(int argc, wchar_t **argv) {
     const char relative[] = "../HookshotBuilder\n";
     CHECK(put(pointer, relative, sizeof relative - 1));
     CHECK(hb_home_game(&home, game) == 1 && home.portable && !wcscmp(home.root, root));
-    wchar_t launcher[MAX_PATH]; join(launcher, game, L"hookshot.exe");
+    wchar_t launcher[MAX_PATH]; join(launcher, game, L"ocarina_reborn.exe");
     CHECK(hb_home_discover(&home, NULL, launcher, ordinary, 1) && home.portable && !wcscmp(home.root, root));
     CHECK(put(pointer, "C:\\unowned", 10));
     CHECK(!hb_home_discover(&home, NULL, launcher, ordinary, 1) && !home.root[0]);
     CHECK(DeleteFileW(pointer));
-    wchar_t metadata[MAX_PATH]; join(metadata, game, L"hookshot_version.txt");
+    wchar_t metadata[MAX_PATH]; join(metadata, game, L"ocarina_reborn_version.txt");
     const char portable_metadata[] = "version=v-authored\nbuilder_local=1\n";
     CHECK(put(metadata, portable_metadata, sizeof portable_metadata - 1));
     CHECK(!hb_home_discover(&home, NULL, launcher, ordinary, 1) && !home.root[0]);
@@ -68,7 +68,7 @@ int wmain(int argc, wchar_t **argv) {
     CHECK(MoveFileW(volume, moved));
     join(next, moved, L"HookshotBuilder");
     join(game, moved, L"Game");
-    join(launcher, game, L"hookshot.exe");
+    join(launcher, game, L"ocarina_reborn.exe");
     CHECK(hb_home_discover(&home, NULL, launcher, ordinary, 1) && home.portable && !wcscmp(home.root, next));
 
     /* Corrupt a separate owned root; never overwrite the valid native interoperability marker. */

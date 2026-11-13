@@ -29,7 +29,7 @@ class AppImageScripts(unittest.TestCase):
         script = (ROOT / "scripts/linux/appimage.sh").read_text(encoding="utf-8")
         start = script.index("# ---- the tools (the sources")
         end = script.index("cp -a third_party/opus", start)
-        with tempfile.TemporaryDirectory(prefix="hookshot-appimage-scripts-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-appimage-scripts-") as folder:
             env = dict(os.environ, T=folder, VERSION="authored-test")
             result = subprocess.run(["bash", "-eu", "-o", "pipefail", "-c", script[start:end]], cwd=ROOT, env=env,
                                     capture_output=True, text=True)

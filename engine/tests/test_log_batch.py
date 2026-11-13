@@ -44,10 +44,10 @@ def main():
     template = (ROOT / "tests/log_batch_test.c").read_text(encoding="utf-8")
     fixture = template.replace("/* ACTUAL_LOG */", log_block(a.source.read_text(encoding="utf-8")))
     failed = []
-    with tempfile.TemporaryDirectory(prefix="hookshot-log-batch-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-log-batch-") as temp:
         c_file, exe = Path(temp) / "fixture.c", Path(temp) / "fixture.exe"
         c_file.write_text(fixture, encoding="utf-8")
-        cmd = [a.cc, "-std=gnu11", "-O1", "-Wall", "-Wextra", "-Werror", "-include", str(ROOT / "gpu/vk/compat/hookshot_env.h"),
+        cmd = [a.cc, "-std=gnu11", "-O1", "-Wall", "-Wextra", "-Werror", "-include", str(ROOT / "gpu/vk/compat/ocarina_reborn_env.h"),
                str(c_file), "-o", str(exe)]   # (env_on, the switches' rule)
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if result.returncode:

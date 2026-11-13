@@ -12,7 +12,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cxx", default="g++")
     args = parser.parse_args()
-    with tempfile.TemporaryDirectory(prefix="hookshot-cache-file-") as directory:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-cache-file-") as directory:
         path = Path(directory).resolve()
         executable = path / "check.exe"
         subprocess.run([args.cxx, "-std=c++20", "-O2", "-Wall", "-Wextra", "-Werror",

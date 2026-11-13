@@ -306,16 +306,16 @@ class OotMenuMouseTests(unittest.TestCase):
         compiler = shutil.which("gcc") or shutil.which("clang")
         if not compiler:
             self.skipTest("no C compiler")
-        with tempfile.TemporaryDirectory(prefix="hookshot-oot-menu-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-oot-menu-") as tmp:
             tmp = Path(tmp)
             (tmp / "host").mkdir()
             (tmp / "gpu" / "vk").mkdir(parents=True)
             # (beside the stand-in hos.h, and its "../gpu/vk/vk_api.h" the stand-in's)
             (tmp / "host" / "hos.h").write_text(HOS_H, encoding="utf-8")
             (tmp / "gpu" / "vk" / "vk_api.h").write_text(VK_API_H, encoding="utf-8")
-            # (and the real "../gpu/vk/compat/hookshot_env.h": env_on, the switches' rule)
+            # (and the real "../gpu/vk/compat/ocarina_reborn_env.h": env_on, the switches' rule)
             (tmp / "gpu" / "vk" / "compat").mkdir()
-            shutil.copy(ROOT / "gpu" / "vk" / "compat" / "hookshot_env.h", tmp / "gpu" / "vk" / "compat" / "hookshot_env.h")
+            shutil.copy(ROOT / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h", tmp / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
             shutil.copy(ROOT / "host" / "oot_menu.c", tmp / "host" / "oot_menu.c")
             (tmp / "host" / "t.c").write_text(FIXTURE, encoding="utf-8")
             binary = tmp / "t.exe"

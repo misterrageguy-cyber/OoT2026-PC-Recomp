@@ -1,4 +1,4 @@
-"""The frame trace (RX_VK_FRAME_TRACE, hookshot_frames.csv) names the waits it could not show (no game/GPU required):
+"""The frame trace (RX_VK_FRAME_TRACE, ocarina_reborn_frames.csv) names the waits it could not show (no game/GPU required):
 its header ends with late_wait_ms, readback_wait_ms and tex_frame_ms, a line has as many values as the header has names, the
 columns before keep their order (scripts read them), and the three counters are fed where the time is spent.
 

@@ -1,4 +1,4 @@
-"""The shaders seed reader (hookshot_shaders.bin, gpu/vk/vk_shader.cpp seed_open) stays inside the file.
+"""The shaders seed reader (ocarina_reborn_shaders.bin, gpu/vk/vk_shader.cpp seed_open) stays inside the file.
 
 Builds the real seed_open with stand-ins for the control section parser, the code key and the program cache, then reads:
 a valid seed (two stages, two programs); files cut short at every length; stage and program counts larger than the file;
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
                                    capture_output=True, text=True)
         if sanitized.returncode:   # (no sanitizer runtime with this compiler: the checks alone)
             subprocess.run(base + ["-D_GLIBCXX_ASSERTIONS"], check=True)
-        r = subprocess.run([str(exe), str(tmp / "hookshot_shaders.bin")], capture_output=True, text=True, timeout=300)
+        r = subprocess.run([str(exe), str(tmp / "ocarina_reborn_shaders.bin")], capture_output=True, text=True, timeout=300)
         print(r.stdout, end="")
         if r.returncode:
             print(r.stderr[-4000:], end="")

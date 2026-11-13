@@ -24,7 +24,7 @@ class Writable(unittest.TestCase):
         real_open = open
 
         def refusing_open(path, *args, **kwargs):
-            if os.path.basename(path) == ".hookshot_write_check":
+            if os.path.basename(path) == ".ocarina_reborn_write_check":
                 raise error or PermissionError(13, "Access is denied")
             return real_open(path, *args, **kwargs)
 

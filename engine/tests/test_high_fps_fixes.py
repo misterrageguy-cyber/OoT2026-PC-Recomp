@@ -130,7 +130,7 @@ class HighFpsTests(unittest.TestCase):
         compiler = shutil.which("gcc") or shutil.which("clang")
         if not compiler:
             self.skipTest("no C compiler")
-        with tempfile.TemporaryDirectory(prefix="hookshot-high-fps-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-high-fps-") as tmp:
             tmp = Path(tmp)
             (tmp / "t.c").write_text(FIXTURE, encoding="utf-8")
             binary = tmp / "t.exe"

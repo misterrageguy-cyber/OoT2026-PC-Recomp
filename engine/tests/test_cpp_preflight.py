@@ -53,7 +53,7 @@ class CppPreflightTests(unittest.TestCase):
     def setUp(self):
         if COMPILER is None:
             self.fail("Run this check as a script with --cxx (and, on Windows, a configured developer environment)")
-        self.temporary = tempfile.TemporaryDirectory(prefix="hookshot-cpp-preflight-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-cpp-preflight-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
         self.addCleanup(self.assert_owned_fixture)

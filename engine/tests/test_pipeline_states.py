@@ -114,7 +114,7 @@ def main():
             raise SystemExit("the back end's magic %s and the tool's differ" % name)
     check_v1_table(tool, args.headers)
     check_versions(tool)
-    if "hookshot_pipeline_states_shipped.bin" not in draw:
+    if "ocarina_reborn_pipeline_states_shipped.bin" not in draw:
         raise SystemExit("the back end does not read the shipped list")
 
     def rec(vs, fs, topo):
@@ -141,7 +141,7 @@ def main():
                              capture_output=True, text=True)
         if ran.returncode or open(xz, "rb").read(6) != tool.XZ_MAGIC or tool.read(xz) != merged:
             raise SystemExit("--out .xz: not an xz file of the same records\n" + ran.stderr)
-        # make_game: the sources in assets/pipeline_states/ merged beside the game as hookshot_pipeline_states_shipped.bin
+        # make_game: the sources in assets/pipeline_states/ merged beside the game as ocarina_reborn_pipeline_states_shipped.bin
         # (unpacked), none when there are none
         make_game = load("make_game_under_test", ROOT / "nx2" / "make_game.py")
         game = os.path.join(d, "game")
@@ -155,7 +155,7 @@ def main():
         os.replace(xz, os.path.join(src, tool.CONTRIB, "a" + tool.EXT))
         tool.write(os.path.join(src, tool.TOUR), [rec(9, 9, 9), rec(1, 2, 4)])
         make_game.ship_state_list(game)
-        shipped = os.path.join(game, "hookshot_pipeline_states_shipped.bin")
+        shipped = os.path.join(game, "ocarina_reborn_pipeline_states_shipped.bin")
         want = [rec(9, 9, 9), rec(1, 2, 4), rec(1, 2, 3), rec(5, 0, 3)]   # (the tour's first, each pipeline once)
         if open(shipped, "rb").read(8) != tool.MAGIC or tool.read(shipped) != want:
             raise SystemExit("make_game did not merge assets/pipeline_states/ beside the game")

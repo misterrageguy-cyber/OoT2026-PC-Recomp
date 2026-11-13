@@ -1,9 +1,9 @@
-"""scripts/hookshot_ctl.py, the control bridge's client, against a tiny fake game: a Python stand-in for the executable
+"""scripts/ocarina_reborn_ctl.py, the control bridge's client, against a tiny fake game: a Python stand-in for the executable
 that serves the bridge's protocol on $HOS_CONTROL (docs/control.md) and writes down each request. The commands' requests
 and plain output, --json, exit codes (an error reply, a timeout, no game), watch, launch (which starts the stand-in as a
-game folder's hookshot and waits for its socket), and the mem commands. Linux only: a Unix socket.
+game folder's ocarina_reborn and waits for its socket), and the mem commands. Linux only: a Unix socket.
 
-python -I -B tests/test_hookshot_ctl.py
+python -I -B tests/test_ocarina_reborn_ctl.py
 """
 import json
 import os
@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CTL = ROOT / "scripts" / "hookshot_ctl.py"
+CTL = ROOT / "scripts" / "ocarina_reborn_ctl.py"
 
 FAKE = r'''
 import json, os, socket, sys, threading, time
@@ -184,12 +184,12 @@ class HookshotCtl(unittest.TestCase):
             f.write(b"\x04\x03\x02\x01" + bytes(1392) + b"\xff\xd8\xff\xd9")
         os.environ["FAKE_SAVES"] = cls.saves
         if WINDOWS:
-            # (launch starts a game folder's hookshot.exe, which a script cannot stand in for: the stand-in is started
+            # (launch starts a game folder's ocarina_reborn.exe, which a script cannot stand in for: the stand-in is started
             # here, on a pipe of its own; launch is tested on Linux)
             fake = os.path.join(cls.dir, "fake.py")
             with open(fake, "w") as f:
                 f.write(FAKE)
-            cls.sock = "hookshot-control-test-%d" % os.getpid()
+            cls.sock = "ocarina_reborn-control-test-%d" % os.getpid()
             cls.proc = subprocess.Popen([sys.executable, "-I", fake], env=dict(os.environ, HOS_CONTROL=cls.sock))
             cls.info = {"pid": cls.proc.pid}
             for _ in range(200):   # (until it answers)
@@ -199,7 +199,7 @@ class HookshotCtl(unittest.TestCase):
         else:
             cls.game = os.path.join(cls.dir, "game")
             os.mkdir(cls.game)
-            exe = os.path.join(cls.game, "hookshot")
+            exe = os.path.join(cls.game, "ocarina_reborn")
             with open(exe, "w") as f:
                 f.write("#!%s -I\n%s" % (sys.executable, FAKE))
             os.chmod(exe, 0o755)
@@ -227,7 +227,7 @@ class HookshotCtl(unittest.TestCase):
             reqs = [json.loads(line) for line in f]
         return [r for r in reqs if r["cmd"] == cmd][-1]
 
-    @unittest.skipIf(WINDOWS, "launch starts a game folder's hookshot.exe")
+    @unittest.skipIf(WINDOWS, "launch starts a game folder's ocarina_reborn.exe")
     def test_launch(self):
         self.assertEqual(self.sock, os.path.join(self.run_dir, "control.sock"))
         self.assertEqual(os.stat(self.run_dir).st_mode & 0o777, 0o700)
@@ -262,12 +262,12 @@ class HookshotCtl(unittest.TestCase):
         # for any reply and gave up on long inputs the game was still pressing)
         sys.path.insert(0, str(CTL.parent))
         try:
-            import hookshot_ctl
+            import ocarina_reborn_ctl
         finally:
             sys.path.pop(0)
         waits = []
 
-        class Fake(hookshot_ctl.Bridge):
+        class Fake(ocarina_reborn_ctl.Bridge):
             def __init__(self):
                 self.next_id, self.pending, self.sock = 0, b"", None
 
@@ -392,7 +392,7 @@ class HookshotCtl(unittest.TestCase):
 
     def test_copy_save(self):
         import importlib.util
-        spec = importlib.util.spec_from_file_location("hookshot_ctl", CTL)
+        spec = importlib.util.spec_from_file_location("ocarina_reborn_ctl", CTL)
         m = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(m)
         src = os.path.join(self.dir, "src-save")
@@ -406,7 +406,7 @@ class HookshotCtl(unittest.TestCase):
                 f.write(n)
         before = sorted((dp, fn, os.stat(os.path.join(dp, fn)).st_mtime_ns) for dp, _, fns in os.walk(src) for fn in fns)
         dest = m.copy_save(src, os.path.join(self.dir, "d-all"))
-        self.assertTrue(dest.endswith(os.path.join("hookshot", "save", m.SAVE_USER)))
+        self.assertTrue(dest.endswith(os.path.join("ocarina_reborn", "save", m.SAVE_USER)))
         self.assertEqual(sorted(os.listdir(dest)), ["account.sav", "option.sav", "slot_00", "slot_03"])
         for slot in ("03", "slot_03", "3"):
             dest = m.copy_save(src, os.path.join(self.dir, "d-" + slot), slot)
@@ -447,7 +447,7 @@ class HookshotCtl(unittest.TestCase):
             r = ctl("--json", "launch", self.game, "--run", run, "--headless", "--save", src, "--slot", "03",
                     "--timeout", "20", check=0)
             info = json.loads(r.stdout)
-            got = os.path.join(run, "data", "hookshot", "save", m.SAVE_USER)
+            got = os.path.join(run, "data", "ocarina_reborn", "save", m.SAVE_USER)
             self.assertEqual(sorted(os.listdir(got)), ["account.sav", "option.sav", "slot_03"])
             with open(self.log) as f:
                 starts = [json.loads(line) for line in f if '"_start"' in line]

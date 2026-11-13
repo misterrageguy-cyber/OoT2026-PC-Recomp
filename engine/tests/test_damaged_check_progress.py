@@ -23,7 +23,7 @@ spec.loader.exec_module(make_game)
 
 class DamagedFilesProgressTests(unittest.TestCase):
     def test_each_file_reported_and_the_damaged_one_found(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-damaged-") as romfs:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-damaged-") as romfs:
             os.makedirs(os.path.join(romfs, "Model"))
             for name in ("a.bfres.zs", "c.bfres.zs"):
                 with open(os.path.join(romfs, "Model", name), "wb") as f:

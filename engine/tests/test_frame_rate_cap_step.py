@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "nx2"))
 import oot_patches  # noqa: E402
 
-# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/hookshot_env.h)
-ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "hookshot_env.h")
+# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/ocarina_reborn_env.h)
+ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
 
 # (the shape of the two lifted functions: a float divide whose result goes to v8 in the frame's step and to v0 in the global one)
 DIVIDE = ("    {uint64_t _a=0,_b=0,_z,_v;memcpy(&_a,c->vreg[1],4);memcpy(&_b,c->vreg[0],4);_z=(_a^_b)&0x80000000ULL;\n"

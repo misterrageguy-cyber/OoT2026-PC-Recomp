@@ -36,7 +36,7 @@ class ShippedList(unittest.TestCase):
     def setUp(self):
         self.tool = load("pipeline_states", ROOT / "nx2" / "pipeline_states.py")
         self.src = ROOT.joinpath(*self.tool.SOURCES)
-        self.tmp = Path(tempfile.mkdtemp(prefix="hookshot-ship-states-"))
+        self.tmp = Path(tempfile.mkdtemp(prefix="ocarina_reborn-ship-states-"))
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -125,7 +125,7 @@ class ShippedList(unittest.TestCase):
         game = self.tmp / "game"
         game.mkdir()
         make_game.ship_state_list(str(game))
-        self.assertEqual(len(self.tool.read(str(game / "hookshot_pipeline_states_shipped.bin"))), 3)
+        self.assertEqual(len(self.tool.read(str(game / "ocarina_reborn_pipeline_states_shipped.bin"))), 3)
 
     def test_windows_package_stops_without_it(self):
         damaged = self.fake_list(3)

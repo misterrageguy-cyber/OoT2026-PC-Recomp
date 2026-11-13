@@ -1,17 +1,17 @@
 """Save my pipeline list: the zip a player attaches to the "Submit your pipelines" issue (#2034), made by the game's menu
 (gpu/vk/pipeline_share.h, vk_menu.cpp) and the builders (nx2/pipeline_share.py). Synthetic data only, no game:
 
-  - the zip holds exactly hookshot_pipeline_states.bin (the bytes as the game wrote them) and hookshot_pipeline_report.txt, and
+  - the zip holds exactly ocarina_reborn_pipeline_states.bin (the bytes as the game wrote them) and ocarina_reborn_pipeline_report.txt, and
     nothing else from the game folder (saves, caches, the options file and the log stay out), from both the C++ and the Python;
   - the report is the issue's template filled in: every field in order, the version, the OS, the GPU and its driver from the
-    game's log, the output, the upscaler and the 3D's size, frame generation and HDR from hookshot_options.ini, the mods the game
+    game's log, the output, the upscaler and the 3D's size, frame generation and HDR from ocarina_reborn_options.ini, the mods the game
     loads (host/mods.c's rule), "where you played" left empty, and no path of the player's;
   - a list that is missing, not a list, cut short or empty is refused with the reason, and no zip is written;
   - the C++ and the Python agree: the same fields, the same checks; the Python's names for the options are the menu's;
   - the list holds only pipelines the game drew: state_record() is reached only from draw() (never the precompile, predicted
     pipelines or the shipped list);
   - the menu's row (Debug tab, under Developer) saves on Enter (not the Controls page's catch-all), opens nothing in a run without a window, and the builders
-    (Linux: hookshot_builder.py; Windows: MainWindow.xaml.cs, through nx2/pipeline_share.py --json) offer the same.
+    (Linux: ocarina_reborn_builder.py; Windows: MainWindow.xaml.cs, through nx2/pipeline_share.py --json) offer the same.
 
 python -I -B tests/test_pipeline_share.py [--cxx g++]
 """
@@ -99,17 +99,17 @@ def game_folder(root, list_bytes=None):
     if list_bytes is not None:
         (g / share.LIST).write_bytes(list_bytes)
     # what must never go into the zip
-    for name in ("hookshot_options.ini", "hookshot_log.txt", "hookshot_shaders.bin", "hookshot_pipelines.bin", "language.txt",
-                 "hookshot_pipeline_states_shipped.bin", "hookshot_pipeline_states_v1.bin"):
+    for name in ("ocarina_reborn_options.ini", "ocarina_reborn_log.txt", "ocarina_reborn_shaders.bin", "ocarina_reborn_pipelines.bin", "language.txt",
+                 "ocarina_reborn_pipeline_states_shipped.bin", "ocarina_reborn_pipeline_states_v1.bin"):
         (g / name).write_bytes(b"")
-    (g / "hookshot_options.ini").write_text("output_res=2560x1440\ndlss=1\nresolution=3\nframe_generation=2\nhdr=0\nultrawide=0\n"
+    (g / "ocarina_reborn_options.ini").write_text("output_res=2560x1440\ndlss=1\nresolution=3\nframe_generation=2\nhdr=0\nultrawide=0\n"
                                             "options_version=4\n", encoding="utf-8")
-    (g / "hookshot_log.txt").write_text(
-        "[hos host] hookshot v2.2.0-rc.1-5-gabcdef1 (source 0123abcd)\n"
+    (g / "ocarina_reborn_log.txt").write_text(
+        "[hos host] ocarina_reborn v2.2.0-rc.1-5-gabcdef1 (source 0123abcd)\n"
         "[hos host] vk: device 0: Some GPU, Vulkan 1.4, driver 0x9b118180, type 2\n"
         "[hos host] vk: Some GPU, Vulkan 1.4, driver 0x9b118180; mesh shaders yes, host memory import yes, pipeline libraries yes\n"
         "[hos host] vk: driver: SomeDriver 1.2.3\n", encoding="utf-8")
-    (g / "hookshot_version.txt").write_text("version=v2.1.0\n", encoding="utf-8")
+    (g / "ocarina_reborn_version.txt").write_text("version=v2.1.0\n", encoding="utf-8")
     for d in ("mods/a/romfs", "mods/_off/romfs", "mods/-off2/romfs", "mods/contents/deep/b/romfs", "mods/notamod/x",
               "user/save/1/slot_00"):
         (g / d).mkdir(parents=True)
@@ -123,7 +123,7 @@ def check_python(tmp):
     g = game_folder(t, data)
     out = t / "out"
     path, text, n = share.make_zip(str(g), str(out), day=share.datetime.date(2026, 11, 11))
-    assert n == 3 and Path(path).name == "hookshot-pipelines-2026-11-11.zip", (path, n)
+    assert n == 3 and Path(path).name == "ocarina_reborn-pipelines-2026-11-11.zip", (path, n)
     with zipfile.ZipFile(path) as z:
         assert z.namelist() == [share.LIST, share.REPORT], "the zip holds %s, not exactly the list and the report" % z.namelist()
         assert z.testzip() is None
@@ -170,7 +170,7 @@ def check_python(tmp):
         share.make_zip(str(g), str(out), day=share.datetime.date(2026, 11, 11))
         assert target.read_text(encoding="utf-8") == "keep" and not os.path.lexists(path + ".new"), "the zip was written through a link"
     # older logs: the driver from its number; no log: the version file; settings: handheld, DLAA, the game's own output
-    (g / "hookshot_log.txt").write_text("[hos host] vk: NVIDIA GeForce RTX 3090, Vulkan 1.4, driver 0x9b118180; mesh shaders yes\n",
+    (g / "ocarina_reborn_log.txt").write_text("[hos host] vk: NVIDIA GeForce RTX 3090, Vulkan 1.4, driver 0x9b118180; mesh shaders yes\n",
                                         encoding="utf-8")
     assert share.gpu_text(str(g)) == "NVIDIA GeForce RTX 3090, driver 620.70.6", share.gpu_text(str(g))
     assert share.version_text(str(g)) == "v2.1.0"
@@ -261,7 +261,7 @@ def check_cxx(cxx, tmp):
     data = v2_list(5)
     (t / "good.bin").write_bytes(data)
     r = run("zip", t / "good.bin", t / "c.zip")
-    assert r.returncode == 0 and r.stdout.strip() == "hookshot-pipelines-2026-11-11.zip", r
+    assert r.returncode == 0 and r.stdout.strip() == "ocarina_reborn-pipelines-2026-11-11.zip", r
     with zipfile.ZipFile(t / "c.zip") as z:
         assert z.namelist() == [share.LIST, share.REPORT], z.namelist()
         assert z.testzip() is None, "a CRC does not match"
@@ -360,7 +360,7 @@ def check_sources():
     for word in ("WinHttp", "curl", "POST"):
         assert word not in body, "Save my pipeline list uploads something (%s)" % word
     # the builders
-    linux = (ROOT / "builder" / "linux" / "hookshot_builder.py").read_text(encoding="utf-8")
+    linux = (ROOT / "builder" / "linux" / "ocarina_reborn_builder.py").read_text(encoding="utf-8")
     assert "import pipeline_share" in linux and "Save my pipeline list" in linux
     cs = (ROOT / "builder" / "HookshotBuilder" / "MainWindow.xaml.cs").read_text(encoding="utf-8")
     xaml = (ROOT / "builder" / "HookshotBuilder" / "MainWindow.xaml").read_text(encoding="utf-8")
@@ -376,7 +376,7 @@ def body_of(source, signature):
 
 
 def check_drawn_only():
-    """The list a player shares holds only pipelines the game drew on that PC: hookshot_pipeline_states.bin gets a record only from
+    """The list a player shares holds only pipelines the game drew on that PC: ocarina_reborn_pipeline_states.bin gets a record only from
     state_record(), which only pipeline_note() calls, and only with the draw's colour types, which only graphics_pipeline() passes,
     which only draw() calls. The precompile's notes, predicted pipelines (predict_run, vk_predict.cpp) and the shipped list never
     reach it"""
@@ -427,7 +427,7 @@ def check_drawn_only():
 def check_linux_builder(tmp):
     """The Linux builder's action, without a display: the zip, then the clipboard, the folder and the issue through what it is
     given; a refusal opens nothing"""
-    spec = importlib.util.spec_from_file_location("hookshot_builder_share", ROOT / "builder" / "linux" / "hookshot_builder.py")
+    spec = importlib.util.spec_from_file_location("ocarina_reborn_builder_share", ROOT / "builder" / "linux" / "ocarina_reborn_builder.py")
     try:
         builder = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(builder)

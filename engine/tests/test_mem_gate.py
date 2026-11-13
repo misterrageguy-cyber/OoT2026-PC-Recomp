@@ -33,7 +33,7 @@ def main():
     free = build.free_mb()
     check("the free memory reads (%r)" % free, isinstance(free, int) and free > 0)
 
-    with tempfile.TemporaryDirectory(prefix="hookshot-mem-gate-") as d:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-mem-gate-") as d:
         small = os.path.join(d, "code_000.c")
         Path(small).write_text(PREAMBLE + "".join(function(0x80000000 + 16 * i, 4000) for i in range(500)), newline=chr(10))
         giant = os.path.join(d, "code_001.c")

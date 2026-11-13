@@ -226,6 +226,7 @@ SECTIONS = [
 ]
 # (what the game uses while the file has no line for the key)
 DEFAULTS = {'texture_saving': 0, 'texture_detail': 1, 'game_speed': 1, 'mouse_sensitivity': 100, 'rumble_strength': 100, 'motion_controls': 1, 'volume': 100, 'anisotropic_filtering': 4, 'soft_shadows': 1, 'pipeline_precompile': 1, 'shader_cache': 1, 'hdr_paper_white': 200, 'hdr_peak_brightness': 1000, 'sharpness': 50, 'frame_pacing': 1}
+DEFAULTS.update(view_distance=1, grass=2, shadow_distance=1)  # engine's Original values when absent from the file
 
 # (values an options file can hold that this build cannot run: shown as such when set, never offered)
 UNAVAILABLE = {'dlss': {1: ('DLSS (nicht verfügbar)', 'DLSS (not available)'),

@@ -198,7 +198,7 @@ class SpawnEmitTests(unittest.TestCase):
         cxx = fpx.compiler(ARGS.cxx, "CXX", ("clang++", "g++", "c++"), "clang++")
         if not cxx:
             raise unittest.SkipTest("no C++ compiler")
-        cls.tmp = tempfile.TemporaryDirectory(prefix="hookshot-spawn-emit-")
+        cls.tmp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-spawn-emit-")
         dll = os.path.join(cls.tmp.name, "a64emit.dll" if os.name == "nt" else "liba64emit.so")
         fpx.build([cxx, "-std=c++20", "-O0", "-shared", "-Wno-everything", "-o", dll,
                    os.path.join(str(ROOT), "third_party", "a64-kit", "lift", "a64emit.cpp")]

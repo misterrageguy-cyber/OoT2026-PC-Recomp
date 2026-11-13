@@ -1,5 +1,5 @@
 """Exercise Linux Builder's detached Play path with an authored executable, and with one that decides where to log by the
-game's own rule (host/posix/win32_posix.c GetFileType, as host/hos_main.c uses it): Play must leave it its hookshot_log.txt."""
+game's own rule (host/posix/win32_posix.c GetFileType, as host/hos_main.c uses it): Play must leave it its ocarina_reborn_log.txt."""
 import argparse
 import ast
 import os
@@ -36,11 +36,11 @@ def line(source, start):
 
 
 def logging_game(cxx, exe):
-    """A game that prints a line before its log opens, then opens hookshot_log.txt only when stderr is nowhere to log, as
+    """A game that prints a line before its log opens, then opens ocarina_reborn_log.txt only when stderr is nowhere to log, as
     host/hos_main.c does, by the shim's own GetFileType, and logs 16384 lines (more than Play's 64 KiB)."""
     game_main = (ROOT / "host/hos_main.c").read_text(encoding="utf-8")
-    assert "GetFileType(err) == FILE_TYPE_UNKNOWN" in game_main and '"hookshot_log.txt"' in game_main, \
-        "host/hos_main.c no longer opens hookshot_log.txt when GetFileType(stderr) is FILE_TYPE_UNKNOWN: update this test"
+    assert "GetFileType(err) == FILE_TYPE_UNKNOWN" in game_main and '"ocarina_reborn_log.txt"' in game_main, \
+        "host/hos_main.c no longer opens ocarina_reborn_log.txt when GetFileType(stderr) is FILE_TYPE_UNKNOWN: update this test"
     shim = (ROOT / "host/posix/win32_posix.c").read_text(encoding="utf-8")
     source = "\n".join([
         '#include <stdint.h>\n#include <stdio.h>\n#include <sys/stat.h>\n#include <unistd.h>\n#include "windows.h"',
@@ -50,7 +50,7 @@ def logging_game(cxx, exe):
         "int main() {",
         '    fputs("before the log\\n", stderr);',
         "    HFile err = {{H_FILE}, 2};",
-        '    if (GetFileType(&err) == FILE_TYPE_UNKNOWN && freopen("hookshot_log.txt", "w", stderr))',
+        '    if (GetFileType(&err) == FILE_TYPE_UNKNOWN && freopen("ocarina_reborn_log.txt", "w", stderr))',
         '        for (int i = 0; i < 16384; i++) fprintf(stderr, "log line %d\\n", i);',
         "    return 73;",
         "}",
@@ -71,7 +71,7 @@ def main():
     cxx = shutil.which(args.cxx)
     if not cxx:
         raise SystemExit("C++ compiler not found: " + args.cxx)
-    path = BUILDER / "hookshot_builder.py"
+    path = BUILDER / "ocarina_reborn_builder.py"
     play = next(node for node in ast.parse(path.read_text(encoding="utf-8")).body
                 if isinstance(node, ast.FunctionDef) and node.name == "play")
     processes = []
@@ -81,14 +81,14 @@ def main():
         processes.append(subprocess.Popen(command, **options))
 
     namespace = dict(HERE=str(BUILDER), os=os, socket=socket, own_scope=lambda env: [],   # (test_linux_play_scope.py has it)
-                     linux_update=SimpleNamespace(game_exe=lambda folder: str(Path(folder) / "hookshot")),
+                     linux_update=SimpleNamespace(game_exe=lambda folder: str(Path(folder) / "ocarina_reborn")),
                      make_game=SimpleNamespace(game_env=lambda: dict(os.environ)),
                      subprocess=SimpleNamespace(Popen=launch, DEVNULL=subprocess.DEVNULL))
     exec(compile(ast.Module(body=[play], type_ignores=[]), str(path), "exec"), namespace)
 
-    with tempfile.TemporaryDirectory(prefix="hookshot-play-") as directory:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-play-") as directory:
         folder = Path(directory)
-        game = folder / "hookshot"
+        game = folder / "ocarina_reborn"
         game.write_text(
             '#!/bin/sh\n'
             'printf "stdout sentinel\\n"\n'
@@ -101,11 +101,11 @@ def main():
             namespace["play"](str(folder))
         for process in processes:
             assert process.wait(timeout=10) == 0
-        log = folder / "hookshot_startup.log"
+        log = folder / "ocarina_reborn_startup.log"
         data = log.read_bytes()
         assert data == b"stderr sentinel\n" + bytes(65536 - len(b"stderr sentinel\n")) + b"\nHookshot exited with status 73\n"
         assert (folder / "completed").is_file() and log.stat().st_mode & 0o777 == 0o600
-        assert not list(folder.glob(".hookshot-startup.*"))
+        assert not list(folder.glob(".ocarina_reborn-startup.*"))
 
         # A non-writable destination must not prevent the game from running.
         log.unlink()
@@ -114,7 +114,7 @@ def main():
         namespace["play"](str(folder))
         processes[-1].wait(timeout=10)
         assert (folder / "completed").is_file() and not list(log.iterdir())
-        assert not list(folder.glob(".hookshot-startup.*"))
+        assert not list(folder.glob(".ocarina_reborn-startup.*"))
 
         # A failed real scope start uses the same bounded diagnostics, including why Play fell back.
         log.rmdir()
@@ -122,21 +122,21 @@ def main():
         namespace["play"](str(folder))
         assert processes[-1].wait(timeout=10) == 0
         assert log.read_bytes() == data + b"Hookshot: systemd scope hand-off failed; started without a separate scope.\n"
-        assert not list(folder.glob(".hookshot-startup.*"))
+        assert not list(folder.glob(".ocarina_reborn-startup.*"))
         namespace["own_scope"] = lambda env: []
 
-    # The game's own log: a pipe on stderr is a reader to the game (FILE_TYPE_PIPE), and it then writes no hookshot_log.txt.
-    with tempfile.TemporaryDirectory(prefix="hookshot-play-log-") as directory:
+    # The game's own log: a pipe on stderr is a reader to the game (FILE_TYPE_PIPE), and it then writes no ocarina_reborn_log.txt.
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-play-log-") as directory:
         folder = Path(directory)
-        logging_game(cxx, folder / "hookshot")
+        logging_game(cxx, folder / "ocarina_reborn")
         namespace["play"](str(folder))
         assert processes[-1].wait(timeout=10) == 0
-        assert (folder / "hookshot_log.txt").is_file(), \
-            "Play gave the game a stderr it takes for a reader (GetFileType not FILE_TYPE_UNKNOWN): no hookshot_log.txt"
-        lines = (folder / "hookshot_log.txt").read_text(encoding="utf-8").splitlines()
-        assert lines == ["log line %d" % i for i in range(16384)], "hookshot_log.txt is not the game's whole log"
-        assert (folder / "hookshot_startup.log").read_bytes() == b"before the log\n\nHookshot exited with status 73\n"
-        assert not list(folder.glob(".hookshot-startup.*"))
+        assert (folder / "ocarina_reborn_log.txt").is_file(), \
+            "Play gave the game a stderr it takes for a reader (GetFileType not FILE_TYPE_UNKNOWN): no ocarina_reborn_log.txt"
+        lines = (folder / "ocarina_reborn_log.txt").read_text(encoding="utf-8").splitlines()
+        assert lines == ["log line %d" % i for i in range(16384)], "ocarina_reborn_log.txt is not the game's whole log"
+        assert (folder / "ocarina_reborn_startup.log").read_bytes() == b"before the log\n\nHookshot exited with status 73\n"
+        assert not list(folder.glob(".ocarina_reborn-startup.*"))
     print("PASS: detached Play, bounded stderr, exit status, concurrent launches, publication failure, and the game's own "
           "log beside the startup lines, including scope fallback")
 

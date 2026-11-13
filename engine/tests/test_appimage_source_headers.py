@@ -48,7 +48,7 @@ class AppImageHeaders(unittest.TestCase):
         # Execute production commands, stopping before binaries/dependencies and all native build steps.
         start = script.index("# ---- the tools (the sources")
         end = script.index("cp -a third_party/opus", start)
-        with tempfile.TemporaryDirectory(prefix="hookshot-appimage-headers-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-appimage-headers-") as folder:
             packaged = Path(folder) / "tools"
             packaged.mkdir()
             env = dict(os.environ, T=str(packaged), VERSION="authored-test")
@@ -62,7 +62,7 @@ class AppImageHeaders(unittest.TestCase):
                              "AppImage source is missing a repository-local header (target: includer)")
 
     def test_transitive_missing_header_and_include_cycle(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-local-includes-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-local-includes-") as folder:
             source, packaged = Path(folder) / "source", Path(folder) / "packaged"
             files = {
                 "host/main.c": '#include "../gpu/vk/top.h"\n',

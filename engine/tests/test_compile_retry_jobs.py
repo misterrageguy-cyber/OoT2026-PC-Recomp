@@ -42,7 +42,7 @@ def actual_coordinator(source):
 
 class CompileRetryJobsTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix='hookshot-retry-jobs-')
+        self.temporary = tempfile.TemporaryDirectory(prefix='ocarina_reborn-retry-jobs-')
         self.addCleanup(self.temporary.cleanup)
         self.folder = Path(self.temporary.name).resolve()
         self.assertTrue(self.folder.is_relative_to(Path(tempfile.gettempdir()).resolve()))

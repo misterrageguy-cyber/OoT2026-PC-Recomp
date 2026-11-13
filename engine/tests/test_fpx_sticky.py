@@ -194,7 +194,7 @@ def main():
         skip("no C compiler" if not cc else "no C++ compiler")
     t0 = time.time()
     failed, ran = [], []
-    with tempfile.TemporaryDirectory(prefix="hookshot-fpx-sticky-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-fpx-sticky-") as tmp:
         generate(cxx, tmp, target_flags(cxx, tmp))
         for march, fma in BUILDS:
             exe = os.path.join(tmp, "fpx_sticky_test_%s.exe" % march)

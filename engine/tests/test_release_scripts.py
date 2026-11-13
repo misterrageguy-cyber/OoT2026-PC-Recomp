@@ -250,7 +250,7 @@ class ReleaseScripts(unittest.TestCase):
         self.state_file = self.dir / "state.json"
         self.files = self.dir / "dist"
         self.files.mkdir()
-        for name in ("Hookshot-v2.1.0-x86_64.AppImage", "hookshot-linux.txt"):
+        for name in ("Hookshot-v2.1.0-x86_64.AppImage", "ocarina_reborn-linux.txt"):
             (self.files / name).write_text("built " + name, encoding="utf-8")
         self.env = dict(os.environ, PATH=str(tools) + os.pathsep + os.environ["PATH"], GH_REPO=REPO,
                         GH_TOKEN="x", FAKE_GH_STATE=str(self.state_file))
@@ -288,17 +288,17 @@ class ReleaseScripts(unittest.TestCase):
         draft = self.state()["releases"][0]
         self.assertTrue(draft["draft"])
         self.assertEqual(draft["body"], "promote notes")
-        self.assertEqual(sorted(a["name"] for a in draft["assets"]), ["Hookshot-v2.1.0-x86_64.AppImage", "hookshot-linux.txt"])
+        self.assertEqual(sorted(a["name"] for a in draft["assets"]), ["Hookshot-v2.1.0-x86_64.AppImage", "ocarina_reborn-linux.txt"])
         self.assertFalse(self.creates())
         uploads = [a for c in self.state()["calls"] for a in c if "uploads.github.com" in a]
         self.assertTrue(uploads and all("/releases/5/assets?" in u for u in uploads), uploads)
 
     def test_a_file_again_replaces_the_one_there(self):
-        self.given([rel(5, "v2.1.0", True, False, assets=["hookshot-linux.txt"])])
+        self.given([rel(5, "v2.1.0", True, False, assets=["ocarina_reborn-linux.txt"])])
         r = self.upload(RELEASE_FROM_WORKFLOW="true")
         self.assertEqual(r.returncode, 0, r.stderr)
-        linux = [a for a in self.state()["releases"][0]["assets"] if a["name"] == "hookshot-linux.txt"]
-        self.assertEqual([a["content"] for a in linux], ["built hookshot-linux.txt"])
+        linux = [a for a in self.state()["releases"][0]["assets"] if a["name"] == "ocarina_reborn-linux.txt"]
+        self.assertEqual([a["content"] for a in linux], ["built ocarina_reborn-linux.txt"])
 
     def test_listing_that_fails_makes_no_release(self):
         # (v2.1.0: a lookup of the draft that failed read as "no release", and a published "latest" one was made)
@@ -327,11 +327,11 @@ class ReleaseScripts(unittest.TestCase):
         (made,) = self.state()["releases"]
         self.assertFalse(made["draft"])
         names = sorted(a["name"] for a in made["assets"])
-        self.assertEqual(names, ["Hookshot-v2.1.0-x86_64.AppImage", "SHA256SUMS", "hookshot-linux.txt"])
+        self.assertEqual(names, ["Hookshot-v2.1.0-x86_64.AppImage", "SHA256SUMS", "ocarina_reborn-linux.txt"])
         sums = next(a["content"] for a in made["assets"] if a["name"] == "SHA256SUMS")
         self.assertEqual(sums, (self.dir / "SUMS").read_text(encoding="utf-8"))
         self.assertIn("Which file do I download?", made["body"])
-        check = self.run_script("release_files.sh", "check", "v2.1.0", "hookshot-linux.txt")
+        check = self.run_script("release_files.sh", "check", "v2.1.0", "ocarina_reborn-linux.txt")
         self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
 
     def test_sums_replaced_between_listing_and_read_are_read_again(self):
@@ -343,7 +343,7 @@ class ReleaseScripts(unittest.TestCase):
         state = self.state()
         state.update(race={"SHA256SUMS": 2}, calls=[])
         self.state_file.write_text(json.dumps(state), encoding="utf-8")
-        check = self.run_script("release_files.sh", "check", "v2.1.0", "hookshot-linux.txt")
+        check = self.run_script("release_files.sh", "check", "v2.1.0", "ocarina_reborn-linux.txt")
         self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
         r = self.run_script("release_files.sh", "finish", "v2.1.0")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
@@ -360,8 +360,8 @@ class ReleaseScripts(unittest.TestCase):
         out.mkdir(exist_ok=True)
         version = "v2.1.0-rc.3-%d-g%s" % ({self.Z: 1, self.A: 2, self.B: 3}.get(sha, 9), sha[:8])
         names = (["Hookshot-%s-x86_64.AppImage" % version, "Hookshot-%s-x86_64.AppImage.zsync" % version,
-                  "hookshot-linux.txt"] if platform == "linux" else
-                 ["HookshotBuilder.exe", "hookshot-setup.txt", "Hookshot-%s-Windows-x64.zip" % version])
+                  "ocarina_reborn-linux.txt"] if platform == "linux" else
+                 ["HookshotBuilder.exe", "ocarina_reborn-setup.txt", "Hookshot-%s-Windows-x64.zip" % version])
         for name in names:
             (out / name).write_text("%s %s %s" % (platform, version, name), encoding="utf-8")
         return [str(out / name) for name in names]
@@ -397,7 +397,7 @@ class ReleaseScripts(unittest.TestCase):
         self.assertIn("Hookshot-v2.1.0-rc.3-2-gaaaaaaaa-x86_64.AppImage.zsync", files)
         self.assertNotIn("Hookshot-v2.1.0-rc.3-1-g11111111-x86_64.AppImage", files)
         self.assertNotIn("Hookshot-v2.1.0-rc.3-1-g11111111-x86_64.AppImage.zsync", files)
-        self.assertEqual(files["hookshot-linux.txt"], "linux v2.1.0-rc.3-2-gaaaaaaaa hookshot-linux.txt")
+        self.assertEqual(files["ocarina_reborn-linux.txt"], "linux v2.1.0-rc.3-2-gaaaaaaaa ocarina_reborn-linux.txt")
         self.assertIn("SHA256SUMS", files)
         # (no force: a fast-forward, which GitHub refuses when the tag moved past this commit)
         moves = [c for c in self.state()["calls"] if "repos/%s/git/refs/tags/nightly" % REPO in c]
@@ -486,7 +486,7 @@ class ReleaseScripts(unittest.TestCase):
                 self.assertIn(linux, [["Hookshot-v2.1.0-rc.3-%s-x86_64.AppImage" % v,
                                        "Hookshot-v2.1.0-rc.3-%s-x86_64.AppImage.zsync" % v]
                                       for v in ("1-g11111111", "2-gaaaaaaaa")])
-                self.assertIn(linux[0].split("-x86_64")[0].split("Hookshot-")[1], files["hookshot-linux.txt"])
+                self.assertIn(linux[0].split("-x86_64")[0].split("Hookshot-")[1], files["ocarina_reborn-linux.txt"])
 
     def test_nightly_made_when_there_is_no_tag(self):
         self.given_nightly(None)
@@ -604,7 +604,7 @@ class ReleaseScripts(unittest.TestCase):
             with self.subTest(tag=tag):
                 r = self.run_script("release_files.sh", "table", tag)
                 self.assertEqual(r.returncode, 0, r.stderr)
-                for name in ("`HookshotBuilder.exe`", "`hookshot-setup.txt`", "`hookshot-linux.txt`", "`.zsync`",
+                for name in ("`HookshotBuilder.exe`", "`ocarina_reborn-setup.txt`", "`ocarina_reborn-linux.txt`", "`.zsync`",
                              zip_name, "RecompLauncher", "SHA256SUMS"):
                     self.assertIn(name, r.stdout)
                 self.assertIn("for RecompLauncher: on Windows, download `HookshotBuilder.exe` instead", r.stdout)

@@ -22,7 +22,7 @@ spec.loader.exec_module(make_game)
 
 class MissingNupTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-missing-nup-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-missing-nup-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         self.assertEqual(self.root.parent, Path(tempfile.gettempdir()).resolve())
@@ -30,11 +30,11 @@ class MissingNupTests(unittest.TestCase):
         self.out, self.work = self.root / "output", self.root / "work"
         (self.out / "romfs").mkdir(parents=True)
         (self.out / "romfs/asset").write_bytes(b"authored asset")
-        (self.out / ".hookshot_exefs").mkdir()
-        (self.out / ".hookshot_exefs/main").write_bytes(b"authored code sentinel")
+        (self.out / ".ocarina_reborn_exefs").mkdir()
+        (self.out / ".ocarina_reborn_exefs/main").write_bytes(b"authored code sentinel")
         (self.out / "user/save").mkdir(parents=True)
         (self.out / "user/save/sentinel").write_bytes(b"authored save sentinel")
-        (self.out / ".hookshot_romfs").write_text("previous authored package\n", encoding="utf-8")
+        (self.out / ".ocarina_reborn_romfs").write_text("previous authored package\n", encoding="utf-8")
         self.before = self.files()
         self.events = []
 
@@ -124,7 +124,7 @@ class MissingNupTests(unittest.TestCase):
         self.package = self.root / "existing cached game [1].nup"
         self.package.write_bytes(b"authored package sentinel")
         stamp = "unpacked by this builder: %s %d\n" % (self.package.name, self.package.stat().st_size)
-        (self.out / ".hookshot_romfs").write_text(stamp, encoding="utf-8")
+        (self.out / ".ocarina_reborn_romfs").write_text(stamp, encoding="utf-8")
         self.before = self.files()
         code, text = self.invoke()
         self.assertEqual(code, 0, text)

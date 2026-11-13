@@ -31,7 +31,7 @@ COMPILER = None
 class HeaderCacheTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(COMPILER, 'Pass an explicit --cc compiler supporting -M')
-        self.temporary = tempfile.TemporaryDirectory(prefix='hookshot-headers-')
+        self.temporary = tempfile.TemporaryDirectory(prefix='ocarina_reborn-headers-')
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
         self.addCleanup(self.check_boundary)

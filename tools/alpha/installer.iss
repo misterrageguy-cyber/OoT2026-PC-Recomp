@@ -6,10 +6,15 @@
   #define AppVersion "0.0.0"
 #endif
 
+#ifndef AppFileVersion
+  #define AppFileVersion "0.0.0.0"
+#endif
+
 [Setup]
 AppId={{6E0B5C1A-0C9B-4C3F-9E52-0CA81A2B7F11}
 AppName={#AppName}
 AppVersion={#AppVersion}
+VersionInfoVersion={#AppFileVersion}
 AppVerName={#AppName} {#AppVersion}
 AppPublisher=Ocarina Reborn
 DefaultDirName={localappdata}\Programs\Ocarina Reborn

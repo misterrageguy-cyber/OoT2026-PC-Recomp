@@ -1,4 +1,4 @@
-"""The pipeline notes file (hookshot_pipelines.bin) and the pipeline state list are opened by the precompile, before play, with
+"""The pipeline notes file (ocarina_reborn_pipelines.bin) and the pipeline state list are opened by the precompile, before play, with
 the notes it has just read, not at the first new pipeline in play.
 
 pipeline_note opened the notes file at the first new pipeline of a run and read its keys back with a seek and an 8-byte read
@@ -49,7 +49,7 @@ class PipelineNotesOpenTests(unittest.TestCase):
         open_ = block(self.draw, "void state_open_locked()")
         # (the records as the file has them, hashed as state_record hashes the ones it writes; a version 1 list kept aside)
         self.assertIn("while (fread(&r, sizeof r, 1, f) == 1) state_seen.insert(state_hash(r))", open_)
-        self.assertIn('state_list_path("hookshot_pipeline_states_v1.bin")', open_)
+        self.assertIn('state_list_path("ocarina_reborn_pipeline_states_v1.bin")', open_)
 
     def test_the_precompile_opens_both_before_play_with_the_notes_it_read(self):
         run = block(self.draw, "void precompile_run(void (*progress)(size_t done, size_t total))")

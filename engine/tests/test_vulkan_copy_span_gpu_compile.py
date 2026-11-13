@@ -44,7 +44,7 @@ def main():
     fixture = (ROOT / "tests/vulkan_copy_span_gpu.cpp").read_text(encoding="utf-8").replace(
         "// PRODUCTION_COPY_LAYOUT", production
     )
-    with tempfile.TemporaryDirectory(prefix="hookshot-copy-span-gpu-compile-") as directory:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-copy-span-gpu-compile-") as directory:
         cpp, exe = Path(directory) / "fixture.cpp", Path(directory) / "fixture.exe"
         cpp.write_text(fixture, encoding="utf-8")
         flags = ["-std=c++20", "-O1", "-Wall", "-Wextra", "-Werror", "-Wno-missing-field-initializers"]

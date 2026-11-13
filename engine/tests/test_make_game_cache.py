@@ -38,7 +38,7 @@ def module_bytes(supported=True, payload=b"new authored module"):
 
 class NupCacheTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="hookshot-cache-test-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-cache-test-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
         self.out = self.root / "output"
@@ -52,14 +52,14 @@ class NupCacheTests(unittest.TestCase):
         self.new_nup.write_bytes(b"new authored input of a different size")
         (self.out / "romfs").mkdir()
         (self.out / "romfs" / "asset.txt").write_bytes(b"old authored assets")
-        (self.out / ".hookshot_exefs").mkdir()
-        (self.out / ".hookshot_exefs" / "main").write_bytes(module_bytes(payload=b"old authored module"))
-        self.marker = self.out / ".hookshot_romfs"
+        (self.out / ".ocarina_reborn_exefs").mkdir()
+        (self.out / ".ocarina_reborn_exefs" / "main").write_bytes(module_bytes(payload=b"old authored module"))
+        self.marker = self.out / ".ocarina_reborn_romfs"
         self.marker.write_text(self.stamp(self.old_nup) + "\n")
         save = self.out / "user" / "save"
         save.mkdir(parents=True)
         (save / "sentinel.txt").write_bytes(b"authored save sentinel")
-        (self.out / "hookshot_options.ini").write_bytes(b"authored options sentinel")
+        (self.out / "ocarina_reborn_options.ini").write_bytes(b"authored options sentinel")
         self.extractions = []
         self.output = ""
 
@@ -188,10 +188,10 @@ class NupCacheTests(unittest.TestCase):
         self.assertEqual(self.extractions, [])
         after = self.cache()
         # (the one file added: the damaged-texture check's note that this unpack was checked, nup.stand_in_damaged)
-        self.assertEqual(after.pop(".hookshot_romfs_checked").decode().splitlines(),
-                         ["resolved-v2"] + before[".hookshot_romfs"].decode().splitlines())
+        self.assertEqual(after.pop(".ocarina_reborn_romfs_checked").decode().splitlines(),
+                         ["resolved-v2"] + before[".ocarina_reborn_romfs"].decode().splitlines())
         self.assertEqual(after, before)
-        self.assertEqual((scratch / "main").read_bytes(), (self.out / ".hookshot_exefs/main").read_bytes())
+        self.assertEqual((scratch / "main").read_bytes(), (self.out / ".ocarina_reborn_exefs/main").read_bytes())
 
     def test_changed_source_replaces_romfs_and_exefs_together(self):
         with self.assertRaises(Prepared):
@@ -199,10 +199,10 @@ class NupCacheTests(unittest.TestCase):
         self.assertEqual(self.extractions, [self.new_nup])
         self.assertEqual((self.out / "romfs" / "asset.txt").read_bytes(), b"new authored assets")
         self.assertTrue((self.out / "romfs" / "new-only.txt").is_file())
-        self.assertEqual((self.out / ".hookshot_exefs" / "main").read_bytes(), module_bytes())
+        self.assertEqual((self.out / ".ocarina_reborn_exefs" / "main").read_bytes(), module_bytes())
         self.assertEqual(self.marker.read_text(), self.stamp(self.new_nup) + "\n")
         self.assertEqual((self.out / "user/save/sentinel.txt").read_bytes(), b"authored save sentinel")
-        self.assertEqual((self.out / "hookshot_options.ini").read_bytes(), b"authored options sentinel")
+        self.assertEqual((self.out / "ocarina_reborn_options.ini").read_bytes(), b"authored options sentinel")
 
     def test_same_source_reuses_the_cache(self):
         before = self.cache()
@@ -211,11 +211,11 @@ class NupCacheTests(unittest.TestCase):
         self.assertEqual(self.extractions, [])
         after = self.cache()
         # (the one file added: the damaged-texture check's note that this unpack was checked, nup.stand_in_damaged)
-        self.assertEqual(after.pop(".hookshot_romfs_checked").decode().splitlines(),
-                         ["resolved-v2"] + before[".hookshot_romfs"].decode().splitlines())
+        self.assertEqual(after.pop(".ocarina_reborn_romfs_checked").decode().splitlines(),
+                         ["resolved-v2"] + before[".ocarina_reborn_romfs"].decode().splitlines())
         self.assertEqual(after, before)
         self.assertEqual((self.work / "exefs/main").read_bytes(),
-                         (self.out / ".hookshot_exefs/main").read_bytes())
+                         (self.out / ".ocarina_reborn_exefs/main").read_bytes())
 
     def test_unresolved_fresh_extraction_stops_before_lift(self):
         original = self.new_nup.read_bytes()
@@ -224,10 +224,10 @@ class NupCacheTests(unittest.TestCase):
         self.assertEqual(result.exception.code, 1)
         self.assertIn("@@error The game dump still has 1 damaged file with no replacement", self.output)
         self.assertIn("only_Alb.bntx.zs", self.output)
-        self.assertFalse((self.out / ".hookshot_romfs_checked").exists())
+        self.assertFalse((self.out / ".ocarina_reborn_romfs_checked").exists())
         self.assertEqual(self.new_nup.read_bytes(), original)
         self.assertEqual((self.out / "user/save/sentinel.txt").read_bytes(), b"authored save sentinel")
-        self.assertEqual((self.out / "hookshot_options.ini").read_bytes(), b"authored options sentinel")
+        self.assertEqual((self.out / "ocarina_reborn_options.ini").read_bytes(), b"authored options sentinel")
 
     def test_unresolved_cached_extraction_retries_until_a_donor_is_available(self):
         tex = self.out / "romfs/Tex"
@@ -246,7 +246,7 @@ class NupCacheTests(unittest.TestCase):
             note = self.out / make_game.DAMAGED_NOTE
             self.assertTrue(note.is_file(), "the unresolved failure must leave the damaged-file report")
             self.assertIn("only_Alb.bntx.zs: no replacement found; build cannot continue", note.read_text(encoding="utf-8"))
-            self.assertFalse((self.out / ".hookshot_romfs_checked").exists())
+            self.assertFalse((self.out / ".ocarina_reborn_romfs_checked").exists())
             self.assertEqual(heads.read_bytes(), original_heads)
             self.assertEqual(broken.read_bytes(), bytes(32))
         donor = tex / "other_Alb.bntx.zs"
@@ -255,13 +255,13 @@ class NupCacheTests(unittest.TestCase):
             self.run_to_lift(self.old_nup)
         self.assertEqual(broken.read_bytes(), donor.read_bytes())
         self.assertFalse(heads.exists())
-        self.assertEqual((self.out / ".hookshot_romfs_checked").read_text(), "resolved-v2\n" + self.marker.read_text())
+        self.assertEqual((self.out / ".ocarina_reborn_romfs_checked").read_text(), "resolved-v2\n" + self.marker.read_text())
         self.assertEqual(self.old_nup.read_bytes(), original_nup)
         self.assertEqual((self.out / "user/save/sentinel.txt").read_bytes(), b"authored save sentinel")
-        self.assertEqual((self.out / "hookshot_options.ini").read_bytes(), b"authored options sentinel")
+        self.assertEqual((self.out / "ocarina_reborn_options.ini").read_bytes(), b"authored options sentinel")
 
     def test_legacy_marker_does_not_hide_unresolved_damage(self):
-        checked = self.out / ".hookshot_romfs_checked"
+        checked = self.out / ".ocarina_reborn_romfs_checked"
         checked.write_bytes(self.marker.read_bytes())
         tex = self.out / "romfs/Tex"
         tex.mkdir()
@@ -275,7 +275,7 @@ class NupCacheTests(unittest.TestCase):
         self.assertEqual(broken.read_bytes(), bytes(32))
 
     def test_legacy_healthy_marker_is_checked_once(self):
-        checked = self.out / ".hookshot_romfs_checked"
+        checked = self.out / ".ocarina_reborn_romfs_checked"
         checked.write_bytes(self.marker.read_bytes())
         with self.assertRaises(Prepared):
             self.run_to_lift(self.old_nup)
@@ -292,7 +292,7 @@ class NupCacheTests(unittest.TestCase):
                                                       "Tex/other_Alb.bntx.zs": donor})
         self.assertIn("in its place other_Alb.bntx.zs", self.output)
         self.assertEqual((self.out / "romfs/Tex/only_Alb.bntx.zs").read_bytes(), donor)
-        self.assertTrue((self.out / ".hookshot_romfs_checked").exists())
+        self.assertTrue((self.out / ".ocarina_reborn_romfs_checked").exists())
 
     def test_mixed_repairs_report_the_unresolved_count(self):
         with self.assertRaises(SystemExit) as result:
@@ -305,7 +305,7 @@ class NupCacheTests(unittest.TestCase):
         self.assertIn("2 game files in it are damaged", self.output)
         self.assertIn("1 damaged file with no replacement", self.output)
         self.assertIn("missing.bfres.zs", self.output)
-        self.assertFalse((self.out / ".hookshot_romfs_checked").exists())
+        self.assertFalse((self.out / ".ocarina_reborn_romfs_checked").exists())
 
     def test_failed_extraction_preserves_the_previous_cache_and_save(self):
         before = self.cache()
@@ -374,7 +374,7 @@ class NupCacheTests(unittest.TestCase):
 
 class RomfsCopyTests(unittest.TestCase):
     def test_interrupted_cross_volume_copy_can_be_retried(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-romfs-copy-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-romfs-copy-") as folder:
             src, dst = Path(folder) / "source", Path(folder) / "destination"
             src.mkdir()
             dst.mkdir()
@@ -401,7 +401,7 @@ class RomfsCopyTests(unittest.TestCase):
             self.assertEqual({p.name for p in dst.iterdir()}, {"asset.bin", "existing.bin"})
 
     def test_failed_replacement_removes_the_staged_read_only_copy(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-romfs-replace-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-romfs-replace-") as folder:
             src, dst = Path(folder) / "source", Path(folder) / "destination"
             src.mkdir()
             source = src / "asset.bin"
@@ -417,7 +417,7 @@ class RomfsCopyTests(unittest.TestCase):
 
     def test_links_in_an_extracted_dump_are_refused(self):
         # (a link in --romfs or --exefs was followed: the file it named was hard-linked or copied into the game folder)
-        with tempfile.TemporaryDirectory(prefix="hookshot-dump-links-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-dump-links-") as folder:
             src, secret = Path(folder) / "romfs", Path(folder) / "secret"
             (src / "Model").mkdir(parents=True)
             (src / "Model" / "a.zs").write_bytes(b"game data")

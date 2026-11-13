@@ -7,8 +7,8 @@ import shutil
 import subprocess
 import tempfile
 
-# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/hookshot_env.h)
-ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "hookshot_env.h")
+# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/ocarina_reborn_env.h)
+ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN_ALL_ARGS = ["--cxx", "{cxx}"]
@@ -61,7 +61,7 @@ def main():
     flags = subprocess.CREATE_NO_WINDOW | subprocess.BELOW_NORMAL_PRIORITY_CLASS if os.name == "nt" else 0
     env = dict(os.environ)
     env["PATH"] = str(Path(cxx).parent) + os.pathsep + env.get("PATH", "")
-    with tempfile.TemporaryDirectory(prefix="hookshot-direct-writes-") as folder:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-direct-writes-") as folder:
         tmp = Path(folder)
         (tmp / "direct_write_types.inc").write_text(types + "\n", encoding="utf-8")
         (tmp / "direct_write_actual.inc").write_text(actual + "\n", encoding="utf-8")

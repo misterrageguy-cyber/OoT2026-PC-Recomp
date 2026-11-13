@@ -69,7 +69,7 @@ int main(void) {
     return 0;
 }
 '''.replace("/* ACTUAL_CONVERSIONS */", actual)
-    with tempfile.TemporaryDirectory(prefix="hookshot-fs-utf8-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-fs-utf8-") as temporary:
         path = Path(temporary)
         test, exe = path / "conversions.c", path / "conversions.exe"
         test.write_text(fixture, encoding="utf-8")

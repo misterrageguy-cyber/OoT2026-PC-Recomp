@@ -30,7 +30,7 @@ MINUTE_AGO = time.time() - 60
 
 class HashCacheTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="hookshot-hash-cache-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-hash-cache-")
         self.addCleanup(self.temporary.cleanup)
         self.dir = Path(self.temporary.name)
         self.src = self.dir / "code_001.c"

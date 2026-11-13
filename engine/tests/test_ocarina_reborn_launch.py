@@ -1,6 +1,6 @@
 """The launcher starts the built game and does not keep the builder's libraries on the path.
 
-python -I -B tests/test_hookshot_launch.py
+python -I -B tests/test_ocarina_reborn_launch.py
 """
 import os
 from pathlib import Path
@@ -13,13 +13,13 @@ import unittest
 RUN_ALL_SKIP = {"windows": "the Linux launcher, a POSIX shell script"}
 
 ROOT = Path(__file__).resolve().parents[1]
-LAUNCH = ROOT / "builder" / "linux" / "hookshot-launch"
+LAUNCH = ROOT / "builder" / "linux" / "ocarina_reborn-launch"
 
 
 def game(folder):
     folder.mkdir()
     (folder / "image.bin").write_bytes(b"image")
-    exe = folder / "hookshot"
+    exe = folder / "ocarina_reborn"
     exe.write_text(
         "#!/bin/sh\n"
         "pwd\n"
@@ -51,7 +51,7 @@ class LaunchTests(unittest.TestCase):
         return e
 
     def test_the_saved_folder_starts_without_the_builders_libraries(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-launch-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-launch-") as tmp:
             root = Path(tmp)
             folder = root / "100% Games"
             game(folder)
@@ -74,14 +74,14 @@ class LaunchTests(unittest.TestCase):
         self.assertIn("HOME=%s" % os.environ["HOME"], lines)
 
     def test_play_starts_the_game_in_bin_not_the_launcher(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-launch-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-launch-") as tmp:
             root = Path(tmp)
             folder = root / "game"
             game(folder)
-            (folder / "hookshot").write_text("#!/bin/sh\nprintf 'launcher\\n'\n", encoding="utf-8")
+            (folder / "ocarina_reborn").write_text("#!/bin/sh\nprintf 'launcher\\n'\n", encoding="utf-8")
             nested = folder / "bin"
             nested.mkdir()
-            exe = nested / "hookshot"
+            exe = nested / "ocarina_reborn"
             exe.write_text(
                 "#!/bin/sh\nprintf 'game\\n'\nprintf 'CHECK=%s\\n' \"${HOOKSHOT_NO_UPDATE_CHECK-UNSET}\"\n",
                 encoding="utf-8",
@@ -93,7 +93,7 @@ class LaunchTests(unittest.TestCase):
         self.assertIn("CHECK=1", ran.stdout)
 
     def test_a_folder_argument_wins(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-launch-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-launch-") as tmp:
             root = Path(tmp)
             saved = root / "saved"
             other = root / "other"
@@ -115,7 +115,7 @@ class LaunchTests(unittest.TestCase):
         for source in ("argument", "config"):
             for relative in ("100% Games", "./100% Games"):
                 with self.subTest(source=source, folder=relative):
-                    with tempfile.TemporaryDirectory(prefix="hookshot-launch-") as tmp:
+                    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-launch-") as tmp:
                         root = Path(tmp)
                         folder = root / "100% Games"
                         game(folder)
@@ -136,7 +136,7 @@ class LaunchTests(unittest.TestCase):
                     self.assertEqual(ran.stdout.splitlines()[0], str(folder))
 
     def test_no_game_is_an_error(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-launch-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-launch-") as tmp:
             ini = Path(tmp) / "builder.ini"
             ini.write_text("out=%s\n" % tmp, encoding="utf-8")
             ran = subprocess.run(
@@ -153,8 +153,8 @@ class LaunchTests(unittest.TestCase):
         script = (ROOT / "scripts" / "linux" / "appimage.sh").read_text(encoding="utf-8")
         self.assertNotIn("Hookshot-launcher-", script)
         apprun = (ROOT / "builder" / "linux" / "AppRun").read_text(encoding="utf-8")
-        self.assertIn("hookshot-launch", apprun)
-        desktop = (ROOT / "builder" / "linux" / "hookshot-builder.desktop").read_text(encoding="utf-8")
+        self.assertIn("ocarina_reborn-launch", apprun)
+        desktop = (ROOT / "builder" / "linux" / "ocarina_reborn-builder.desktop").read_text(encoding="utf-8")
         self.assertIn("Actions=Play;", desktop)
         self.assertIn("Exec=AppRun --play\n", desktop)
 

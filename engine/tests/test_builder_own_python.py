@@ -20,14 +20,14 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "builder" / "py"))
-from hookshot_builder import core  # noqa: E402
+from ocarina_reborn_builder import core  # noqa: E402
 
 RUNNER = (ROOT / "builder" / "HookshotBuilder" / "Runner.cs").read_text(encoding="utf-8")
 
 
 class PythonBuilderTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-own-python-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-own-python-")
         self.addCleanup(temporary.cleanup)
         self.tools = Path(temporary.name) / "tools"
         (self.tools / "nx2").mkdir(parents=True)

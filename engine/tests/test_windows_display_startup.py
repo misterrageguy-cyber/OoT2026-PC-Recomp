@@ -6,8 +6,8 @@ import shutil
 import subprocess
 import tempfile
 
-# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/hookshot_env.h)
-ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "hookshot_env.h")
+# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/ocarina_reborn_env.h)
+ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
 
 RUN_ALL_ARGS = ["--cc", "gcc"]
 
@@ -39,7 +39,7 @@ def main():
     dpi = source.index("if (window_dpi(hwnd)", create)
     functions.append("static void create_window(void) {\n" + source[create:dpi] + "}\n")
     fixture = template.replace("/* ACTUAL_DISPLAY_STARTUP */", "\n".join(functions))
-    with tempfile.TemporaryDirectory(prefix="hookshot-display-startup-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-display-startup-") as temp:
         c_file, executable = Path(temp) / "fixture.c", Path(temp) / "fixture.exe"
         c_file.write_text(fixture, encoding="utf-8")
         if Path(args.cc).name.lower() in ("cl", "cl.exe"):

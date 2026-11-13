@@ -25,14 +25,14 @@ def load_builder():
     tk.filedialog = sys.modules["tkinter.filedialog"]
     tk.messagebox = sys.modules["tkinter.messagebox"]
     tk.ttk = sys.modules["tkinter.ttk"]
-    spec = importlib.util.spec_from_file_location("hookshot_builder_desktop", ROOT / "builder" / "linux" / "hookshot_builder.py")
+    spec = importlib.util.spec_from_file_location("ocarina_reborn_builder_desktop", ROOT / "builder" / "linux" / "ocarina_reborn_builder.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
 builder = load_builder()
-EXE = "/home/steve/100% Games/Hookshot/hookshot"
+EXE = "/home/steve/100% Games/Hookshot/ocarina_reborn"
 
 
 def field_codes(argument):
@@ -45,18 +45,18 @@ class DesktopExecTests(unittest.TestCase):
         old = '"%s"' % EXE
         self.assertNotEqual(field_codes(old), [])
         arg = builder.desktop_exec(EXE)
-        self.assertEqual(arg, '"/home/steve/100%% Games/Hookshot/hookshot"')
+        self.assertEqual(arg, '"/home/steve/100%% Games/Hookshot/ocarina_reborn"')
         self.assertEqual(field_codes(arg), [])
 
     def test_a_quote_and_a_backslash_stay_inside_the_argument(self):
         # (Desktop Entry spec: the Exec quoting backslash, doubled by the file's string escaping; a literal backslash is four)
         arg = builder.desktop_exec('/home/steve/My "Games"\\Hookshot/hookshot')
-        self.assertEqual(arg, '"/home/steve/My \\\\"Games\\\\"\\\\\\\\Hookshot/hookshot"')
+        self.assertEqual(arg, '"/home/steve/My \\\\"Games\\\\"\\\\\\\\Hookshot/ocarina_reborn"')
 
     def test_a_dollar_and_a_backtick_are_escaped_too(self):
         # (inside double quotes the spec reserves " ` $ and \, so a $ or a backtick in the folder is not left bare)
-        arg = builder.desktop_exec("/home/steve/$HOME/`id`/hookshot")
-        self.assertEqual(arg, '"/home/steve/\\\\$HOME/\\\\`id\\\\`/hookshot"')
+        arg = builder.desktop_exec("/home/steve/$HOME/`id`/ocarina_reborn")
+        self.assertEqual(arg, '"/home/steve/\\\\$HOME/\\\\`id\\\\`/ocarina_reborn"')
         self.assertEqual(field_codes(arg), [])
 
     def test_validator_rejects_the_old_line(self):
@@ -64,9 +64,9 @@ class DesktopExecTests(unittest.TestCase):
         if not validate:
             self.skipTest("desktop-file-validate is not installed")
         with tempfile.TemporaryDirectory() as tmp:
-            path = os.path.join(tmp, "hookshot.desktop")
+            path = os.path.join(tmp, "ocarina_reborn.desktop")
             body = ("[Desktop Entry]\nType=Application\nName=Hookshot\nComment=x\n"
-                    "Exec=%s\nPath=/home/steve/100%% Games/Hookshot\nIcon=hookshot\nCategories=Game;\nTerminal=false\n")
+                    "Exec=%s\nPath=/home/steve/100%% Games/Hookshot\nIcon=ocarina_reborn\nCategories=Game;\nTerminal=false\n")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(body % ('"%s"' % EXE))
             old = subprocess.run([validate, path], text=True, capture_output=True)

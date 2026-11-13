@@ -225,7 +225,7 @@ def main(argv=None):
     kinds = sorted(p["kind"] for p in manifest["programs"])
     assert kinds == ["compute", "graphics", "mesh"], kinds
     # stable IDs: the FNV-1a code_key, recomputed here from the seed itself
-    seed = (OUT / "hookshot_shaders.bin").read_text if False else (OUT / "hookshot_shaders.bin").read_bytes()
+    seed = (OUT / "ocarina_reborn_shaders.bin").read_text if False else (OUT / "ocarina_reborn_shaders.bin").read_bytes()
     assert seed[:8] == b"HKSEED01"
     nprograms, nstages = struct.unpack_from("<II", seed, 8)
     assert (nprograms, nstages) == (3, 5), (nprograms, nstages)

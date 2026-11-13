@@ -51,7 +51,7 @@ def main():
     assert vs.reflect(good) == ((64, 1, 1), 80000), vs.reflect(good)
 
     with tempfile.TemporaryDirectory() as tmp:
-        cache = os.path.join(tmp, "hookshot_programs.bin")
+        cache = os.path.join(tmp, "ocarina_reborn_programs.bin")
         with open(cache, "wb") as f:
             f.write(struct.pack("<IIQ", vs.CACHE_MAGIC, 0, 1))
             f.write(struct.pack("<QQ", 0xA5DA9F84B72D1471, len(data)) + data)

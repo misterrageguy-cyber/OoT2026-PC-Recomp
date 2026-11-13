@@ -22,7 +22,7 @@ spec.loader.exec_module(make_game)
 
 class NgxRuntimeTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="hookshot-make-game-ngx-")
+        self.temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-make-game-ngx-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.sdk = self.root / "sdk"
@@ -157,7 +157,7 @@ class NoScriptTests(unittest.TestCase):
     stops, not a FileNotFoundError traceback from importlib"""
 
     def test_missing_script_is_said_plainly(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-no-scripts-") as root, mock.patch.object(make_game, "ROOT", root), \
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-no-scripts-") as root, mock.patch.object(make_game, "ROOT", root), \
                 mock.patch.dict(os.environ, {"HOOKSHOT_NGX_SDK": os.path.join(root, "sdk")}), \
                 mock.patch("sys.stdout", io.StringIO()) as out:
             with self.assertRaises(SystemExit) as stopped:
@@ -179,7 +179,7 @@ def load_linux_builder():
     tk.filedialog = sys.modules["tkinter.filedialog"]
     tk.messagebox = sys.modules["tkinter.messagebox"]
     tk.ttk = sys.modules["tkinter.ttk"]
-    spec = importlib.util.spec_from_file_location("hookshot_builder_dlss", ROOT / "builder" / "linux" / "hookshot_builder.py")
+    spec = importlib.util.spec_from_file_location("ocarina_reborn_builder_dlss", ROOT / "builder" / "linux" / "ocarina_reborn_builder.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -199,7 +199,7 @@ class FakeVar:
 class LinuxBuilderDlssTests(unittest.TestCase):
     def setUp(self):
         self.builder = load_linux_builder()
-        self.temp = tempfile.TemporaryDirectory(prefix="hookshot-linux-dlss-")
+        self.temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-linux-dlss-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
 
@@ -207,13 +207,13 @@ class LinuxBuilderDlssTests(unittest.TestCase):
         self.assertIn("https://github.com/NVIDIA/DLSS/blob/", self.builder.DLSS_LICENSE)
         self.assertIn("never share a game folder built with them", self.builder.DLSS_LICENSE)
         with mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(self.root)}):
-            sdk = str(self.root / "hookshot-builder" / "ngx-sdk")   # (the builder's cache folder, not the game's data folder)
+            sdk = str(self.root / "ocarina_reborn-builder" / "ngx-sdk")   # (the builder's cache folder, not the game's data folder)
             self.assertEqual(self.builder.ngx_sdk_dir(), sdk)
-            env_off = self.builder.make_game_env(False, {"HOOKSHOT_NGX_SDK": "/stale", "HOOKSHOT_VK_PREBUILT": "/app/hookshot_vk.so"})
+            env_off = self.builder.make_game_env(False, {"HOOKSHOT_NGX_SDK": "/stale", "HOOKSHOT_VK_PREBUILT": "/app/ocarina_reborn_vk.so"})
             self.assertNotIn("HOOKSHOT_NGX_SDK", env_off)
-            self.assertEqual(env_off["HOOKSHOT_VK_PREBUILT"], "/app/hookshot_vk.so")
+            self.assertEqual(env_off["HOOKSHOT_VK_PREBUILT"], "/app/ocarina_reborn_vk.so")
             self.assertEqual(self.builder.dlss_args(False), [])
-            env_on = self.builder.make_game_env(True, {"HOOKSHOT_VK_PREBUILT": "/app/hookshot_vk.so"})
+            env_on = self.builder.make_game_env(True, {"HOOKSHOT_VK_PREBUILT": "/app/ocarina_reborn_vk.so"})
             self.assertEqual(env_on["HOOKSHOT_NGX_SDK"], sdk)
             self.assertNotIn("HOOKSHOT_VK_PREBUILT", env_on)
             self.assertEqual(self.builder.dlss_args(True), ["--fetch-ngx-sdk", "--accept-nvidia-license"])
@@ -264,19 +264,19 @@ class LinuxBuilderDlssTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {"HOOKSHOT_BUILDER_HOME": str(self.root / "data"), "XDG_CACHE_HOME": str(self.root / "cache")}), \
                 mock.patch.object(self.builder, "CONFIG", str(config)):
             old = Path(self.builder.old_ngx_sdk_dir())
-            self.assertEqual(old, self.root / "data" / "hookshot" / "builder" / "ngx-sdk")
+            self.assertEqual(old, self.root / "data" / "ocarina_reborn" / "builder" / "ngx-sdk")
             self.builder.move_old_ngx_sdk()   # (nothing there: nothing done, nothing recorded)
             self.assertFalse(config.exists())
             (old / "runtime").mkdir(parents=True)
             (old / "LICENSE.txt").write_text("NVIDIA RTX SDKs license", encoding="utf-8")
             (old / "runtime" / "libnvidia-ngx-dlss.so.310.9.16").write_bytes(b"rt")
-            self.builder.save_config({"out": "/games/hookshot"})
+            self.builder.save_config({"out": "/games/ocarina_reborn"})
             self.assertTrue(self.builder.license_accepted())   # (accepted before the record: the old SDK says so)
             self.builder.move_old_ngx_sdk()
             new = Path(self.builder.ngx_sdk_dir())
             self.assertFalse(old.exists())
             self.assertEqual((new / "runtime" / "libnvidia-ngx-dlss.so.310.9.16").read_bytes(), b"rt")
-            self.assertEqual(self.builder.load_config(), {"out": "/games/hookshot", "nvidia_license": "1"})
+            self.assertEqual(self.builder.load_config(), {"out": "/games/ocarina_reborn", "nvidia_license": "1"})
             self.assertTrue(self.builder.license_accepted())
             # (an SDK in both places: the cache's is kept, the old one goes)
             (old).mkdir(parents=True)
@@ -287,9 +287,9 @@ class LinuxBuilderDlssTests(unittest.TestCase):
 
     def test_toggling_dlss_on_up_to_date_folder_offers_update(self):
         game = self.root / "game"
-        (game / ".hookshot_exefs").mkdir(parents=True)
+        (game / ".ocarina_reborn_exefs").mkdir(parents=True)
         (game / "romfs").mkdir(parents=True)
-        (game / "hookshot_version.txt").write_text("version=v2.0.12\n", encoding="utf-8")
+        (game / "ocarina_reborn_version.txt").write_text("version=v2.0.12\n", encoding="utf-8")
         btn = SimpleNamespace(winfo_exists=lambda: True, text="", configure=lambda **kw: setattr(btn, "text", kw.get("text", "")))
         win = SimpleNamespace(launch_folder=None, build_button=btn, out=FakeVar(str(game)), tools="v2.0.12", latest="v2.0.12",
                               source_picked=False, dlss_toggled=True, dlss=FakeVar(True), status=FakeVar(""), mode="build",

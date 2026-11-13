@@ -425,7 +425,7 @@ static void wait_frames(int64_t n) { const int64_t to = fake_frame() + n; while 
 static void transport_name(const char *folder, const char *tag) {
 #ifdef _WIN32
     (void)folder;
-    snprintf(sock_path, sizeof sock_path, "\\\\.\\pipe\\hookshot-control-test-%lu-%s", (unsigned long)GetCurrentProcessId(), tag);
+    snprintf(sock_path, sizeof sock_path, "\\\\.\\pipe\\ocarina_reborn-control-test-%lu-%s", (unsigned long)GetCurrentProcessId(), tag);
 #else
     snprintf(sock_path, sizeof sock_path, "%s/%s.sock", folder, tag);
 #endif

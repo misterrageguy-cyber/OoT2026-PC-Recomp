@@ -40,7 +40,7 @@ def main():
     p.add_argument("--source", type=Path, default=ROOT / "gpu/vk/vk_draw.cpp")
     a = p.parse_args()
     failed = []
-    with tempfile.TemporaryDirectory(prefix="hookshot-play-cache-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-play-cache-") as temp:
         temp = Path(temp)
         (temp / "pipeline_play_cache.inc").write_text(play_block(a.source.read_text(encoding="utf-8")), encoding="utf-8")
         exe = temp / "check.exe"

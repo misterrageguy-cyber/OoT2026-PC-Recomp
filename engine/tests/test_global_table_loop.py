@@ -13,7 +13,7 @@ import tempfile
 
 RUN_ALL_ARGS = ["--cxx", "{cxx}"]
 ROOT = Path(__file__).resolve().parents[1]
-ENV_H = ROOT / "gpu/vk/compat/hookshot_env.h"   # (env_value_off)
+ENV_H = ROOT / "gpu/vk/compat/ocarina_reborn_env.h"   # (env_value_off)
 DRIVER_IDS = {"VK_DRIVER_ID_MESA_RADV": 3, "VK_DRIVER_ID_NVIDIA_PROPRIETARY": 4,   # (as the Vulkan headers number them)
               "VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS": 5, "VK_DRIVER_ID_INTEL_OPEN_SOURCE_MESA": 6}
 

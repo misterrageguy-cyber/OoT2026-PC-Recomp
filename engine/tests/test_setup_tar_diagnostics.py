@@ -38,7 +38,7 @@ def main():
     code = template.replace("/* ACTUAL_HELPER */", helper).replace("/* ACTUAL_CALL */", call)
     priority = {"creationflags": (getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0) | getattr(subprocess, "CREATE_NO_WINDOW", 0))}
     rows = []
-    with tempfile.TemporaryDirectory(prefix="hookshot-tar-diagnostics-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-tar-diagnostics-") as temporary:
         folder = Path(temporary)
         source, executable = folder / "fixture.c", folder / "fixture.exe"
         source.write_text(code, encoding="utf-8")

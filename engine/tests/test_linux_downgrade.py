@@ -41,7 +41,7 @@ class Widget:
 
 def handlers(answer, run_worker=False):
     """Compile complete production handlers; only UI/thread/filesystem observations are authored boundaries."""
-    tree = ast.parse((ROOT / "builder/linux/hookshot_builder.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "builder/linux/ocarina_reborn_builder.py").read_text(encoding="utf-8"))
     builder = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "Builder")
     names = {"older_ok", "begin_update", "build", "apply_mode", "apply_launch"}
     methods = [n for n in builder.body if isinstance(n, ast.FunctionDef) and n.name in names]
@@ -208,7 +208,7 @@ class Admission(unittest.TestCase):
             handoff.assert_called_once_with("authored-apprun", ["authored-apprun", "--update", "authored-game", "--tag", "v2.0.14", "--fetched", "--allow-downgrade-from", "v2.2.0"])
 
     def test_cli_handoff_passes_consent_to_the_builder(self):
-        tree = ast.parse((ROOT / "builder/linux/hookshot_builder.py").read_text(encoding="utf-8"))
+        tree = ast.parse((ROOT / "builder/linux/ocarina_reborn_builder.py").read_text(encoding="utf-8"))
         main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "main")
         args = ["review", "--update", "authored-game", "--tag", "v2.0.14", "--fetched", "--allow-downgrade-from", "v2.2.0"]
         received = []
@@ -238,19 +238,19 @@ class FolderDispatch(unittest.TestCase):
             root = Path(folder)
             game = root / "Authored 'game % folder"
             (game / "bin").mkdir(parents=True)
-            script = game / "hookshot"
-            shutil.copyfile(ROOT / "builder/linux/hookshot-folder", script)
+            script = game / "ocarina_reborn"
+            shutil.copyfile(ROOT / "builder/linux/ocarina_reborn-folder", script)
             script.chmod(0o700)
             recorded = root / "Recorded 'Builder.AppImage"
-            installed = root / "data/hookshot/builder/versions/v2.0.14/AppRun"
+            installed = root / "data/ocarina_reborn/builder/versions/v2.0.14/AppRun"
             installed.parent.mkdir(parents=True)
             current = installed.parents[2] / "current"
             current.write_text("v2.0.14\n")
-            direct = game / "bin/hookshot"
+            direct = game / "bin/ocarina_reborn"
             for path, label in [(recorded, "recorded"), (installed, "installed"), (direct, "game")]:
                 path.write_text("#!/bin/sh\nprintf '%s\\n' " + label + " \"$@\"\n")
                 path.chmod(0o700)
-            stamp = game / "hookshot_version.txt"
+            stamp = game / "ocarina_reborn_version.txt"
             stamp.write_text("version=v2.1.0-rc.3\nbuilder=" + str(recorded) + "\n")
             env = dict(os.environ, HOOKSHOT_BUILDER_HOME=str(root / "data"))
             def run(expected):

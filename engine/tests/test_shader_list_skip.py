@@ -1,4 +1,4 @@
-"""The shader list (hookshot_shaders.bin, nx2/shader_census.py) is made again only when what it is made from changed.
+"""The shader list (ocarina_reborn_shaders.bin, nx2/shader_census.py) is made again only when what it is made from changed.
 
 Every build ran the census (4 s, 514 MB written) though an update seldom changes the game's shader files or the census. make_game.py
 notes what the list was made from (shader_list_note: the census, the Python, the names, sizes and times of the files it reads, and
@@ -20,7 +20,7 @@ spec.loader.exec_module(make_game)
 
 class ShaderListSkipTests(unittest.TestCase):
     def folder(self, d):
-        romfs, work, out = Path(d) / "romfs", Path(d) / "work", Path(d) / "game" / "hookshot_shaders.bin"
+        romfs, work, out = Path(d) / "romfs", Path(d) / "work", Path(d) / "game" / "ocarina_reborn_shaders.bin"
         for p in (romfs / "Shader", romfs / "Pack", romfs / "Model", work, out.parent):
             p.mkdir(parents=True)
         (romfs / "Shader" / "a.bfsha.zs").write_bytes(b"shader")

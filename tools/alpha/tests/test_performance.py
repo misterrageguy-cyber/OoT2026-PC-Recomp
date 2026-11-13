@@ -65,13 +65,43 @@ class Measurements(unittest.TestCase):
                                  (performance.summarize([sample()] * 6), {'resolution': 4})):
             self.assertFalse(performance.suggest(summary, current, old)[0])
 
-    def test_gpu_bound_reduces_one_step_but_cpu_bound_does_not(self):
+    def test_cpu_bound_reduces_scene_work_instead_of_resolution(self):
         settings = {'resolution': 1}
         sig = performance.signature(settings)
         gpu = performance.summarize([sample()] * 6)
         cpu = performance.summarize([sample(cpu=25, gpu=6)] * 6)
         self.assertEqual(performance.suggest(gpu, settings, sig)[0], {'resolution': 2})
-        self.assertFalse(performance.suggest(cpu, settings, sig)[0])
+        self.assertEqual(performance.suggest(cpu, settings, sig)[0], {'view_distance': 0, 'grass': 1})
+
+    def test_cpu_drops_with_gpu_headroom_keep_dlaa_and_limit_frame_rate(self):
+        # Tester: 5800X / RTX 4070 SUPER, DLAA, 120 fps cap; busy areas have ~19 ms renderer CPU vs ~12 ms GPU.
+        s = performance.summarize([sample(frames=214, cpu=19, gpu=12.2)] * 6)
+        settings = {'resolution': 1, 'dlss': 2, 'frame_rate_cap': 2, 'view_distance': 2,
+                    'grass': 2, 'shadow_distance': 1, 'quality_preset': 4}
+        changes, reasons = performance.suggest(s, settings, performance.signature(settings), de=False)
+        self.assertEqual(changes, {'view_distance': 1, 'grass': 1, 'frame_rate_cap': 0, 'quality_preset': 0})
+        self.assertTrue(any('renderer CPU' in reason for reason in reasons))
+        self.assertTrue(any('renderer CPU' in text for _, text in performance.describe(s, False)))
+
+    def test_cpu_recommendations_ignore_loads_missing_gpu_and_brief_dips(self):
+        settings = {'resolution': 1, 'frame_rate_cap': 2}
+        for lines in ([sample(cpu=25, gpu=6, worst=1000)] * 6,
+                      [sample(cpu=25, gpu=6, wait=10)] * 6,
+                      [sample(cpu=25, gpu=0)] * 6,
+                      [sample(cpu=25, gpu=6)] + [sample(frames=300, cpu=7, gpu=6)] * 10):
+            s = performance.summarize(lines)
+            self.assertFalse(performance.suggest(s, settings, performance.signature(settings))[0])
+
+    def test_scene_setting_change_invalidates_previous_measurement(self):
+        s = performance.summarize([sample(cpu=25, gpu=6)] * 6)
+        before = performance.signature({})
+        for key, value in (('view_distance', 0), ('grass', 1), ('shadow_distance', 0)):
+            self.assertFalse(performance.suggest(s, {key: value}, before)[0])
+
+    def test_cpu_tuning_does_not_go_below_minimum_or_raise_existing_cap(self):
+        s = performance.summarize([sample(cpu=25, gpu=6)] * 6)
+        settings = {'view_distance': 0, 'grass': 0, 'frame_rate_cap': 0}
+        self.assertFalse(performance.suggest(s, settings, performance.signature(settings))[0])
 
     def test_loading_and_compile_stalls_do_not_reduce_resolution(self):
         settings = {'resolution': 1}
@@ -97,6 +127,27 @@ class Measurements(unittest.TestCase):
 
 
 class Profiles(unittest.TestCase):
+    def test_performance_overwrites_expensive_scene_settings_and_120fps_cap(self):
+        facts = dict(gpus=[('NVIDIA GeForce RTX 4070 SUPER', 12)], cpu_threads=16, ram_gb=64)
+        with tempfile.TemporaryDirectory() as d:
+            game_settings.write(d, {'view_distance': 4, 'grass': 4, 'shadow_distance': 3,
+                                    'frame_rate_cap': 2, 'volume': 75, 'key_a': '69,0'})
+            profile = advisor.build_preset('performance', facts, dlss_ready=True)
+            game_settings.write(d, {k: v for k, v in profile.items() if k != 'fps_target'})
+            saved = game_settings.read(d)
+            self.assertEqual([saved[k] for k in ('view_distance', 'grass', 'shadow_distance', 'frame_rate_cap')],
+                             ['0', '1', '0', '0'])
+            self.assertEqual((saved['volume'], saved['key_a']), ('75', '69,0'))
+            game_settings.write(d, advisor.build_preset('quality', facts, dlss_ready=True))
+            saved = game_settings.read(d)
+            self.assertEqual([saved[k] for k in ('view_distance', 'grass', 'shadow_distance')], ['1', '2', '1'])
+
+    def test_missing_scene_options_display_the_engines_original_defaults(self):
+        for key, default in (('view_distance', 1), ('grass', 2), ('shadow_distance', 1)):
+            choices = next(ch for k, _, _, ch in game_settings.ROWS if k == key)
+            self.assertEqual(game_settings.current({}, key, choices)[0], default)
+            self.assertEqual(performance.signature({})[key], str(default))
+
     def test_low_end_uses_cpu_ram_and_no_framegen(self):
         facts = dict(gpus=[('NVIDIA GeForce RTX 3060', 12)], cpu_cores=4, cpu_threads=8, ram_gb=16)
         key, profile, *_ = advisor.recommend(facts)

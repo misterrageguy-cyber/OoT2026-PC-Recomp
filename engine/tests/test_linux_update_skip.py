@@ -1,7 +1,7 @@
 """On Linux, "Skip this version" in the game's update question is kept, and the game keeps its saves (host/hos_update.c,
 host/hos_main.c).
 
-The check wrote hookshot_update_skip.txt to user/ beside the game, as on Windows. Linux keeps its saves in
+The check wrote ocarina_reborn_update_skip.txt to user/ beside the game, as on Windows. Linux keeps its saves in
 $XDG_DATA_HOME/hookshot, and the same start then moved that user/ folder there as saves from an earlier build
 (saves_dir): the file went along, saves-moved.txt was written, and the next start asked again. Skipped a second time,
 the file was in both places, which the move reads as saves it cannot move: the game ran on the empty user/ beside it
@@ -70,18 +70,18 @@ int main(void) {
 
 
 class Game:
-    """A built game folder (bin/hookshot is the program above), a data folder, and the tools the check starts"""
+    """A built game folder (bin/ocarina_reborn is the program above), a data folder, and the tools the check starts"""
 
     def __init__(self, exe, tmp, name):
         self.name = name
         home = Path(tempfile.mkdtemp(prefix="home-", dir=tmp))
         self.game, self.data, tools = home / "Games" / "Hookshot", home / ".local" / "share", home / "tools"
-        self.new, self.asked = self.data / "hookshot", home / "asked.txt"
+        self.new, self.asked = self.data / "ocarina_reborn", home / "asked.txt"
         for folder in (self.game / "bin", self.data, tools):
             folder.mkdir(parents=True)
-        shutil.copy2(exe, self.game / "bin" / "hookshot")
+        shutil.copy2(exe, self.game / "bin" / "ocarina_reborn")
         (self.game / "image.bin").write_bytes(b"")
-        (self.game / "hookshot_version.txt").write_text("version=v2.1.0\n", encoding="ascii")
+        (self.game / "ocarina_reborn_version.txt").write_text("version=v2.1.0\n", encoding="ascii")
         for tool, script in (("curl", 'printf \'{"tag_name":"%s"}\' "$HOOKSHOT_TEST_TAG"'),
                              ("zenity", 'echo asked >> "$HOOKSHOT_TEST_ASKED"; echo "Skip this version"')):
             (tools / tool).write_text("#!/bin/sh\n%s\n" % script, encoding="ascii")
@@ -100,7 +100,7 @@ class Game:
 
     def start(self, latest, asked):
         """A start with `latest` out: the saves' place is the data folder's, the question was put `asked` times so far"""
-        r = subprocess.run([str(self.game / "bin" / "hookshot")], env=dict(self.env, HOOKSHOT_TEST_TAG=latest), capture_output=True,
+        r = subprocess.run([str(self.game / "bin" / "ocarina_reborn")], env=dict(self.env, HOOKSHOT_TEST_TAG=latest), capture_output=True,
                            text=True, timeout=60)
         self.check(r.returncode == 0, "the start failed: %s" % r.stderr)
         uses = r.stdout.strip().splitlines()[-1][len("uses "):]
@@ -127,13 +127,13 @@ def main():
         g.start("v9.9.9", asked=1)
         g.start("v9.9.9", asked=1)
         g.check(not (g.game / "user").exists() and not (g.game / "saves-moved.txt").exists(), "the skip was taken for saves to move")
-        g.check((g.new / "hookshot_update_skip.txt").read_text(encoding="ascii") == "skip=v9.9.9\n", "the skip is not with the saves")
+        g.check((g.new / "ocarina_reborn_update_skip.txt").read_text(encoding="ascii") == "skip=v9.9.9\n", "the skip is not with the saves")
         g.start("v9.9.10", asked=2)   # (a newer release: asked about again, and that one skipped)
         g.start("v9.9.10", asked=2)
 
         g = Game(exe, tmp, "a user folder from an earlier build")
         g.save_in(g.game / "user")
-        (g.game / "user" / "hookshot_update_skip.txt").write_text("skip=v9.9.9\n", encoding="ascii")
+        (g.game / "user" / "ocarina_reborn_update_skip.txt").write_text("skip=v9.9.9\n", encoding="ascii")
         g.start("v9.9.9", asked=0)
         g.start("v9.9.9", asked=0)
         g.check(not (g.game / "user").exists() and (g.game / "saves-moved.txt").is_file(), "the old user folder did not move")

@@ -11,7 +11,7 @@ import unittest
 RUN_ALL_MODULES = ["tkinter"]
 
 ROOT = Path(__file__).resolve().parents[1]
-spec = importlib.util.spec_from_file_location("hookshot_builder_read_only", ROOT / "builder" / "linux" / "hookshot_builder.py")
+spec = importlib.util.spec_from_file_location("ocarina_reborn_builder_read_only", ROOT / "builder" / "linux" / "ocarina_reborn_builder.py")
 builder = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(builder)
 

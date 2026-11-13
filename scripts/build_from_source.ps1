@@ -17,7 +17,10 @@ $Stage = (Resolve-Path -LiteralPath $Out).Path
 $Native = Join-Path $SourceRoot 'tools\alpha\exe'
 $Object = Join-Path $Stage 'launcher-resource.o'
 $Resource = Join-Path $Stage 'launcher-version.rc'
-$VersionComma = (@($Version -split '\.') + @('0')) -join ','
+if ($Version -notmatch '^(\d+)\.(\d+)\.(\d+)(?:-(\d+))?$') { throw 'VERSION must be X.Y.Z or X.Y.Z-N' }
+$Revision = if ($Matches[4]) { $Matches[4] } else { '0' }
+$VersionComma = @($Matches[1], $Matches[2], $Matches[3], $Revision) -join ','
+$FileVersion = $VersionComma.Replace(',', '.')
 $Text = (Get-Content -LiteralPath "$Native\ocarina_reborn.rc" -Raw).Replace('VER_COMMA', $VersionComma).Replace('VER_TEXT', "`"$Version`"")
 $Text = $Text.Replace('../OcarinaReborn.ico', (Join-Path $SourceRoot 'tools/alpha/OcarinaReborn.ico').Replace('\', '/'))
 Set-Content -LiteralPath $Resource -Encoding ascii -Value $Text
@@ -35,6 +38,6 @@ if ($StageOnly) { Write-Host "Ready: $Stage"; exit 0 }
 if (-not (Test-Path -LiteralPath $Iscc)) { throw 'Install Inno Setup 6 or pass -Iscc with the compiler path.' }
 $Dist = Join-Path $SourceRoot 'build\dist'
 New-Item -ItemType Directory -Path $Dist -Force | Out-Null
-& $Iscc "/DStage=$Stage" "/DOut=$Dist" "/DAppVersion=$Version" "$SourceRoot\tools\alpha\installer.iss"
+& $Iscc "/DStage=$Stage" "/DOut=$Dist" "/DAppVersion=$Version" "/DAppFileVersion=$FileVersion" "$SourceRoot\tools\alpha\installer.iss"
 if ($LASTEXITCODE) { throw 'Installer compilation failed' }
 Get-FileHash -LiteralPath "$Dist\Ocarina-Reborn-Alpha-Setup.exe" -Algorithm SHA256

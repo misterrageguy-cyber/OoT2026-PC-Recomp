@@ -98,7 +98,7 @@ static void WaitForSingleObject(HANDLE h, unsigned timeout) {
     require(h == &game_token && timeout == INFINITE, "changed game-thread wait");
     ++waited;
 }
-static void load_hookshot_env() {}
+static void load_ocarina_reborn_env() {}
 static void driver_cache_room() {}   // (host/hos_main.c: the drivers' shader caches' size, #2033)
 static void driver_cache_folder() {}   // (host/hos_main.c: the folder __GL_SHADER_DISK_CACHE_PATH names, made)
 

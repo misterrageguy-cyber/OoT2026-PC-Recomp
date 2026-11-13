@@ -1,4 +1,4 @@
-"""make_game.py's last step, hookshot --prepare-shaders, run against stub games: its stage and progress lines go on to the builder,
+"""make_game.py's last step, ocarina_reborn --prepare-shaders, run against stub games: its stage and progress lines go on to the builder,
 its own @@done and @@error don't (the builders read those as the build's end or failure), a failure or a silent hang leaves the work
 to the first start (never a failed build), and the game runs in its own environment, as the builders' Play starts it.
 
@@ -24,11 +24,11 @@ SOURCE = ROOT / "nx2" / "make_game.py"
 spec = importlib.util.spec_from_file_location("make_game_prepare", SOURCE)
 make_game = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(make_game)
-BUILDER = ROOT / "builder" / "linux" / "hookshot_builder.py"
+BUILDER = ROOT / "builder" / "linux" / "ocarina_reborn_builder.py"
 
 
 def stub(code):
-    """A stand-in for hookshot --prepare-shaders: authored Python, no game, no GPU"""
+    """A stand-in for ocarina_reborn --prepare-shaders: authored Python, no game, no GPU"""
     return [sys.executable, "-I", "-c", code]
 
 
@@ -45,10 +45,10 @@ def not_prepared(lines):
 
 class PrepareShadersTests(unittest.TestCase):
     def test_progress_goes_on_and_the_games_done_does_not(self):
-        code, lines = prepared(stub("print('hookshot v'); print('@@stage shaders Preparing shaders'); print('@@progress 0.500');"
+        code, lines = prepared(stub("print('ocarina_reborn v'); print('@@stage shaders Preparing shaders'); print('@@progress 0.500');"
                                     "print('@@done shaders')"))
         self.assertEqual(code, 0)
-        self.assertEqual(lines, ["hookshot v", "@@stage shaders Preparing shaders", "@@progress 0.500", "done shaders"])
+        self.assertEqual(lines, ["ocarina_reborn v", "@@stage shaders Preparing shaders", "@@progress 0.500", "done shaders"])
 
     def test_no_vulkan_leaves_them_to_the_first_start(self):
         code, lines = prepared(stub("import sys; print('@@error no usable Vulkan here'); sys.exit(3)"))
@@ -80,7 +80,7 @@ class PrepareShadersTests(unittest.TestCase):
         self.assertEqual(not_prepared(lines), [])
 
     def test_missing_game_is_not_a_failed_build(self):
-        code, lines = prepared([str(ROOT / "no-such-folder" / "hookshot.exe"), "--prepare-shaders"])
+        code, lines = prepared([str(ROOT / "no-such-folder" / "ocarina_reborn.exe"), "--prepare-shaders"])
         self.assertEqual(code, 1)
         self.assertEqual(len(not_prepared(lines)), 1)
         self.assertFalse(any(l.startswith("@@") for l in lines))
@@ -89,7 +89,7 @@ class PrepareShadersTests(unittest.TestCase):
         dropped = dict(HOOKSHOT_TOOLS="/builder/tools", HOOKSHOT_NO_PREPARE="0", PYTHONPATH="/builder/python",
                        PYTHONHOME="/builder", APPDIR="/appdir", APPIMAGE="/tmp/Hookshot.AppImage", ARGV0="Hookshot", OWD="/old",
                        LD_LIBRARY_PATH="/builder/lib")
-        with tempfile.TemporaryDirectory(prefix="hookshot-prepare-") as folder, \
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-prepare-") as folder, \
                 mock.patch.dict(os.environ, dict(dropped, HOOKSHOT_TEST_KEPT_NOT="x", KEPT_FOR_THE_GAME="yes")):
             code, lines = prepared(stub("import json, os; print(json.dumps({'cwd': os.getcwd(), 'env': dict(os.environ)}))"),
                                    folder=folder)
@@ -105,7 +105,7 @@ class PrepareShadersTests(unittest.TestCase):
                                   "LD_LIBRARY_PATH": "l", "PATH": "/usr/bin", "HOME": "/home/p"})
         self.assertEqual(env, {"PATH": "/usr/bin", "HOME": "/home/p"})
         # (the shell launcher can't import it: the same names there)
-        launch = (ROOT / "builder" / "linux" / "hookshot-launch").read_text(encoding="utf-8")
+        launch = (ROOT / "builder" / "linux" / "ocarina_reborn-launch").read_text(encoding="utf-8")
         names = re.search(r"\$1 ~ /\^\(([A-Z_|0-9]+)\)/ \|\| \$1 == \"LD_LIBRARY_PATH\"", launch).group(1).split("|")
         self.assertEqual(tuple(names), make_game.GAME_ENV_DROP)
 
@@ -139,7 +139,7 @@ class SkipTests(unittest.TestCase):
     def test_the_unticked_box(self):
         self.assertIn("unticked", self.skipped({}, flag=True))
 
-    def test_hookshot_no_prepare_as_the_game_reads_its_switches(self):
+    def test_ocarina_reborn_no_prepare_as_the_game_reads_its_switches(self):
         self.assertIsNone(self.skipped({"HOOKSHOT_NO_PREPARE": "0"}))
         self.assertIsNotNone(self.skipped({"HOOKSHOT_NO_PREPARE": "1"}))
         self.assertIsNotNone(self.skipped({"HOOKSHOT_NO_PREPARE": ""}))   # (set, as the game's getenv && strcmp(.., "0"))

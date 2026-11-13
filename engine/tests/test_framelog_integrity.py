@@ -15,7 +15,7 @@ spec.loader.exec_module(log)
 
 class CaptureTests(unittest.TestCase):
     def setUp(self):
-        self.folder = tempfile.TemporaryDirectory(prefix="hookshot-framelog-")
+        self.folder = tempfile.TemporaryDirectory(prefix="ocarina_reborn-framelog-")
         self.addCleanup(self.folder.cleanup)
         self.path = Path(self.folder.name) / "frames.rgba"
 

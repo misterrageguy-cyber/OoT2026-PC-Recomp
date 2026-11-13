@@ -3,7 +3,7 @@
 
 The Graphics tab's Mesh shaders row is gone: changing it made the next start translate every shader again and drop the
 pipeline caches. RX_VK_MESH_SHADERS=native or compute chooses (any other value, or none: Automatic), and
-RX_VK_FORCE_MESH_FALLBACK=1 is Compute over it as before. An old mesh_shaders= line in hookshot_options.ini chooses nothing:
+RX_VK_FORCE_MESH_FALLBACK=1 is Compute over it as before. An old mesh_shaders= line in ocarina_reborn_options.ini chooses nothing:
 it is named in the log, and the menu's save drops it rather than keeping it. The rule is compiled and run alone; the
 source checks read vk_main.cpp, vk_menu.cpp and vk_menu.h. No game or GPU is needed.
 
@@ -72,7 +72,7 @@ def check_source():
         raise SystemExit("FAIL: create_device does not take the mode from RX_VK_MESH_SHADERS through mesh_mode.h's rule")
     # (the old line is only looked at to be named in the log: nothing read from the file reaches the choice)
     if re.search(r"atoi\(line \+ 13\)", device) or "mesh_rule::old_ini_choice(line, &old)" not in device:
-        raise SystemExit("FAIL: create_device reads mesh_shaders= from hookshot_options.ini other than to name it in the log")
+        raise SystemExit("FAIL: create_device reads mesh_shaders= from ocarina_reborn_options.ini other than to name it in the log")
     if 'logf("vk: mesh shaders: %s, from %s: %s"' not in device or "mesh_choice.why" not in device:
         raise SystemExit("FAIL: the log line does not say where the mesh mode came from")
     # (the Linux AMD rule of Automatic is kept)

@@ -43,7 +43,7 @@ class CacheModuleCleanupTests(unittest.TestCase):
         compiler = COMPILER or shutil.which('g++') or shutil.which('clang++') or shutil.which('cl')
         if not compiler:
             raise unittest.SkipTest('no C++20 compiler')
-        cls.temporary = tempfile.TemporaryDirectory(prefix='hookshot-cache-cleanup-')
+        cls.temporary = tempfile.TemporaryDirectory(prefix='ocarina_reborn-cache-cleanup-')
         cls.addClassCleanup(cls.temporary.cleanup)
         directory = Path(cls.temporary.name).resolve()
         source = _with_cache(SOURCE)

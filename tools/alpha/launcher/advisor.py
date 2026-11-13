@@ -20,11 +20,13 @@ VIRTUAL = ('virtual desktop', 'parsec', 'meta virtual', 'spacedesk', 'virtual di
 # (every graphics tab: Quality, Performance, Memory, Shaders and the window filter. quality_preset 0 = Custom, so the game's own
 # preset row does not set the scaling rows back; frame_generation 1 = Auto; texture_memory is set per card, below)
 COMMON = {'quality_preset': 0, 'anisotropic_filtering': 4, 'texture_filtering': 1, 'soft_shadows': 1, 'upscaling': 2,
-          'frame_pacing': 1, 'vsync': 0, 'pipeline_precompile': 1, 'shader_cache': 1, 'shader_threads': 0}
+          'frame_pacing': 1, 'vsync': 0, 'pipeline_precompile': 1, 'shader_cache': 1, 'shader_threads': 0,
+          'view_distance': 1, 'grass': 2, 'shadow_distance': 1}
 PRESETS = {
     'quality': dict(COMMON, resolution=1, dlss=0, sharpness=50, texture_detail=2, frame_generation=0),
     'balanced': dict(COMMON, resolution=3, dlss=3, sharpness=50, texture_detail=1, frame_generation=0),
     'performance': dict(COMMON, resolution=4, dlss=3, sharpness=50, texture_detail=0, frame_generation=0,
+                        view_distance=0, grass=1, shadow_distance=0, frame_rate_cap=0,
                         anisotropic_filtering=2, soft_shadows=0, output_res='1920x1080'),
 }
 
@@ -248,9 +250,12 @@ PERF = re.compile(r'\[perf\] fps ([\d.]+) \| frame ([\d.]+) ms avg, ([\d.]+) ms 
 def diagnose(lines, settings=None, de=True):
     """the session in plain words: [(kind, text)], kind 'ok', 'tip' or 'warn'; [] when it has no [perf] lines"""
     T = (lambda d, e: d) if de else (lambda d, e: e)
+    lines = list(lines)
     summary = performance.summarize(lines)
     if summary:
         return performance.describe(summary, de)
+    if performance.memory_events(lines):
+        return [performance.memory_advice(de)]
     if any('stats2 seconds ' in line for line in lines):
         return [('tip', T('Noch keine auswertbaren Abschnitte. Spiele mindestens 30 Sekunden bei geschlossenem F1-Menü.',
                           'No usable windows yet. Play for at least 30 seconds with the F1 menu closed.'))]

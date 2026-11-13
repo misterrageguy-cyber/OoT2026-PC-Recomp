@@ -20,7 +20,7 @@ def check(what, ok):
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="hookshot-lift-key-") as d:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-lift-key-") as d:
         d = Path(d)
         exefs, work = d / "exefs", d / "work"
         (exefs).mkdir()
@@ -130,7 +130,7 @@ def check_key_after_lift():
     check("what the lift reads and does not write is taken as it starts", 0 <= start < lift)
     check("the key taken after the lift is kept only if that did not change while it ran", split < guard < taken < write)
     check("the key is taken before that comparison, so an edit between the two is caught by it", again < guard)
-    with tempfile.TemporaryDirectory(prefix="hookshot-lift-key-after-") as d:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-lift-key-after-") as d:
         d = Path(d)
         exefs, work = d / "exefs", d / "work"
         exefs.mkdir()

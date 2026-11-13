@@ -1,4 +1,4 @@
-"""A program cache record is read within its own bytes (hookshot_programs.bin).
+"""A program cache record is read within its own bytes (ocarina_reborn_programs.bin).
 
 A record whose counts ran past its end was read on into the heap until an unmapped page: a crash at start in
 program_cache_load. The Reader of gpu/vk/vk_shader.cpp is compiled here on its own (with AddressSanitizer when the
@@ -108,7 +108,7 @@ class ProgramCacheReaderTests(unittest.TestCase):
         if not compiler:
             self.skipTest("no C++ compiler")
         reader = block(_with_cache(SOURCE), "struct Reader {")
-        with tempfile.TemporaryDirectory(prefix="hookshot-program-cache-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-program-cache-") as tmp:
             src, binary = Path(tmp) / "t.cpp", Path(tmp) / "t"
             src.write_text(TEST.replace("READER", reader), encoding="utf-8")
             base = [compiler, "-std=c++20", "-Wall", "-Wextra", "-O1", "-g", str(src), "-o", str(binary)]
@@ -145,7 +145,7 @@ int main() {
     return descriptor_counts_fit(i) ? 3 : 0;
 }
 """
-        with tempfile.TemporaryDirectory(prefix="hookshot-descriptor-counts-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-descriptor-counts-") as tmp:
             src, binary = Path(tmp) / "t.cpp", Path(tmp) / "t"
             src.write_text(test, encoding="utf-8")
             build = subprocess.run([compiler, "-std=c++20", "-Wall", "-Wextra", str(src), "-o", str(binary)],

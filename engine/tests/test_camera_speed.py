@@ -154,7 +154,7 @@ def source_checks():
     for fn in ("bool is_slider(", "bool stops_at_ends("):
         line = menu[menu.index(fn):menu.index("\n", menu.index(fn))]
         check("&opts.camera_speed" in line, "%s does not take the Camera speed row: a scale" % fn.split("(")[0])
-    # (its line in hookshot_options.ini: the name's, as ini_key makes it, and no other row's)
+    # (its line in ocarina_reborn_options.ini: the name's, as ini_key makes it, and no other row's)
     keys = [name.lower().replace(" ", "_") for name in re.findall(r'\{TAB_[A-Z]+, "([^"]+)", &opts\.', menu)]
     ini_key = block(menu, "const char* ini_key(const Row& r) {")
     check("camera_speed" not in ini_key and keys.count("camera_speed") == 1, "the row is not saved as camera_speed")

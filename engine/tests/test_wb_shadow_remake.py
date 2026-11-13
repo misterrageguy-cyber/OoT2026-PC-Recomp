@@ -65,7 +65,7 @@ def main():
 #include <map>
 #include <vector>
 #include "gpu/vk/vram_pressure.h"
-#include "gpu/vk/compat/hookshot_env.h"
+#include "gpu/vk/compat/ocarina_reborn_env.h"
 #define CHECK(ok) do { if (!(ok)) { std::fprintf(stderr, "failed line %d: %s\n", __LINE__, #ok); std::exit(1); } } while (0)
 constexpr uint64_t kPageShift = 12;
 using VkBuffer = uint64_t;

@@ -12,7 +12,7 @@ showing the last line written ("vertex format NVN 0xe -> vk 17"). In one log the
 - the --prepare-shaders run's watchdog (gpu/vk/vk_main.cpp prepare_watchdog): while nothing moves, what it waits on, even with
   the pipeline steps' own progress lines (#2186) coming every 10 s; the shader programs' count after a quiet spell, and nothing of
   its own while the pipeline steps move (their lines say it); once nothing has moved for RX_VK_PREPARE_STALL_S, the reason,
-  hookshot_prepare_skipped and exit status 4.
+  ocarina_reborn_prepare_skipped and exit status 4.
   The pipeline cache's save is stopped only when workers were left in the driver or it faulted, and after twice that limit (a
   fault AMD's retry recovered from counts, so a slow save there is not stopped as early); otherwise it is reported, and its lines
   end so that make_game.py's silence limit still applies.
@@ -77,7 +77,7 @@ struct Program { uint64_t key; uint64_t variant; bool mesh = false, fallback = f
 struct PredictCounts { size_t vertex_types = 0, output_types = 0, variants_unfit = 0, notes_unfit = 0, refit = 0; };
 std::string predict_pending_path() {
     static const std::string path = (std::filesystem::temp_directory_path() /
-                                     ("hookshot-prepare-stall-" + std::to_string((uintptr_t)&path) + ".predicting")).string();
+                                     ("ocarina_reborn-prepare-stall-" + std::to_string((uintptr_t)&path) + ".predicting")).string();
     return path;
 }
 void predicted_sample_write(const std::vector<std::unique_ptr<PipeNote>>&) {}
@@ -86,7 +86,7 @@ unsigned usable_cpus() { return std::max(1u, std::thread::hardware_concurrency()
 inline uint64_t mix(uint64_t h, uint64_t v) { return (h ^ v) * 0x100000001b3ull; }
 struct { uintptr_t device = 1; } dev;
 thread_local bool driver_cache_only = false;
-static bool env_on(const char* n) { const char* v = std::getenv(n); return v && *v && std::strcmp(v, "0"); }   // (a stand-in for compat/hookshot_env.h)
+static bool env_on(const char* n) { const char* v = std::getenv(n); return v && *v && std::strcmp(v, "0"); }   // (a stand-in for compat/ocarina_reborn_env.h)
 // 0 quick; 1 one program's pipelines never finish (the last stragglers); 2 each pipeline slow, every program longer than the
 // stall; 3 the driver faults, then nothing finishes, early in the run; 4 nothing finishes early in the run, no fault
 static int mode;
@@ -330,7 +330,7 @@ def check_watchdog(cxx, tmp):
             if n in out:
                 raise SystemExit("watchdog %s: the log has %r\n%s" % (case, n, out))
         if (code == 4) != skipped.exists():
-            raise SystemExit("watchdog %s: hookshot_prepare_skipped %s" % (case, "missing" if code == 4 else "left by a run that went on"))
+            raise SystemExit("watchdog %s: ocarina_reborn_prepare_skipped %s" % (case, "missing" if code == 4 else "left by a run that went on"))
         if code == 4 and time.time() - t0 > 15:
             raise SystemExit("watchdog %s: took %.0f s to stop" % (case, time.time() - t0))
         print("PASS watchdog:", case, flush=True)

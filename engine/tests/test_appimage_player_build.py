@@ -33,7 +33,7 @@ def dry_run(tools, lib, work):
     """nx2/build.py as nx2/make_game.py runs it in the AppImage (AppRun's variables), with nothing else of this PC's"""
     env = {"PATH": "/usr/bin:/bin", "HOME": str(work / "home"), "LANG": "C.UTF-8", "HOOKSHOT_TOOLS": str(tools),
            "EMSDK": str(lib / "emsdk"), "HOOKSHOT_SYSROOT": str(lib / "sysroot"), "HOOKSHOT_FFMPEG": str(lib / "ffmpeg"),
-           "HOOKSHOT_VK_PREBUILT": str(lib / "hookshot_vk.so"), "OOT_WORK": str(work / "work"), "RX_RELEASE": "1",
+           "HOOKSHOT_VK_PREBUILT": str(lib / "ocarina_reborn_vk.so"), "OOT_WORK": str(work / "work"), "RX_RELEASE": "1",
            "A64_HOT_CHUNK": "1", "RX_MARCH": "x86-64-v3"}
     return subprocess.run([sys.executable, "-I", "-B", "-u", "-X", "utf8", "nx2/build.py", "--standalone", "--jobs", "1",
                            "--dry-run"], cwd=tools, env=env, capture_output=True, text=True, timeout=300)
@@ -42,10 +42,10 @@ def dry_run(tools, lib, work):
 @unittest.skipUnless(sys.platform.startswith("linux"), "the AppImage is made on Linux")
 class PlayerBuildFromTheAppImage(unittest.TestCase):
     def setUp(self):
-        temp = tempfile.TemporaryDirectory(prefix="hookshot-appimage-build-")
+        temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-appimage-build-")
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
-        self.tools, self.lib = self.root / "AppDir/usr/share/hookshot", self.root / "AppDir/usr/lib/hookshot"
+        self.tools, self.lib = self.root / "AppDir/usr/share/ocarina_reborn", self.root / "AppDir/usr/lib/ocarina_reborn"
         self.tools.mkdir(parents=True)
         package(self.tools)
         # (stand-ins for what appimage.sh builds or brings: a compiler that is never run, the sysroot, FFmpeg, the back end)
@@ -55,7 +55,7 @@ class PlayerBuildFromTheAppImage(unittest.TestCase):
         clang.chmod(0o755)
         for d in ("sysroot", "ffmpeg/include", "ffmpeg/lib"):
             (self.lib / d).mkdir(parents=True)
-        (self.lib / "hookshot_vk.so").write_bytes(b"")
+        (self.lib / "ocarina_reborn_vk.so").write_bytes(b"")
         (self.root / "home").mkdir()
 
     def test_starts_from_the_packaged_tree(self):

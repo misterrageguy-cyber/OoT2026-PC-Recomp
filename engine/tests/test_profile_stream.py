@@ -26,9 +26,9 @@ class IteratedFile(io.TextIOWrapper):
 
 class ProfileTests(unittest.TestCase):
     def capture(self, text, skip="0", only=None, maps=None):
-        with tempfile.TemporaryDirectory(prefix="hookshot-profile-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-profile-") as folder:
             if maps:
-                Path(folder, "hookshot.map").write_text(maps, encoding="utf-8")
+                Path(folder, "ocarina_reborn.map").write_text(maps, encoding="utf-8")
             source = Path(folder, "stacks.txt")
             source.write_text(text, encoding="utf-8")
             profile = IteratedFile(source.open("rb"), encoding="utf-8")
@@ -82,7 +82,7 @@ class ProfileTests(unittest.TestCase):
 
     def test_symbol_resolution_and_filter(self):
         maps = " 0001:00000000 ?draw@renderer@@ 0000000140000010 f\n"
-        output = self.capture("hookshot.exe+10;driver.dll+1\nother.dll+2\n", only="renderer::draw", maps=maps)
+        output = self.capture("ocarina_reborn.exe+10;driver.dll+1\nother.dll+2\n", only="renderer::draw", maps=maps)
         self.assertTrue(output.startswith("1 samples\n"))
         self.assertIn("100.0%  hookshot:renderer::draw", output)
         self.assertNotIn("other.dll", output)

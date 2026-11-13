@@ -186,7 +186,7 @@ def session_from_game_log(game):
         for line in f.read_text(encoding='utf-8', errors='replace').splitlines():
             if gpu is None and ', Vulkan ' in line and 'vk: ' in line and 'device ' not in line:
                 gpu = line.split('vk: ', 1)[1].split(', Vulkan ')[0]
-            if any(k in line for k in SESSION_KEEP):
+            if any(k in line for k in SESSION_KEEP) or performance.HOST_MEMORY_ERROR.search(line):
                 out.append(line.split('] ', 1)[-1] if line.startswith('[hos') else line)
     except OSError as e:
         return [f'game log not read: {e}']
@@ -308,11 +308,11 @@ def layout(ctx, top, blocks, bottom_margin=30):
 # (low_end_env). Each is an engine switch with a real effect: engine_v21.py RAM_GUARD, and Hookshot's own RX_VK_* switches
 LOW_END_ROWS = (
     ('ram_guard', 'RAM-Schutz', 'RAM guard',
-     ['Aus', 'Standard (1 GB Reserve)', 'Stark (3 GB Reserve)'], ['Off', 'Standard (1 GB reserve)', 'Strong (3 GB reserve)'],
-     'Wird der Speicher von Windows (RAM + Auslagerungsdatei) knapp, gibt das Spiel Texturen frei, statt abzustürzen. '
-     'Stark: für PCs mit 16 GB RAM oder vielen offenen Programmen.',
-     'When Windows\' memory (RAM + page file) runs short, the game lets textures go instead of crashing. '
-     'Strong: for PCs with 16 GB of RAM or many open programs.', 'low'),
+     ['Notfall (512 MB Reserve)', 'Standard (1 GB Reserve)', 'Stark (3 GB Reserve)'], ['Emergency (512 MB reserve)', 'Standard (1 GB reserve)', 'Strong (3 GB reserve)'],
+     'Bei knappem RAM oder Windows-Speicher gibt das Spiel ungenutzte Texturen frei. Auch Notfall hält einen Mindestschutz aktiv; '
+     'Auto-Texturspeicher bleibt begrenzt. Stark: für lange Sitzungen, 16 GB RAM oder viele offene Programme.',
+     'When RAM or Windows commit runs short, the game releases unused textures. Emergency keeps minimum protection active; '
+     'Auto texture memory stays capped. Strong: for long sessions, 16 GB RAM or many open programs.', 'low'),
     ('tex_max_dim', 'Größte Texturen', 'Largest textures',
      ['Standard (2048)', '1024 (weniger VRAM)'], ['Standard (2048)', '1024 (less VRAM)'],
      'Sehr große Texturen (ab 64 MB) werden höchstens so breit geladen. 1024 spart Grafikspeicher auf Karten mit 4–6 GB; '
@@ -362,7 +362,7 @@ LOW_END_DEFAULTS = {'ram_guard': 1, 'tex_max_dim': 0, 'low_spec': 0, 'vram_compa
 def low_end_env(cfg):
     """the low-end rows as the engine's switches (only what differs from the engine's own defaults)"""
     get = lambda k: int(cfg.get(k, LOW_END_DEFAULTS[k]))
-    env = {'OCR_RAM_RESERVE_MB': str((0, 1024, 3072)[min(get('ram_guard'), 2)])}
+    env = {'OCR_RAM_RESERVE_MB': str((512, 1024, 3072)[min(get('ram_guard'), 2)])}
     if get('tex_max_dim') == 1:
         env['RX_VK_TEX_MAX_DIM'] = '1024'
     if get('low_spec'):
@@ -2145,7 +2145,7 @@ class App(tk.Tk):
             current = game_settings.read(game)
             changes, reasons = performance.suggest(summary, current, record.get('settings'), de)
             low_end = {}
-            if summary.get('vram_pressure_seconds', 0) >= 15 and int(self.cfg.get('ram_guard', 1)) < 2:
+            if (summary.get('vram_pressure_seconds', 0) >= 15 or summary.get('host_memory_events', 0)) and int(self.cfg.get('ram_guard', 1)) < 2:
                 low_end['ram_guard'] = 2
                 reasons.append(T('Der Speicher war länger knapp: RAM-Schutz auf Stark.',
                                  'Memory was short for a while: RAM guard to Strong.'))
@@ -2295,7 +2295,8 @@ class App(tk.Tk):
             measured_settings = performance.signature(opts)
             keys = ('output_res', 'resolution', 'dlss', 'frame_generation', 'vsync', 'frame_rate_cap', 'hdr', 'texture_detail',
                     'texture_filtering', 'anisotropic_filtering', 'soft_shadows', 'texture_memory', 'shader_cache',
-                    'shader_threads', 'pipeline_precompile', 'mesh_shaders', 'texture_saving')
+                    'shader_threads', 'pipeline_precompile', 'mesh_shaders', 'texture_saving',
+                    'view_distance', 'grass', 'shadow_distance')
             log('game settings: ' + ', '.join(f'{k}={opts.get(k, game_settings.DEFAULTS.get(k, "game default"))}' for k in keys))
         except Exception as e:   # (the options file unreadable: the game starts anyway)
             log(f'game settings not read: {e}')

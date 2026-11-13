@@ -28,7 +28,7 @@ class SeedVariantCleanupTests(unittest.TestCase):
         compiler = COMPILER or shutil.which('g++') or shutil.which('clang++') or shutil.which('cl')
         if not compiler:
             raise unittest.SkipTest('no C++20 compiler')
-        cls.temporary = tempfile.TemporaryDirectory(prefix='hookshot-seed-cleanup-')
+        cls.temporary = tempfile.TemporaryDirectory(prefix='ocarina_reborn-seed-cleanup-')
         cls.addClassCleanup(cls.temporary.cleanup)
         directory = Path(cls.temporary.name).resolve()
         header = (ROOT / 'gpu/vk/vk_shader.h').read_text(encoding='utf-8')

@@ -11,7 +11,7 @@ version 2 record of kind kCompute (vk_draw.cpp StateRec2), in the same lists, wi
 - the game's own code, cut out of vk_draw.cpp and compiled with stubs for the folder: state_record_compute writes each program
   once (and once over two runs); state_list_read gives the pipelines alone, state_list_computes the programs alone; a list
   from before the kinds, and a version 1 one, read as they did; a build from before the kinds drops a compute record (targets_ok);
-  computes_plan keeps ready the shipped list's and the learned ones (hookshot_computes.bin), each once, whatever is missing
+  computes_plan keeps ready the shipped list's and the learned ones (ocarina_reborn_computes.bin), each once, whatever is missing
   or damaged, and every one a shipped list names however many; on a first start, with nothing learned, every kept program
   as before (the shipped list's alone with RX_VK_PRECOMPILE_COMPUTES=listed); =learned / all / none;
 - a list the game wrote reads in the tool and one the tool wrote reads in the game;
@@ -149,7 +149,7 @@ def check_tool(tool, draw):
         os.replace(src, os.path.join(d, *tool.SOURCES))
         with contextlib.redirect_stdout(io.StringIO()):
             make_game.ship_state_list(game)
-        shipped = os.path.join(game, "hookshot_pipeline_states_shipped.bin")
+        shipped = os.path.join(game, "ocarina_reborn_pipeline_states_shipped.bin")
         if tool.compute_keys(tool.read(shipped, strict=True)) != [K1, K2] or open(shipped, "rb").read(8) != tool.MAGIC2:
             raise SystemExit("make_game did not ship the sources' compute programs beside the game")
         # more compute programs than play dispatches: the release's check stops (the game keeps a pipeline ready for each)
@@ -311,7 +311,7 @@ static bool is_depth_format(VkFormat) { return true; }
 // the game folder, and the switches, as the test sets them
 static std::string folder;
 static std::string state_list_path(const char* name) { return folder + "/" + name; }
-static std::string computes_path() { return folder + "/hookshot_computes.bin"; }
+static std::string computes_path() { return folder + "/ocarina_reborn_computes.bin"; }
 static bool no_state_list = false;
 static bool env_on(const char* name) { return !std::strcmp(name, "RX_VK_NO_STATE_LIST") && no_state_list; }
 static void logf(const char*, ...) {}
@@ -359,8 +359,8 @@ int main(int argc, char** argv) {
     CHECK(argc == 2);
     folder = argv[1];
     const uint64_t K1 = 0x1111222233334444ull, K2 = 0xAAAABBBBCCCCDDDDull, K3 = 0x0123456789ABCDEFull;
-    const char* own = "hookshot_pipeline_states.bin";
-    const char* shipped = "hookshot_pipeline_states_shipped.bin";
+    const char* own = "ocarina_reborn_pipeline_states.bin";
+    const char* shipped = "ocarina_reborn_pipeline_states_shipped.bin";
     // 1. the record: the list's own size, its kind where the padding was, and nothing a pipeline could be made of
     CHECK(sizeof(StateRec2) == 552 && offsetof(StateRec2, kind) == 544 && StateRec2::kCompute == 1);
     const StateRec2 c1 = compute(K1);
@@ -392,7 +392,7 @@ int main(int argc, char** argv) {
         for (size_t n; (n = std::fread(b, 1, sizeof b, in)) > 0;) std::fwrite(b, 1, n, out);
         std::fclose(in), std::fclose(out);
     }
-    {   // the programs this install's play dispatched before this build (hookshot_computes.bin) are in the list from its next
+    {   // the programs this install's play dispatched before this build (ocarina_reborn_computes.bin) are in the list from its next
         // opening on, each once: the list a player sends names them all
         const uint64_t before = 0x5555666677778888ull;
         learned({K1, before});

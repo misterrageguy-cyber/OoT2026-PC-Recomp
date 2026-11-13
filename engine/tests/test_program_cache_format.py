@@ -1,7 +1,7 @@
 """The program cache is kept across builds that change only how it is read or scheduled, and dropped when the translator or the
 cache's own format changes.
 
-hookshot_programs.bin (6.9 GB with every program of the game) is good for program_cache_stamp: the translator's stamp
+ocarina_reborn_programs.bin (6.9 GB with every program of the game) is good for program_cache_stamp: the translator's stamp
 (translator_stamp in gpu/vk/vk_shader.cpp, HOOKSHOT_SHADER_STAMP from nx2/build.py, which hashes vk_shader.cpp and the recompiler)
 mixed with kProgramCacheFormat. The cache's reads and the prepare's scheduling are in gpu/vk/vk_progcache.cpp, outside the hashed
 files: an edit there kept nothing out before (they were in vk_shader.cpp, so every such change made every player translate the whole
@@ -93,7 +93,7 @@ def main():
     if "disk_stamp" in shader + cache + header + draw:
         raise SystemExit("FAIL: a second stamp (disk_stamp) is still used somewhere")
     if draw.count("program_cache_stamp()") < 4:
-        raise SystemExit("FAIL: the notes, the state list's notes or hookshot_prepared.bin are no longer stamped with the cache")
+        raise SystemExit("FAIL: the notes, the state list's notes or ocarina_reborn_prepared.bin are no longer stamped with the cache")
     for fn in ("void disk_init(", "void program_cache_save(", "void program_cache_read(", "size_t program_cache_load_some(",
                "void program_cache_borrow(", "void program_cache_each(", "std::vector<uint64_t> program_cache_keys(",
                "void put_info(", "void get_info(", "unsigned usable_cpus(", "unsigned half_cpus("):

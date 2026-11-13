@@ -4,8 +4,8 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/hookshot_env.h)
-ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "hookshot_env.h")
+# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/ocarina_reborn_env.h)
+ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
 
 RUN_ALL_ARGS = ['--cxx', '{cxx}', '--headers', '{vulkan_headers}']
 

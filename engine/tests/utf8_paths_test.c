@@ -52,13 +52,13 @@ int main(int argc, char **argv) {
     char *slash = strrchr(exe, '\\');
     CHECK(slash != NULL);
     if (!slash) return 1;
-    strcpy(slash + 1, "hookshot_log \xf0\x9f\x8e\xae.txt");
+    strcpy(slash + 1, "ocarina_reborn_log \xf0\x9f\x8e\xae.txt");
     FILE *f = fopen(exe, "w");
     CHECK(f != NULL);
     if (f) fputs("ok\n", f), fclose(f);
     wchar_t wlog[MAX_PATH];
     wcscpy(wlog, wexe);
-    wcscpy(wcsrchr(wlog, L'\\') + 1, L"hookshot_log \xD83C\xDFAE.txt");
+    wcscpy(wcsrchr(wlog, L'\\') + 1, L"ocarina_reborn_log \xD83C\xDFAE.txt");
     CHECK(GetFileAttributesW(wlog) != INVALID_FILE_ATTRIBUTES);
     HANDLE h = CreateFileA(exe, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
     CHECK(h != INVALID_HANDLE_VALUE);
@@ -67,11 +67,11 @@ int main(int argc, char **argv) {
     /* (argv: the tester's folder "Hookshot-DLSS ゼルダ" came in as "Hookshot-DLSS ???", and the game printed its usage line) */
     CHECK(argc > 2 && !strcmp(argv[2], "Hookshot-DLSS \xe3\x82\xbc\xe3\x83\xab\xe3\x83\x80 Z\xc3\xa9lda"));
     /* (the log: freopen'd stderr on the UTF-8 path, and the path printed into it as hos_log's "fs: mounted" lines do, in UTF-8) */
-    strcpy(slash + 1, "hookshot_log.txt");
+    strcpy(slash + 1, "ocarina_reborn_log.txt");
     if (freopen(exe, "w", stderr)) {
         fprintf(stderr, "fs: mounted rom: -> %s\n", exe);
         fflush(stderr);
-        wcscpy(wcsrchr(wlog, L'\\') + 1, L"hookshot_log.txt");
+        wcscpy(wcsrchr(wlog, L'\\') + 1, L"ocarina_reborn_log.txt");
         FILE *in = _wfopen(wlog, L"rb");
         char got[MAX_PATH * 3 + 64] = "", want[MAX_PATH * 3 + 64];
         CHECK(in != NULL);
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
         snprintf(want, sizeof want, "fs: mounted rom: -> %s\n", exe8);
         CHECK(!strcmp(got, want));
     } else CHECK(!"freopen of the log");
-    /* (the environment through getenv, as hookshot_env.txt's switches and LOCALAPPDATA-style paths come in) */
+    /* (the environment through getenv, as ocarina_reborn_env.txt's switches and LOCALAPPDATA-style paths come in) */
     _wputenv(L"HOOKSHOT_UTF8_PROBE=\x30B2\x30FC\x30E0 \xD83C\xDFAE");
     const char *e = getenv("HOOKSHOT_UTF8_PROBE");
     CHECK(e && !strcmp(e, "\xe3\x82\xb2\xe3\x83\xbc\xe3\x83\xa0 \xf0\x9f\x8e\xae"));

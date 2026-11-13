@@ -11,7 +11,7 @@ SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "probe.py"
 
 class ProbeTests(unittest.TestCase):
     def run_probe(self, rows):
-        with tempfile.TemporaryDirectory(prefix="hookshot-probe-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-probe-") as folder:
             trace = Path(folder) / "probe_1.txt"
             trace.write_text("".join(rows), encoding="utf-8")
             return subprocess.run([sys.executable, "-I", "-B", str(SCRIPT), str(trace)],

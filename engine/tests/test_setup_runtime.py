@@ -24,7 +24,7 @@ def main():
     assert required and len(set(required)) == len(required)
     prelude = '#define WIN32_LEAN_AND_MEAN\n#define _CRT_SECURE_NO_WARNINGS\n#include <windows.h>\n#include <shellapi.h>\n#include <wchar.h>\n#include <stdio.h>\n'
     driver = '\nint main(void) { int argc; wchar_t **argv=CommandLineToArgvW(GetCommandLineW(), &argc); if(!argv || argc != 2) return 2; printf("%d\\n",builder_ready(argv[1])); LocalFree(argv); return 0; }\n'
-    with tempfile.TemporaryDirectory(prefix="hookshot-setup-runtime-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-setup-runtime-") as temp:
         root = Path(temp)
         source = root / "fixture.cpp"
         source.write_text(prelude + helper + driver, encoding="utf-8")

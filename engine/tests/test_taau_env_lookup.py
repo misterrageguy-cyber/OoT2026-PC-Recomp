@@ -12,7 +12,7 @@ import tempfile
 RUN_ALL_ARGS = ["--cxx", "g++"]
 
 ROOT = Path(__file__).resolve().parents[1]
-ENV_ON_H = str(ROOT / "gpu" / "vk" / "compat" / "hookshot_env.h")
+ENV_ON_H = str(ROOT / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
 
 
 def block(source, marker):
@@ -40,7 +40,7 @@ static const char* fixture_getenv(const char* name) {
     return nullptr;
 }
 #define getenv fixture_getenv
-// (env_on, the switches' rule (hookshot_env.h, included first), over the fixture's environment)
+// (env_on, the switches' rule (ocarina_reborn_env.h, included first), over the fixture's environment)
 static bool fixture_env_on(const char* name) { const char* v = fixture_getenv(name); return v && !env_value_off(v); }
 #define env_on fixture_env_on
 namespace Shader { namespace Backend { namespace SPIRV { static bool mma_software = true; } } }
@@ -156,7 +156,7 @@ def main():
         source, exe = folder / 'fixture.cpp', folder / 'fixture.exe'
         source.write_text(cpp, encoding='utf-8')
         if Path(args.cxx).name.lower() in ('cl', 'cl.exe', 'clang-cl', 'clang-cl.exe'):
-            # (/FI, -include: env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/hookshot_env.h)
+            # (/FI, -include: env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/ocarina_reborn_env.h)
             command = [args.cxx, '/nologo', '/std:c++17', '/EHsc', '/W4', '/WX', '/FI' + ENV_ON_H, str(source),
                        '/Fo' + str(folder / 'fixture.obj'), '/Fe' + str(exe), *args.cxx_arg]
         else:

@@ -144,7 +144,7 @@ int main() {
         cpp.write_text(fixture, encoding="utf-8")
         # (_CRT_SECURE_NO_WARNINGS: the MSVC CRT's getenv deprecation, as the game's own Windows build passes)
         subprocess.run([a.cxx, "-std=c++20", "-O2", "-pthread", "-Wall", "-Wextra", "-Werror", "-D_CRT_SECURE_NO_WARNINGS",
-                        "-include", str(ROOT / "gpu" / "vk" / "compat" / "hookshot_env.h"), str(cpp), "-o", str(exe)], check=True)   # (env_on: RX_VK_LOW_SPEC)
+                        "-include", str(ROOT / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h"), str(cpp), "-o", str(exe)], check=True)   # (env_on: RX_VK_LOW_SPEC)
         subprocess.run([str(exe)], check=True, timeout=120, env={**os.environ, "RX_VK_CAPTURE_THREADS": "2"})
 
 

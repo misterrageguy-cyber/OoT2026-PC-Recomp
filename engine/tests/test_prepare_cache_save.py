@@ -83,7 +83,7 @@ int main(int argc,char** argv){
 """
 with tempfile.TemporaryDirectory(prefix='prepare-cache-') as tmp:
     src=Path(tmp)/'fixture.cpp';exe=Path(tmp)/'fixture.exe';src.write_text(cpp)
-    subprocess.run([a.cxx,'-std=c++20','-include',str(a.source/'gpu'/'vk'/'compat'/'hookshot_env.h'),'-I',str(a.source/'gpu'/'vk'),str(src),'-o',str(exe)],check=True)   # (env_on: the switches' rule, gpu/vk/compat/hookshot_env.h)
+    subprocess.run([a.cxx,'-std=c++20','-include',str(a.source/'gpu'/'vk'/'compat'/'ocarina_reborn_env.h'),'-I',str(a.source/'gpu'/'vk'),str(src),'-o',str(exe)],check=True)   # (env_on: the switches' rule, gpu/vk/compat/ocarina_reborn_env.h)
     env={k:v for k,v in os.environ.items() if k not in ('RX_VK_SEED_CHECK','RX_VK_PREPARE_AGAIN')}
     for mode, expected in [('fresh', ['0.714']), ('refresh', ['0.125','0.500','0.750']), ('empty', ['0.500'])]:
         result=subprocess.run([str(exe),mode],check=True,capture_output=True,text=True,env=env)

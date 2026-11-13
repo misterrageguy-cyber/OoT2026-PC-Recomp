@@ -127,7 +127,7 @@ void check_stamp(uint32_t size, uint32_t pinned, bool workaround, bool forced) {
                + section(shader, "const Shader::Profile& profile()", "const std::vector<Code>& codes_of(")
                + section(warp, "Id HostThreadId(", "Id GuestLane(")
                + section(warp, "bool UseShuffleFallback(", "Id ShuffleAbsolute(") + check_stamp + CASES)
-    with tempfile.TemporaryDirectory(prefix="hookshot-subgroup-profile-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-subgroup-profile-") as tmp:
         cpp, exe = Path(tmp) / "fixture.cpp", Path(tmp) / "fixture.exe"
         cpp.write_text(fixture, encoding="utf-8")
         subprocess.run([args.cxx, "-std=c++20", "-I", str(VK / "eden"), "-I", str(ROOT / "gpu/third_party/suyu"),

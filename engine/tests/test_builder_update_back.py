@@ -16,7 +16,7 @@ import threading
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-WINDOW = (ROOT / "builder" / "py" / "hookshot_builder" / "window.py").read_text(encoding="utf-8")
+WINDOW = (ROOT / "builder" / "py" / "ocarina_reborn_builder" / "window.py").read_text(encoding="utf-8")
 MAIN = (ROOT / "builder" / "HookshotBuilder" / "MainWindow.xaml.cs").read_text(encoding="utf-8")
 
 

@@ -17,7 +17,7 @@ spec.loader.exec_module(release_parts)
 
 class PromptPackages(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-prompt-packages-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-prompt-packages-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.part = self.root / "authored-python.zip"

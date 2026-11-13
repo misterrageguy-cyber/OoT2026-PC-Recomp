@@ -1,4 +1,4 @@
-"""The Linux game's move of its saves to $XDG_DATA_HOME/hookshot leaves a linked folder alone (host/hos_main.c, saves_dir).
+"""The Linux game's move of its saves to $XDG_DATA_HOME/ocarina_reborn leaves a linked folder alone (host/hos_main.c, saves_dir).
 
 A user/ folder beside the game is moved to the new place at the first start. A symbolic link in it, to saves the player
 keeps elsewhere (a synced folder, another drive), was moved as a file: by rename, and one written from where it stood
@@ -60,7 +60,7 @@ class Case:
         # (deeper than the game's user/, as ~/.local/share is: a link written from where it stands names another place from it)
         self.data = Path(tempfile.mkdtemp(prefix="home-", dir=data_parent)) / ".local" / "share"
         self.data.mkdir(parents=True)
-        self.user, self.new = self.game / "user", self.data / "hookshot"
+        self.user, self.new = self.game / "user", self.data / "ocarina_reborn"
         self.sync = self.game.parent / (self.game.name + "-sync")   # (beside the game: "../../<name>-sync" from user/save)
         (self.user / "temp").mkdir(parents=True)
         (self.sync / USER_ID).mkdir(parents=True)

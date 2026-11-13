@@ -58,6 +58,36 @@ def patch(H, rel, swaps):
     f.write_text(t, encoding='utf-8', newline='')
 
 
+def apply_light_tables(H):
+    """Backport Hookshot PR #3047, pinned at 9c75b3214262844b644c0a8cdbbe9b2bde590ace.
+
+    Clustered lights read their own shadow maps instead of a dummy texture. The
+    upstream patch, tests and license headers are kept intact. This changes the
+    translator and intentionally invalidates the shader cache once.
+    """
+    import os
+    import subprocess
+    fix = Path(__file__).resolve().parent / 'engine-light-tables.patch'
+    # Do not let git discover the developer repository above the staged engine:
+    # otherwise git apply can silently skip every path below this directory.
+    env = dict(os.environ, GIT_CEILING_DIRECTORIES=str(Path(H).resolve().parent))
+    for flags in (['--check'], []):
+        result = subprocess.run(['git', 'apply', '-p1', '--whitespace=nowarn', *flags, str(fix)],
+                                cwd=H, env=env, capture_output=True, text=True)
+        if result.returncode:
+            raise SystemExit('light-table fix did not apply: ' + result.stderr[:1600])
+    checks = {
+        'gpu/vk/eden/shader_recompiler/ir_opt/texture_pass.cpp': 'bool FindHandleTableIndex(',
+        'gpu/vk/vk_draw.cpp': 'stage_handle(s, st, d.handle_program, k)',
+        'gpu/vk/vk_shader.cpp': 'uint32_t program, uint32_t element)',
+        'tests/test_handle_table.py': 'def run_programs(',
+    }
+    for rel, marker in checks.items():
+        if marker not in (H / rel).read_text(encoding='utf-8'):
+            raise SystemExit('light-table fix missing after git apply: ' + rel)
+    print('lighting: per-light shadow maps (Hookshot PR #3047), patch applied and checked')
+
+
 def apply_gfx(H):
     shutil.copy2(HUD / 'ocr_options.h', H / 'gpu/vk/ocr_options.h')
     shutil.copy2(HUD / 'ocr_texture_policy.h', H / 'gpu/vk/ocr_texture_policy.h')
@@ -407,7 +437,7 @@ def apply_mem(H):
 
 # (Ocarina Reborn) RAM guard: the texture budget also shrinks when Windows' commit (RAM + page file) runs short. On Windows
 # the GPU's own memory counts toward the process' commit too (AMD: a 1.0.0 session reached 36 GB of commit with 6 GB of
-# textures and crashed at the limit, error 1455). Below OCR_RAM_RESERVE_MB of commit left (the launcher's RAM guard: 0 off,
+# textures and crashed at the limit, error 1455). Below OCR_RAM_RESERVE_MB of commit left (0: emergency 512 MB,
 # default 1024) the cache is held at a lower size, least recently used first, never under 1.5 GB, and the hold is let go
 # slowly once 1 GB more than the reserve is free again.
 # (A HOLD, not a cut for one pass: the guard of 1.0.1 lowered the budget for the pass it ran in only; the next pass had the
@@ -416,12 +446,12 @@ def apply_mem(H):
 RAM_GUARD = (
     '#ifdef _WIN32\n'
     '    {   // (Ocarina Reborn) RAM guard: engine_v21.py RAM_GUARD\n'
-    '        static const uint64_t reserve = (uint64_t)(getenv("OCR_RAM_RESERVE_MB") ? std::max(0, atoi(getenv("OCR_RAM_RESERVE_MB"))) : 1024) << 20;\n'
+    '        static const uint64_t reserve = (uint64_t)(getenv("OCR_RAM_RESERVE_MB") ? std::max(512, atoi(getenv("OCR_RAM_RESERVE_MB"))) : 1024) << 20;\n'
     '        static uint64_t held = 0;   // (0: no hold)\n'
-    '        static uint64_t said_at = 0;\n'
+    '        static uint64_t said_at = 0, pressure_at = 0;\n'
     '        MEMORYSTATUSEX ms{};\n'
     '        ms.dwLength = sizeof ms;\n'
-    '        if (reserve && GlobalMemoryStatusEx(&ms)) {\n'
+    '        if (GlobalMemoryStatusEx(&ms)) {\n'
     '            // (Auto texture memory on a PC with little RAM: at most 40% of the RAM. AMD counts video memory toward the\n'
     '            // process\' commit, so a 16 GB PC with a 16 GB card had an 11 GB budget, 8.9 GB of textures, 14 of 15 GB VRAM,\n'
     '            // and lost the device (RX 6950 XT, 16 GB RAM, 2026-11-12). 32 GB of RAM keeps 12.8 GB: unchanged there)\n'
@@ -435,6 +465,10 @@ RAM_GUARD = (
     '                    budget = ram_cap;\n'
     '                }\n'
     '            }\n'
+    '            if (frame_no % 600 == 0)\n'
+    '                logf("[OcarinaReborn/MEM] system: commit free %llu MB, RAM free %llu MB, reserve %llu MB",\n'
+    '                     (unsigned long long)(ms.ullAvailPageFile >> 20), (unsigned long long)(ms.ullAvailPhys >> 20),\n'
+    '                     (unsigned long long)(reserve >> 20));\n'
     '            const uint64_t floor = std::min<uint64_t>(1536ull << 20, budget), step = 256ull << 20;\n'
     '            // (and physical RAM: with commit to spare, Windows still pages the game out when RAM runs short, and the whole\n'
     '            // game stops 1-3 s at a time: RTX 4070 SUPER, 31 GB RAM, private bytes 17 -> 29 GB over a session, dozens of\n'
@@ -454,6 +488,7 @@ RAM_GUARD = (
     '            if (short_commit || short_phys || short_vram) {   // (short: the hold one step lower, at most the shortfall)\n'
     '                const uint64_t short_by = std::max(std::max(short_commit, short_phys), short_vram), from = held ? held : std::min(budget, total_bytes);\n'
     '                const uint64_t lower = std::max(from > short_by ? from - short_by : 0, from > step ? from - step : 0);\n'
+    '                pressure_at = frame_no;\n'
     '                const uint64_t was = held;\n'
     '                held = std::max(lower, floor);\n'
     '                if (held != was && (frame_no - said_at >= 600 || !said_at))\n'
@@ -461,7 +496,7 @@ RAM_GUARD = (
     '                                             "VRAM %llu of %llu MB: textures held at %llu MB", (unsigned long long)(ms.ullAvailPageFile >> 20),\n'
     '                                             (unsigned long long)(ms.ullAvailPhys >> 20), (unsigned long long)(vused >> 20),\n'
     '                                             (unsigned long long)(vallowed >> 20), (unsigned long long)(held >> 20));\n'
-    '            } else if (held && roomy && frame_no - said_at >= 300) {\n'
+    '            } else if (held && roomy && frame_no - pressure_at >= 300 && frame_no - said_at >= 300) {\n'
     '                // (room again: let go slowly, 128 MB every 5 s at the most, so it does not swing back at once)\n'
     '                said_at = frame_no;\n'
     '                held += 128ull << 20;\n'

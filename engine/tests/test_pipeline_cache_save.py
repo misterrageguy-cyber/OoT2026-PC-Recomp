@@ -38,7 +38,7 @@ class PipelineCacheSaveTests(unittest.TestCase):
         compiler = COMPILER or shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             raise AssertionError('a C++20 compiler is required')
-        cls.temporary = tempfile.TemporaryDirectory(prefix='hookshot-pipeline-save-')
+        cls.temporary = tempfile.TemporaryDirectory(prefix='ocarina_reborn-pipeline-save-')
         cls.addClassCleanup(cls.temporary.cleanup)
         cls.directory = Path(cls.temporary.name).resolve()
         if not cls.directory.is_relative_to(Path(tempfile.gettempdir()).resolve()):

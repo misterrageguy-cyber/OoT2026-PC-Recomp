@@ -32,12 +32,12 @@ int main(int argc, char **argv) {
     char a[1024], e[1024];
     snprintf(a, sizeof a, "%s/cmdline", dir), snprintf(e, sizeof e, "%s/environ", dir);
     /* (an empty argument kept, the last string ended by its NUL or not) */
-    static const char args[] = "./bin/hookshot\0--user\0\0last";
+    static const char args[] = "./bin/ocarina_reborn\0--user\0\0last";
     static const char env[] = "WAYLAND_DISPLAY=wayland-1\0XDG_DATA_HOME=/tmp/x\0";
     write_file(a, args, sizeof args - 1), write_file(e, env, sizeof env - 1);
     HosRelaunch r;
     assert(hos_relaunch_command(a, e, &r));
-    assert(r.argc == 4 && !strcmp(r.argv[0], "./bin/hookshot") && !strcmp(r.argv[1], "--user") && !strcmp(r.argv[2], "") &&
+    assert(r.argc == 4 && !strcmp(r.argv[0], "./bin/ocarina_reborn") && !strcmp(r.argv[1], "--user") && !strcmp(r.argv[2], "") &&
            !strcmp(r.argv[3], "last") && !r.argv[4]);
     assert(r.envc == 2 && !strcmp(r.envp[0], "WAYLAND_DISPLAY=wayland-1") && !strcmp(r.envp[1], "XDG_DATA_HOME=/tmp/x") &&
            !r.envp[2]);
@@ -142,7 +142,7 @@ def sources():
                  'execve("/proc/self/exe"'):
         if need not in relaunch:
             raise SystemExit("hos_relaunch.c: no " + need)
-    # (Windows: the new process gets the environment the game started with, not this one's with hookshot_env.txt's lines in
+    # (Windows: the new process gets the environment the game started with, not this one's with ocarina_reborn_env.txt's lines in
     # it, or a restart takes each of the file's lines for the environment's and leaves the file's edits out)
     windows = relaunch[relaunch.index("static void relaunch(void) {"):relaunch.index("#else")]
     if not re.search(r"CreateProcessW\([^;]*CREATE_UNICODE_ENVIRONMENT[^;]*, env,", windows) or \
@@ -151,9 +151,9 @@ def sources():
     if "GetEnvironmentStringsW()" not in function(relaunch, "void hos_relaunch_keep_env(void) {"):
         raise SystemExit("hos_relaunch.c: hos_relaunch_keep_env does not keep the environment block")
     hos_main = (ROOT / "host" / "hos_main.c").read_text(encoding="utf-8")
-    keep, load = hos_main.find("hos_relaunch_keep_env();"), hos_main.find("load_hookshot_env();")
+    keep, load = hos_main.find("hos_relaunch_keep_env();"), hos_main.find("load_ocarina_reborn_env();")
     if keep < 0 or keep > load:
-        raise SystemExit("hos_main.c: the environment is not kept before hookshot_env.txt is read")
+        raise SystemExit("hos_main.c: the environment is not kept before ocarina_reborn_env.txt is read")
 
 
 def main():

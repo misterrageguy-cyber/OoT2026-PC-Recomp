@@ -617,7 +617,8 @@ LOGO = Path(__file__).resolve().parent / 'startup-logo.png'   # the Ocarina Rebo
 # .hookshot_exefs, ...): every lowercase "hookshot" that starts such a name, in the build scripts and the game's source alike,
 # becomes "ocarina_reborn", and the tools' own files of those names are renamed with them. Upper case (the HOOKSHOT_* switches)
 # and "Hookshot" (the item, Item_Hookshot) are left alone. Comments change too, which is harmless.
-RENAME_IN = ('host', 'gpu', 'nx2', 'scripts', 'third_party/a64-kit')
+# Source checks include the same renamed headers and cache filenames as the engine.
+RENAME_IN = ('host', 'gpu', 'nx2', 'scripts', 'tests', 'third_party/a64-kit')
 RENAME_EXT = ('.c', '.h', '.cpp', '.hpp', '.inc', '.py', '.rc', '.txt', '.json', '.ps1', '.sh')
 RENAME_RE = re.compile(r'(?<![A-Za-z0-9])hookshot(?=[_.\-"\\/ ]|$)')
 
@@ -691,6 +692,7 @@ def rebrand(H, icon):
         raise SystemExit('rebrand: make_icon.py failed: ' + r.stdout + r.stderr)
     import hud_v21
     import engine_v21
+    engine_v21.apply_light_tables(H)
     hud_v21.apply(H)
     engine_v21.apply_gfx(H)
     engine_v21.apply_perf(H)
@@ -706,6 +708,8 @@ def rebrand(H, icon):
         'Changes: the window title, message boxes, menu heading, icon and start-up screen say Ocarina Reborn, the files the build\n'
         'makes are named ocarina_reborn* instead of hookshot*, and the Cheats page has Enemy damage (tools/alpha/stage_alpha.py).\n'
         'Where the view distances sit in the game\'s memory (host/ocr_view.c) was found by hotoni (Graphics-Menu mod).\n'
+        'Per-light shadow map fix: YakuzaFanA / Hookshot PR #3047, commit 9c75b3214262844b644c0a8cdbbe9b2bde590ace.\n'
+        'https://github.com/NotRexed/Hookshot/pull/3047 (upstream patch and license headers preserved).\n'
         'The Hookshot copyright and license notices are kept as the GPL requires.\n')
 
 
@@ -804,6 +808,7 @@ def main():
     copy(fsr, O / 'amd-fsr4')
     shutil.copy2(ROOT / 'tools/alpha/ocarina_prepare.py', O / 'ocarina_prepare.py')
     A = ROOT / 'tools/alpha'
+    shutil.copy2(A / 'CREDITS.txt', O / 'CREDITS.txt')
     copy(A / 'launcher', O / 'launcher', shutil.ignore_patterns('__pycache__'))
     shutil.copy2(A / 'exe/OcarinaReborn.exe', O / 'OcarinaReborn.exe')
     shutil.copy2(A / 'OcarinaReborn.ico', O / 'OcarinaReborn.ico')

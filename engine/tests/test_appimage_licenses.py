@@ -1,4 +1,4 @@
-"""The AppImage carries the licences of the third-party parts compiled into hookshot_vk.so: Dear ImGui (MIT), zstd (BSD) and
+"""The AppImage carries the licences of the third-party parts compiled into ocarina_reborn_vk.so: Dear ImGui (MIT), zstd (BSD) and
 the Libertinus fonts (OFL), each with its PROVENANCE.md. Runs the real copy block of scripts/linux/appimage.sh into a temporary
 folder; nothing is built.
 
@@ -27,9 +27,9 @@ class AppImageLicences(unittest.TestCase):
     @unittest.skipUnless(sys.platform.startswith("linux"), "the AppImage is made on Linux")
     def test_copied(self):
         script = (ROOT / "scripts/linux/appimage.sh").read_text(encoding="utf-8")
-        start = script.index("# ---- the licences of the third-party parts compiled into hookshot_vk.so")
+        start = script.index("# ---- the licences of the third-party parts compiled into ocarina_reborn_vk.so")
         end = script.index("# ---- end of the licences ----", start)
-        with tempfile.TemporaryDirectory(prefix="hookshot-appimage-licences-") as folder:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-appimage-licences-") as folder:
             env = dict(os.environ, T=folder)
             result = subprocess.run(["bash", "-eu", "-o", "pipefail", "-c", script[start:end]], cwd=ROOT, env=env,
                                     capture_output=True, text=True)
@@ -41,7 +41,7 @@ class AppImageLicences(unittest.TestCase):
         # (cp -a of the deps' licences into an existing folder would nest it: this block must come after)
         script = (ROOT / "scripts/linux/appimage.sh").read_text(encoding="utf-8")
         self.assertLess(script.index('cp -a "$DEPS/licenses" "$T/licenses"'),
-                        script.index("# ---- the licences of the third-party parts compiled into hookshot_vk.so"))
+                        script.index("# ---- the licences of the third-party parts compiled into ocarina_reborn_vk.so"))
 
     def test_vk_third_party_covered(self):
         # (every third_party folder the Vulkan back end compiles in, from nx2/build.py, has its licence shipped)

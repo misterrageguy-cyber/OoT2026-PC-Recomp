@@ -68,7 +68,7 @@ def main():
     done = [i for i in range(len(d)) if d.startswith("program_cache_complete(p)", i)]
     if first not in d or len(uses) != 2 or len(done) != 2 or not (done[0] < uses[0] < done[1] < uses[1]):
         raise SystemExit("dispatch() uses a compute program's module before program_cache_complete made it")
-    with tempfile.TemporaryDirectory(prefix="hookshot-one-variant-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-one-variant-") as tmp:
         folder = Path(tmp).resolve()
         (folder / "cache_types.inc").write_text(structs, encoding="utf-8")
         (folder / "cache_functions.inc").write_text(functions, encoding="utf-8")

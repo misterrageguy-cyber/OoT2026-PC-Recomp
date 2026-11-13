@@ -52,13 +52,13 @@ def main():
     if main_fn.index("driver_cache_folder();") > main_fn.index("hos_display_init()"):
         raise SystemExit("FAIL: driver_cache_folder runs after the window (SDL) may have loaded Vulkan")
     exe_name = re.search(r'^EXE = "([^"]+)" if LINUX', (ROOT / "nx2" / "build.py").read_text(encoding="utf-8"), re.M)
-    if not exe_name or exe_name.group(1) != "hookshot":
-        raise SystemExit("FAIL: the Linux game is no longer named hookshot (nx2/build.py EXE): NVIDIA's cache is filed by that name")
+    if not exe_name or exe_name.group(1) != "ocarina_reborn":
+        raise SystemExit("FAIL: the Linux game is no longer named ocarina_reborn (nx2/build.py EXE): NVIDIA's cache is filed by that name")
 
     cxx = shutil.which(args.cxx)
     if not cxx:
         raise SystemExit("C++ compiler not found: " + args.cxx)
-    with tempfile.TemporaryDirectory(prefix="hookshot-cache-folder-") as folder:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-cache-folder-") as folder:
         tmp = Path(folder)
         (tmp / "t.cpp").write_text(HARNESS % function(src, "static void driver_cache_folder(void) {"), encoding="utf-8")
         exe = tmp / "t"

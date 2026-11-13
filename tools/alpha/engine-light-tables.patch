@@ -1,0 +1,684 @@
+diff --git a/docs/development.md b/docs/development.md
+index c0e4c26a4..7e40564b4 100644
+--- a/docs/development.md
++++ b/docs/development.md
+@@ -193,6 +193,8 @@ Pipeline-cache file ownership, temporary storage and failure behavior are descri
+ | `RX_VK_GM_LOOP=0` or `1` | The storage buffer tables of a global memory access searched in a loop (1) or written out entry by entry (0). On by default on Intel, whose compiler did not finish the culling programs with the entries written out |
+ | `RX_VK_IMPORT_CHUNK_MB=<MB>` | The size game memory is imported for the GPU by, and so a pool's VRAM mirror's least size (default 4 where the pools have VRAM mirrors, discrete cards; 16 without them, and before). Larger: fewer imports, more of each mirror outside the game's pools |
+ | `RX_VK_NO_PROGRAM_CACHE` (set) | Neither reads nor writes `hookshot_programs.bin` and the pipeline notes |
++| `RX_VK_HANDLE_TABLE=0` | A texture handle that a shader reads from a table of records in a loop (the clustered lights' shadow maps of the water and wet floors, each light's handle in its record) takes the first constant buffer word on its path again, one texture for every element, as before. By default each element gets its own texture, in an array the shader indexes by the element. A change translates the programs again (the program cache's stamp) |
++| `RX_VK_HANDLE_TABLE_COUNT=<n>` | The elements of such an array (64; 2 to 256). An element index past it reads the last one |
+ | `RX_VK_PCACHE_STAMP=0` | Keeps `mkw_vk_pipelines.bin` and its play files whatever translator made them. By default they are dropped at a start when `mkw_vk_pipelines.stamp` says another translator made them (as the program cache starts over), since their pipelines can no longer be hit |
+ | `RX_VK_FETCH_BOUNDS=0` or `1`, `RX_VK_NAN_BITS=0` or `1`, `RX_VK_GATHER_OFFSET=0` or `1` | The translation's vendor and driver workarounds (`gpu/vk/vk_vendor.h`) off or on for one run, whatever the GPU; the log's `vk: vendor fixes` line says which are on. By default: out-of-bounds texel fetches answered with 0 on every GPU but NVIDIA's; NaN tests on a value's bits on AMD's older Windows shader compiler (RX 5000 and RX 6000); gathers nudged by 1/512 of a texel on AMD's and Intel's drivers. They change the shaders' translation (one preparation of the shaders) |
+ | `RX_VK_NATIVE_FADD=0` or `1` | The shaders' float adds to storage buffers: 1 the GPU's own atomic where it has `VK_EXT_shader_atomic_float`'s `shaderBufferFloat32AtomicAdd`, 0 a compare-exchange loop on every GPU, the extension not enabled. By default the GPU's own on NVIDIA's driver only, the one it was tried on in the game; on AMD and Intel the loop until runs there show the native add works (the log's `vk: float atomic add on storage buffers:` line says which, and why). The loop gives up after 1024 attempts, and an add that gives up is lost |
+diff --git a/gpu/vk/eden/shader_recompiler/ir_opt/passes.h b/gpu/vk/eden/shader_recompiler/ir_opt/passes.h
+index d763614a7..ab537268c 100644
+--- a/gpu/vk/eden/shader_recompiler/ir_opt/passes.h
++++ b/gpu/vk/eden/shader_recompiler/ir_opt/passes.h
+@@ -6,6 +6,7 @@
+ 
+ #pragma once
+ 
++#include <string>
+ #include "shader_recompiler/environment.h"
+ #include "shader_recompiler/frontend/ir/program.h"
+ 
+@@ -31,6 +32,9 @@ void SsaRewritePass(IR::Program& program);
+ void PositionPass(Environment& env, IR::Program& program);
+ void BlitConstantsPass(Environment& env, IR::Program& program);
+ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo& host_info);
++/// (hookshot) The texture handles of the last translation on this thread that no handle program could follow (they take
++/// the first constant buffer word on their path): how many, and the operations the programs stopped at. Resets them.
++u32 TakeHandleFallbacks(std::string& stopped_at);
+ void LayerPass(IR::Program& program, const HostTranslateInfo& host_info);
+ void VendorWorkaroundPass(IR::Program& program);
+ void VerificationPass(const IR::Program& program);
+diff --git a/gpu/vk/eden/shader_recompiler/ir_opt/texture_pass.cpp b/gpu/vk/eden/shader_recompiler/ir_opt/texture_pass.cpp
+index 52202d135..a638e6f9e 100644
+--- a/gpu/vk/eden/shader_recompiler/ir_opt/texture_pass.cpp
++++ b/gpu/vk/eden/shader_recompiler/ir_opt/texture_pass.cpp
+@@ -5,6 +5,7 @@
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ 
+ #include <algorithm>
++#include <cstdlib>
+ #include <queue>
+ #include <unordered_map>
+ #include <unordered_set>
+@@ -248,10 +249,16 @@ bool IsStorageImageOpcode(IR::Opcode opcode) {
+ 
+ u32 DynamicSampledTextureArrayCount(const TextureInstVector& to_replace) {
+     u32 count{};
++    // (hookshot) the samples of one handle table share one descriptor: counted once (the water's 69 shadow samples of
++    // one table cut its share of the budget to 14 elements)
++    std::unordered_set<u32> tables;
+     for (const TextureInst& inst : to_replace) {
+         const auto flags{inst.inst->Flags<IR::TextureInstInfo>()};
+         if (inst.cbuf.count > 1 && !IsStorageImageOpcode(IndexedInstruction(*inst.inst)) &&
+             flags.type != TextureType::Buffer) {
++            if (inst.cbuf.handle_program != ~0U && !tables.insert(inst.cbuf.handle_program).second) {
++                continue;
++            }
+             ++count;
+         }
+     }
+@@ -451,6 +458,12 @@ bool IsUndefined(IR::Opcode opcode) {
+ thread_local std::unordered_map<const IR::Inst*, u32> g_handle_slots;
+ thread_local u32 g_handle_slot_count{};
+ thread_local int g_handle_depth{};
++// (hookshot) A handle table read in a loop (a light's shadow map, the light's index from a per-pixel list): the
++// element index, built as HandleOp::Index wherever the handle reads it
++thread_local const IR::Inst* g_index_operand{};
++// (hookshot) The handles no handle program followed in this translation, and where they stopped (TakeHandleFallbacks)
++thread_local u32 g_fallbacks{};
++thread_local std::string g_fallback_ops;
+ 
+ bool BuildHandleNode(const IR::Value& value, std::vector<u32>& code, int& budget,
+                      const IR::Block* block);
+@@ -524,6 +537,10 @@ bool BuildHandleNode(const IR::Value& value, std::vector<u32>& code, int& budget
+         return true;
+     }
+     const IR::Inst* const inst{value.InstRecursive()};
++    if (inst == g_index_operand) {
++        emit(Op::Index);
++        return true;
++    }
+     const auto build = [&](size_t arg) { return BuildHandleProgram(inst->Arg(arg), code, budget, block); };
+     const auto binary = [&](Op op) {
+         if (!build(0) || !build(1)) return false;
+@@ -587,7 +604,8 @@ bool BuildHandleNode(const IR::Value& value, std::vector<u32>& code, int& budget
+     case IR::Opcode::GetCbufU32:
+     case IR::Opcode::LoadStorage32:
+         return load_word(inst, 0);
+-    case IR::Opcode::CompositeExtractU32x2: {
++    case IR::Opcode::CompositeExtractU32x2:
++    case IR::Opcode::CompositeExtractU32x4: {
+         const IR::Value element{inst->Arg(1)};
+         if (!element.IsImmediate() || inst->Arg(0).IsImmediate()) return false;
+         return load_word(inst->Arg(0).InstRecursive(), element.U32() * 4);
+@@ -930,6 +948,89 @@ std::optional<ConstBufferAddr> TryGetConstBuffer(const IR::Inst* inst, Environme
+     };
+ }
+ 
++IR::Value SkipIdentity(IR::Value v) {
++    for (int i = 0; i < 16 && !v.IsImmediate() && v.InstRecursive()->GetOpcode() == IR::Opcode::Identity; ++i) {
++        v = v.InstRecursive()->Arg(0);
++    }
++    return v;
++}
++
++// The value a 16-bit half extract reads (BitFieldUExtract x, 0, 16: the low half of an XMAD pair's index), else itself
++IR::Value IndexThroughLowHalf(IR::Value v) {
++    v = SkipIdentity(v);
++    if (v.IsImmediate()) return v;
++    const IR::Inst* const i{v.InstRecursive()};
++    if (i->GetOpcode() == IR::Opcode::BitFieldUExtract) {
++        const IR::Value offset{SkipIdentity(i->Arg(1))};
++        const IR::Value count{SkipIdentity(i->Arg(2))};
++        if (offset.IsImmediate() && count.IsImmediate() && offset.U32() == 0 && count.U32() == 16) {
++            return SkipIdentity(i->Arg(0));
++        }
++    }
++    return v;
++}
++
++// (hookshot) The handle is a word of a storage buffer record whose address adds index * stride, a table of records:
++// Ocarina of Time's water and wet floors read each light's shadow map handle from the light's record, for the lights
++// of the pixel's cluster. The index (in *index) when the handle is read so: a multiply by a stride of 4..4096 bytes (or
++// an XMAD pair's halves of one) or a shift by 2..12, in the sums that make the record's address.
++bool FindHandleTableIndex(const IR::Value& handle, IR::Value& index) {
++    const IR::Value v{SkipIdentity(handle)};
++    if (v.IsImmediate()) return false;
++    const IR::Inst* load{v.InstRecursive()};
++    if (load->GetOpcode() == IR::Opcode::CompositeExtractU32x2 ||
++        load->GetOpcode() == IR::Opcode::CompositeExtractU32x4) {
++        const IR::Value src{SkipIdentity(load->Arg(0))};
++        if (src.IsImmediate()) return false;
++        load = src.InstRecursive();
++    }
++    switch (load->GetOpcode()) {
++    case IR::Opcode::LoadStorage32:
++    case IR::Opcode::LoadStorage64:
++    case IR::Opcode::LoadStorage128:
++        break;
++    default:
++        return false;
++    }
++    // Through the sums that make the record's address only
++    std::vector<IR::Value> work{load->Arg(1)};
++    for (int steps = 0; !work.empty() && steps < 64; ++steps) {
++        const IR::Value cur{SkipIdentity(work.back())};
++        work.pop_back();
++        if (cur.IsImmediate()) continue;
++        const IR::Inst* const i{cur.InstRecursive()};
++        switch (i->GetOpcode()) {
++        case IR::Opcode::IAdd32:
++        case IR::Opcode::ISub32:
++            work.push_back(i->Arg(0));
++            work.push_back(i->Arg(1));
++            break;
++        case IR::Opcode::IMul32:
++            for (size_t a = 0; a < 2; ++a) {
++                const IR::Value k{SkipIdentity(i->Arg(a))};
++                const IR::Value x{IndexThroughLowHalf(i->Arg(1 - a))};
++                if (k.IsImmediate() && k.U32() >= 4 && k.U32() <= 4096 && !x.IsImmediate()) {
++                    index = x;
++                    return true;
++                }
++            }
++            break;
++        case IR::Opcode::ShiftLeftLogical32: {
++            const IR::Value k{SkipIdentity(i->Arg(1))};
++            const IR::Value x{SkipIdentity(i->Arg(0))};
++            if (k.IsImmediate() && k.U32() >= 2 && k.U32() <= 12 && !x.IsImmediate()) {
++                index = x;
++                return true;
++            }
++            break;
++        }
++        default:
++            break;
++        }
++    }
++    return false;
++}
++
+ TextureInst MakeInst(Environment& env, IR::Block* block, IR::Inst& inst, const HostTranslateInfo& host_info) {
+     ConstBufferAddr addr;
+     if (IsBindless(inst)) {
+@@ -943,6 +1044,56 @@ TextureInst MakeInst(Environment& env, IR::Block* block, IR::Inst& inst, const H
+             int budget = 4096;
+             g_handle_failure = IR::Opcode::Void;
+             if (!g_handle_programs || !BuildHandleProgram(inst.Arg(0), code, budget, block)) {
++                // (hookshot) A table read in a loop: one texture for each element, picked in the shader by the
++                // element's index (RX_VK_HANDLE_TABLE=0: the search below, one texture for all of them)
++                static const char* const table_env = std::getenv("RX_VK_HANDLE_TABLE");
++                static const bool table_on = !(table_env && table_env[0] == '0');
++                static const u32 table_count = [] {
++                    const char* const c = std::getenv("RX_VK_HANDLE_TABLE_COUNT");
++                    const long n = c ? std::strtol(c, nullptr, 0) : 64;
++                    return static_cast<u32>(std::clamp<long>(n, 2, 256));
++                }();
++                IR::Value index_value;
++                if (table_on && g_handle_programs && FindHandleTableIndex(inst.Arg(0), index_value)) {
++                    code.clear();
++                    budget = 4096;
++                    g_index_operand = index_value.InstRecursive();
++                    const bool built = BuildHandleProgram(inst.Arg(0), code, budget, block);
++                    g_index_operand = nullptr;
++                    if (built) {
++                        auto& programs{*g_handle_programs};
++                        auto it{std::ranges::find(programs, code)};
++                        if (it == programs.end()) {
++                            programs.push_back(std::move(code));
++                            it = programs.end() - 1;
++                        }
++                        // The element's index as a descriptor offset (the array reads it back: offset >> 3)
++                        IR::IREmitter ir{*block, IR::Block::InstructionList::s_iterator_to(inst)};
++                        const IR::U32 offset{ir.ShiftLeftLogical(IR::U32{index_value}, ir.Imm32(DESCRIPTOR_SIZE_SHIFT))};
++                        return TextureInst{
++                            .cbuf = ConstBufferAddr{
++                                .index = 0,
++                                .offset = 0,
++                                .shift_left = 0,
++                                .secondary_index = 0,
++                                .secondary_offset = 0,
++                                .secondary_shift_left = 0,
++                                .dynamic_offset = offset,
++                                .count = table_count,
++                                .has_secondary = false,
++                                .handle_program = static_cast<u32>(it - programs.begin()),
++                            },
++                            .inst = &inst,
++                            .block = block,
++                        };
++                    }
++                    code.clear();
++                    budget = 4096;
++                }
++                ++g_fallbacks;
++                if (g_fallback_ops.size() < 200) {
++                    g_fallback_ops += fmt::format("{}{}", g_fallback_ops.empty() ? "" : ", ", g_handle_failure);
++                }
+                 // Not computable for a whole draw (a handle that changes in a loop): keep the
+                 // earlier search through loads, which at least gives the shader a texture.
+                 const std::optional<ConstBufferAddr> legacy{IR::BreadthFirstSearch(inst.Arg(0),
+@@ -1167,6 +1318,14 @@ void PatchTexelFetch(IR::Block& block, IR::Inst& inst, TexturePixelFormat pixel_
+ }
+ } // Anonymous namespace
+ 
++u32 TakeHandleFallbacks(std::string& stopped_at) {
++    const u32 n = g_fallbacks;
++    stopped_at = std::move(g_fallback_ops);
++    g_fallbacks = 0;
++    g_fallback_ops.clear();
++    return n;
++}
++
+ void TexturePass(Environment& env, IR::Program& program, const HostTranslateInfo& host_info) {
+     // reset per-pass caches
+     env.cbuf_word_cache.clear();
+diff --git a/gpu/vk/eden/shader_recompiler/shader_info.h b/gpu/vk/eden/shader_recompiler/shader_info.h
+index 5fef0adfd..1c795d459 100644
+--- a/gpu/vk/eden/shader_recompiler/shader_info.h
++++ b/gpu/vk/eden/shader_recompiler/shader_info.h
+@@ -420,13 +420,14 @@ enum class HandleOp : u32 {
+     Select, ///< condition, true value, false value
+     Tee,    ///< slot: keeps the top value in the slot (shared subexpressions)
+     Load,   ///< slot: the value kept there
++    Index,  ///< (hookshot) the array element being evaluated (a handle table read in a loop: one texture an element)
+ };
+ 
+ /// Runs a handle program; read_cbuf(index, offset) and read_storage(binding, offset) return the
+ /// words it reads. Returns nothing for a malformed program.
+ template <typename ReadCbuf, typename ReadStorage>
+ std::optional<u32> EvaluateHandleProgram(std::span<const u32> code, ReadCbuf&& read_cbuf,
+-                                         ReadStorage&& read_storage) {
++                                         ReadStorage&& read_storage, u32 element = 0) {
+     std::array<u32, 64> stack{};
+     std::array<u32, 256> slots{};
+     size_t size = 0;
+@@ -461,6 +462,10 @@ std::optional<u32> EvaluateHandleProgram(std::span<const u32> code, ReadCbuf&& r
+             push(op == HandleOp::Neg ? 0U - a : op == HandleOp::Not ? ~a : (a == 0 ? 1U : 0U));
+             continue;
+         }
++        if (op == HandleOp::Index) {
++            push(element);
++            continue;
++        }
+         if (op == HandleOp::Tee) {
+             const u32 slot = operand();
+             if (slot < slots.size() && size > 0) slots[slot] = stack[size - 1];
+diff --git a/gpu/vk/vk_draw.cpp b/gpu/vk/vk_draw.cpp
+index 92cf01729..e8fcd336a 100644
+--- a/gpu/vk/vk_draw.cpp
++++ b/gpu/vk/vk_draw.cpp
+@@ -2766,7 +2766,7 @@ struct Dummies {
+ template <class D>
+ uint32_t handle_of(const NvnState& s, const Stage& st, const D& d, uint32_t k) {
+     if constexpr (requires { d.handle_program; }) {   // (read from a storage buffer: its handle program's)
+-        if (d.handle_program != ~0U) return stage_handle(s, st, d.handle_program);
++        if (d.handle_program != ~0U) return stage_handle(s, st, d.handle_program, k);
+     }
+     const uint32_t step = 1u << d.size_shift;
+     uint32_t h = stage_cbuf_word(s, st, d.cbuf_index, d.cbuf_offset + k * step);
+diff --git a/gpu/vk/vk_shader.cpp b/gpu/vk/vk_shader.cpp
+index c3950828e..9c48f20ef 100644
+--- a/gpu/vk/vk_shader.cpp
++++ b/gpu/vk/vk_shader.cpp
+@@ -644,6 +644,8 @@ constexpr size_t kSparePoolBytes = 8u << 20;
+ 
+ /// A translated stage: its IR program (kept for the next stage's inputs) and the pools its IR lives in
+ struct Translation {
++    uint32_t fallbacks = 0;     // (texture handles no handle program followed: Shader::Optimization::TakeHandleFallbacks)
++    std::string fallback_ops;
+     std::unique_ptr<Pools> pools;
+     Shader::IR::Program program;
+     Translation() {
+@@ -673,7 +675,9 @@ std::unique_ptr<Translation> translate(Env& env, bool graphics, bool one_exit =
+     Shader::Maxwell::Flow::CFG cfg{env, t->pools->flow_blocks,
+                                    env.StartAddress() + (graphics ? static_cast<u32>(sizeof(Shader::ProgramHeader)) : 0u),
+                                    one_exit};
++    Shader::Optimization::TakeHandleFallbacks(t->fallback_ops);   // (none from an earlier one on this thread)
+     t->program = Shader::Maxwell::TranslateProgram(t->pools->insts, t->pools->blocks, env, cfg, host_info());
++    t->fallbacks = Shader::Optimization::TakeHandleFallbacks(t->fallback_ops);
+     return t;
+ }
+ 
+@@ -713,7 +717,7 @@ uint32_t stage_cbuf_word(const NvnState& s, const Stage& st, uint32_t index, uin
+     return 0;
+ }
+ 
+-uint32_t stage_handle(const NvnState& s, const Stage& st, uint32_t program) {
++uint32_t stage_handle(const NvnState& s, const Stage& st, uint32_t program, uint32_t element) {
+     if (program >= st.info.handle_programs.size()) return 0;
+     return Shader::EvaluateHandleProgram(
+                st.info.handle_programs[program],
+@@ -725,12 +729,17 @@ uint32_t stage_handle(const NvnState& s, const Stage& st, uint32_t program) {
+                                          (uint64_t)stage_cbuf_word(s, st, d.cbuf_index, d.cbuf_offset + 4) << 32;
+                    uint32_t v = 0;
+                    static const bool live = env_on("RX_VK_HANDLES_LIVE");
++                   // (hookshot) a handle table's elements past the buffer's bound size: none (they named textures
++                   // the shader never samples, and uploaded them)
++                   const uint32_t size = stage_cbuf_word(s, st, d.cbuf_index, d.cbuf_offset + 8);
++                   if (size && (uint64_t)offset + 4 > size) return 0U;
+                    if (base) {
+                        if (live) host->gpu_read(base + offset, &v, 4);
+                        else ub_read(base + offset, &v, 4);
+                    }
+                    return v;
+-               })
++               },
++               element)
+         .value_or(0U);
+ }
+ 
+@@ -1049,6 +1058,14 @@ void log_program_stages(const NvnState& s, const char* why) {
+ 
+ namespace {
+ 
++/// (hookshot) A stage whose texture handles no handle program followed: they sample the first constant buffer word on their
++/// path, which is rarely the texture (the water's lights in OoT: squares on the water, #2509). Once for each translation
++void note_fallbacks(const Program& p, const char* stage, const Translation& t) {
++    if (!t.fallbacks) return;
++    logf("vk: program %016llx, %s stage: %u texture handle(s) not followed per draw (stopped at %s): the first constant word "
++         "on the path is sampled", (unsigned long long)p.key, stage, t.fallbacks, t.fallback_ops.c_str());
++}
++
+ /// RX_VK_IR=<program key>[,...] (hex, a prefix is enough): the stages' Eden IR written to ir_<key>_<stage>.txt in the
+ /// working folder when the program is translated (diagnostics)
+ void dump_ir(const Program& p, const char* stage, const Shader::IR::Program& prog, uint64_t code_key = 0) {
+@@ -1211,11 +1228,12 @@ uint64_t translator_stamp() {
+     // threw the whole program cache away. What the libraries are good for is the prepare's second stamp, vk_draw.cpp warmed_stamp)
+     // (and every other switch the translation reads: the storage buffer pass's (RX_VK_NO_CBUF_LOAD_RULE, RX_VK_PTR_SPLIT_FALLBACK,
+     // RX_VK_ALL_GLOBAL_PROGS), the lowering's extended registers (RX_VK_NO_EXTREGS), the draw parameters (RX_VK_NO_DRAW_PARAMS)
+-    // and the miss log's buffer and block counters (RX_VK_MISS_LOG, RX_VK_BLOCK_PROBE): without them a switch did nothing for
++    // and the miss log's buffer and block counters (RX_VK_MISS_LOG, RX_VK_BLOCK_PROBE), the texture pass's handle tables
++    // (RX_VK_HANDLE_TABLE, RX_VK_HANDLE_TABLE_COUNT): without them a switch did nothing for
+     // the programs already cached. tests/test_program_stamp_knobs.py checks the translator's switches against this list)
+     for (char** e = _environ; e && *e; e++)
+         for (const char* pre : {"RX_VK_MMA", "RX_VK_NATIVE", "RX_VK_NAN", "RX_VK_TASK_CAP", "RX_VK_NETWORK", "RX_VK_GP_", "RX_VK_FOLLOW", "RX_VK_NO_FOLLOW", "RX_VK_NO_F16", "RX_VK_SHARED", "RX_VK_MESH", "RX_VK_NO_INVARIANT", "RX_VK_MARKERS",
+-                                "RX_VK_NO_CBUF_LOAD_RULE", "RX_VK_PTR_SPLIT_FALLBACK", "RX_VK_ALL_GLOBAL_PROGS", "RX_VK_NO_EXTREGS", "RX_VK_NO_DRAW_PARAMS", "RX_VK_MISS_LOG", "RX_VK_BLOCK_PROBE", "EDEN_"})
++                                "RX_VK_NO_CBUF_LOAD_RULE", "RX_VK_PTR_SPLIT_FALLBACK", "RX_VK_ALL_GLOBAL_PROGS", "RX_VK_NO_EXTREGS", "RX_VK_NO_DRAW_PARAMS", "RX_VK_MISS_LOG", "RX_VK_BLOCK_PROBE", "RX_VK_HANDLE_TABLE", "EDEN_"})
+             if (!strncmp(*e, pre, strlen(pre))) add(*e, strlen(*e));
+     return h;
+ }
+@@ -1268,6 +1286,7 @@ void translate_into(Program& p, const NvnState& s, const Code* vsc, const Code*
+             auto t = translate(env, false);
+             questions += env.texture_questions;
+             Shader::RuntimeInfo rt{};
++            note_fallbacks(p, "compute", *t);
+             dump_ir(p, "compute", t->program);   // (before the SPIR-V: the programs it fails on are the ones to read)
+             if (getenv("RX_VK_IR"))
+                 logf("vk: compute %016llx: workgroup %ux%ux%u, shared memory %u bytes, local memory %u", (unsigned long long)p.key,
+@@ -1354,6 +1373,7 @@ void translate_into(Program& p, const NvnState& s, const Code* vsc, const Code*
+             Stage v;
+             v.nvn_stage = 0;
+             const std::vector<uint32_t> vspirv = Shader::Backend::SPIRV::EmitSPIRV(profile_graphics(VK_SHADER_STAGE_VERTEX_BIT), vrt, vs->program, bindings);
++            note_fallbacks(p, "vertex", *vs);
+             dump_ir(p, "vertex", vs->program);
+             {   // (the programs that read the draw's parameters from the driver bank, each once)
+                 const auto& ld = vs->program.info.loads;
+@@ -1387,6 +1407,7 @@ void translate_into(Program& p, const NvnState& s, const Code* vsc, const Code*
+                     Shader::Optimization::GuardFragmentOutputs(fs->program, float_targets);
+                 }
+                 const std::vector<uint32_t> fspirv = Shader::Backend::SPIRV::EmitSPIRV(profile_graphics(VK_SHADER_STAGE_FRAGMENT_BIT), frt, fs->program, bindings);
++                note_fallbacks(p, "fragment", *fs);
+                 dump_ir(p, "fragment", fs->program);
+                 Stage f;
+                 f.nvn_stage = 1;
+@@ -1480,6 +1501,7 @@ void translate_mesh_into(Program& p, const NvnState& s, const Code* task, const
+             env.set_mesh(mesh_regs, nullptr);
+             task_t = translate(env, true, true);
+             mesh_nocull(task_t->program, task->key);
++            note_fallbacks(p, "task", *task_t);
+             dump_ir(p, "task", task_t->program, task->key);
+             Shader::RuntimeInfo rt{};
+             rt.previous_stage_stores.mask.set();
+diff --git a/gpu/vk/vk_shader.h b/gpu/vk/vk_shader.h
+index 2ef5ef47b..c772be6e3 100644
+--- a/gpu/vk/vk_shader.h
++++ b/gpu/vk/vk_shader.h
+@@ -31,7 +31,7 @@ struct Stage {
+ 
+ /// A texture handle the stage reads from a storage buffer: its handle program (Shader::Info::handle_programs, Eden's
+ /// recompiler) run over the stage's constant banks and storage buffers as the draw has them
+-uint32_t stage_handle(const NvnState& s, const Stage& st, uint32_t program);
++uint32_t stage_handle(const NvnState& s, const Stage& st, uint32_t program, uint32_t element = 0);
+ 
+ /// A translated program variant: its stages, in descriptor order. The pipeline layout and pipelines made for it live
+ /// in vk_pipeline.cpp (keyed by key).
+diff --git a/nx2/bake_ds/bake_ds.cpp b/nx2/bake_ds/bake_ds.cpp
+index 5c58aad35..421424d72 100644
+--- a/nx2/bake_ds/bake_ds.cpp
++++ b/nx2/bake_ds/bake_ds.cpp
+@@ -705,7 +705,7 @@ uint64_t disk_stamp(uint64_t translator_stamp, uint32_t depth) {   // (live: vk_
+                                 "RX_VK_GP_", "RX_VK_FOLLOW", "RX_VK_NO_FOLLOW", "RX_VK_NO_F16", "RX_VK_SHARED", "RX_VK_MESH",
+                                 "RX_VK_NO_INVARIANT", "RX_VK_MARKERS", "RX_VK_NO_CBUF_LOAD_RULE",
+                                 "RX_VK_PTR_SPLIT_FALLBACK", "RX_VK_ALL_GLOBAL_PROGS", "RX_VK_NO_EXTREGS", "RX_VK_NO_DRAW_PARAMS",
+-                                "RX_VK_MISS_LOG", "RX_VK_BLOCK_PROBE", "EDEN_"})
++                                "RX_VK_MISS_LOG", "RX_VK_BLOCK_PROBE", "RX_VK_HANDLE_TABLE", "EDEN_"})
+             if (!std::strncmp(*e, pre, std::strlen(pre))) add(*e, std::strlen(*e));
+     }
+     return h;
+diff --git a/tests/test_handle_table.py b/tests/test_handle_table.py
+new file mode 100644
+index 000000000..398f71b7d
+--- /dev/null
++++ b/tests/test_handle_table.py
+@@ -0,0 +1,188 @@
++# SPDX-License-Identifier: GPL-3.0-or-later
++"""A texture handle read from a table of records in a loop gets one texture per element.
++
++Ocarina of Time's water and wet floors light each pixel with the lights of its screen tile (clustered lighting). A
++projected light's shadow map handle is a word of the light's record, read at `table + index * 96 + 96`, with the index
++from the tile's light list. No handle program can follow that for a whole draw, and the translation used to fall back
++to the first constant word on the handle's path, the light buffer's address: every light then sampled the dummy and
++its light stopped at the tile's edges, the squares on the water (#2509).
++
++The texture pass now builds such a handle as a table: the element index becomes `HandleOp::Index` in the handle
++program, the texture an array the shader indexes by it, and the draw evaluates the program once per element.
++
++This check compiles the production `HandleOp` enum and `EvaluateHandleProgram` with a synthetic storage buffer and runs
++the program the pass builds for the water's record address, in both forms the game's shaders use (a plain multiply,
++and an XMAD pair's 16-bit halves of one). It also reads the pass and the draw for the parts that make the table:
++the index search, the array's budget counted once, the element passed to the handle, and the bounded storage reads.
++
++python -I -B tests/test_handle_table.py [--cxx c++]
++"""
++import argparse
++import os
++from pathlib import Path
++import subprocess
++import tempfile
++
++RUN_ALL_ARGS = ["--cxx", "{cxx}"]
++
++
++def block(text, start_marker, end_marker):
++    start = text.index(start_marker)
++    end = text.index(end_marker, start)
++    return text[start:end]
++
++
++def function(text, signature):
++    # (the definition: a declaration of the same name, ended by ';' before any '{', is skipped)
++    start = text.index(signature)
++    while text.index(';', start) < text.index('{', start):
++        start = text.index(signature, start + 1)
++    brace = text.index('{', start)
++    depth = 1
++    end = brace + 1
++    while depth:
++        depth += (text[end] == '{') - (text[end] == '}')
++        end += 1
++    return text[start:end]
++
++
++def check_sources(root):
++    passes = (root / 'gpu/vk/eden/shader_recompiler/ir_opt/texture_pass.cpp').read_text(encoding='utf-8')
++    shader = (root / 'gpu/vk/vk_shader.cpp').read_text(encoding='utf-8')
++    draw = (root / 'gpu/vk/vk_draw.cpp').read_text(encoding='utf-8')
++    info = (root / 'gpu/vk/eden/shader_recompiler/shader_info.h').read_text(encoding='utf-8')
++
++    ops = block(info, 'enum class HandleOp', '};')
++    names = [line.strip().split(',')[0].split()[0] for line in ops.splitlines()[1:] if line.strip() and not line.strip().startswith('//')]
++    # (programs are kept in hookshot_programs.bin as raw words: an operation added anywhere but at the end renumbers
++    # the ones after it)
++    assert names[-1] == 'Index', f'HandleOp::Index must be the last operation, not {names[-1]}'
++
++    make = function(passes, 'TextureInst MakeInst(')
++    table = make.index('FindHandleTableIndex(')
++    legacy = make.index('IR::BreadthFirstSearch(')
++    assert table < legacy, 'the table is not tried before the search through loads'
++    assert 'RX_VK_HANDLE_TABLE' in make, 'the switch back to the search is gone'
++    assert 'g_index_operand = ' in make and 'g_index_operand = nullptr' in make, 'the index is not reset after the build'
++    assert 'ShiftLeftLogical(' in make and 'DESCRIPTOR_SIZE_SHIFT' in make, \
++        "the shader's array index is not the element index as a descriptor offset"
++
++    node = function(passes, 'bool BuildHandleNode(')
++    assert 'inst == g_index_operand' in node and 'Op::Index' in node, 'the index is not built as HandleOp::Index'
++    assert 'CompositeExtractU32x4' in node, 'a word of a 128-bit load is not a handle'
++
++    count = function(passes, 'u32 DynamicSampledTextureArrayCount(')
++    assert 'handle_program' in count, \
++        "a table's samples are counted once each: the water's 69 cut its array to 14 elements"
++
++    of = function(draw, 'template <class D>\nuint32_t handle_of(')
++    assert 'stage_handle(s, st, d.handle_program, k)' in of, 'element k does not read record k'
++
++    stage = function(shader, 'uint32_t stage_handle(')
++    assert 'element' in stage and 'd.cbuf_offset + 8' in stage, \
++        "a table's elements past the storage buffer's bound size are read"
++    for kind in ('compute', 'vertex', 'fragment', 'task'):
++        assert f'note_fallbacks(p, "{kind}"' in shader, f'the {kind} stage does not log the handles not followed'
++    return info
++
++
++def run_programs(info, cxx):
++    enum = block(info, 'enum class HandleOp', '};') + '};'
++    evaluate = function(info, 'template <typename ReadCbuf, typename ReadStorage>\nstd::optional<u32> EvaluateHandleProgram(')
++    source = r'''
++#include <array>
++#include <cstdint>
++#include <cstring>
++#include <iostream>
++#include <optional>
++#include <span>
++#include <vector>
++using u32 = std::uint32_t;
++using s32 = std::int32_t;
++namespace Shader {
++''' + enum + '\n' + evaluate + r'''
++}
++using Shader::HandleOp;
++// A light buffer at storage binding 1: 96-byte records after a 96-byte head, word 0 of record i its shadow map
++// handle (the water's layout at Zora's River: handles 0x1a902a3c and 0x1a904290 for lights 12 and 13)
++static std::vector<u32> lights(4096 / 4);
++static u32 cbuf(u32 index, u32 offset) { return index == 0 && offset == 1312 ? 0x3b75a040u : 0; }
++static u32 storage(u32 binding, u32 offset) {
++    if (binding != 1 || offset + 4 > lights.size() * 4) return 0;
++    return lights[offset / 4];
++}
++static std::vector<u32> op(std::vector<u32> code, HandleOp o) { code.push_back(u32(o)); return code; }
++int main() {
++    for (u32 i = 0; i < 32; i++) lights[(96 + i * 96) / 4] = 0x1a900000u + 0x100u * i;
++    // Plain multiply: c0[1312] + index * 96 + 96 - (c0[1312] & ~15)
++    std::vector<u32> plain{u32(HandleOp::Cbuf), 0, 1312, u32(HandleOp::Index), u32(HandleOp::Immediate), 96};
++    plain = op(plain, HandleOp::Mul);
++    plain = op(plain, HandleOp::Add);
++    plain.insert(plain.end(), {u32(HandleOp::Immediate), 96});
++    plain = op(plain, HandleOp::Add);
++    plain.insert(plain.end(), {u32(HandleOp::Cbuf), 0, 1312, u32(HandleOp::Immediate), 0xfffffff0u});
++    plain = op(plain, HandleOp::And);
++    plain = op(plain, HandleOp::Sub);
++    plain.insert(plain.end(), {u32(HandleOp::Storage), 1});
++    // XMAD pair: (index & 0xffff) * 96 + (((index >> 16) & 0xffff) * 96 << 16) + 96
++    std::vector<u32> xmad{u32(HandleOp::Index), u32(HandleOp::Immediate), 0xffff};
++    xmad = op(xmad, HandleOp::And);
++    xmad.insert(xmad.end(), {u32(HandleOp::Immediate), 96});
++    xmad = op(xmad, HandleOp::Mul);
++    xmad.insert(xmad.end(), {u32(HandleOp::Index), u32(HandleOp::Immediate), 16});
++    xmad = op(xmad, HandleOp::Shr);
++    xmad.insert(xmad.end(), {u32(HandleOp::Immediate), 0xffff});
++    xmad = op(xmad, HandleOp::And);
++    xmad.insert(xmad.end(), {u32(HandleOp::Immediate), 96});
++    xmad = op(xmad, HandleOp::Mul);
++    xmad.insert(xmad.end(), {u32(HandleOp::Immediate), 16});
++    xmad = op(xmad, HandleOp::Shl);
++    xmad = op(xmad, HandleOp::Add);
++    xmad.insert(xmad.end(), {u32(HandleOp::Immediate), 96});
++    xmad = op(xmad, HandleOp::Add);
++    xmad.insert(xmad.end(), {u32(HandleOp::Storage), 1});
++    int failures = 0;
++    for (const auto* code : {&plain, &xmad}) {
++        for (u32 k = 0; k < 32; k++) {
++            const auto h = Shader::EvaluateHandleProgram(std::span<const u32>(*code), cbuf, storage, k);
++            const u32 want = 0x1a900000u + 0x100u * k;
++            if (!h || *h != want) {
++                std::cerr << (code == &plain ? "plain" : "xmad") << " element " << k << ": " << std::hex
++                          << (h ? *h : 0xdeadu) << " != " << want << "\n";
++                failures++;
++            }
++        }
++    }
++    // Without an element, a program evaluates as before: element 0
++    const auto zero = Shader::EvaluateHandleProgram(std::span<const u32>(plain), cbuf, storage);
++    if (!zero || *zero != 0x1a900000u) { std::cerr << "default element is not 0\n"; failures++; }
++    if (failures) return 1;
++    std::cout << "ok\n";
++    return 0;
++}
++'''
++    with tempfile.TemporaryDirectory() as tmp:
++        src = os.path.join(tmp, 'handle_table.cpp')
++        exe = os.path.join(tmp, 'handle_table.exe' if os.name == 'nt' else 'handle_table')
++        with open(src, 'w', encoding='utf-8') as f:
++            f.write(source)
++        built = subprocess.run([cxx, '-std=c++20', '-O1', src, '-o', exe], capture_output=True, text=True)
++        if built.returncode:
++            raise SystemExit('compile failed:\n' + built.stderr[-4000:])
++        ran = subprocess.run([exe], capture_output=True, text=True)
++        if ran.returncode:
++            raise SystemExit('handle programs wrong:\n' + ran.stderr[-4000:])
++
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--source-root', type=Path, default=Path(__file__).resolve().parents[1])
++    p.add_argument('--cxx', default='c++')
++    a = p.parse_args()
++    info = check_sources(a.source_root)
++    run_programs(info, a.cxx)
++    print('PASS: a handle read from a table of records in a loop gets one texture per element')
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/tests/test_program_answer_domains.py b/tests/test_program_answer_domains.py
+index 454fc1bc2..c762105a6 100644
+--- a/tests/test_program_answer_domains.py
++++ b/tests/test_program_answer_domains.py
+@@ -43,7 +43,7 @@ def block(text, marker):
+ static uint8_t answers[4]{0,2,2,2};
+ uint32_t driver_bank_word(const NvnState&, int, int, uint32_t offset) { return handles[offset/8]; }
+ uint32_t stage_cbuf_word(const NvnState&, const Stage&, uint32_t, uint32_t offset) { return handles[offset/8]; }
+-uint32_t stage_handle(const NvnState&, const Stage&, uint32_t) { std::abort(); }
++uint32_t stage_handle(const NvnState&, const Stage&, uint32_t, uint32_t) { std::abort(); }
+ uint8_t texture_answer(uint32_t h) { return h ? answers[h] : 0xff; }
+ uint32_t texture_slot_version(int id) { return 10+id; }
+ #include MATCHER_FUNCTIONS
+diff --git a/tests/test_texture_handle_banks.py b/tests/test_texture_handle_banks.py
+index 74d37845e..9bef99e4d 100644
+--- a/tests/test_texture_handle_banks.py
++++ b/tests/test_texture_handle_banks.py
+@@ -62,7 +62,7 @@ def main():
+ void ub_read(uint64_t addr,void* out,size_t n) { ++recorded_reads; std::memcpy(out,recorded+addr-4096,n); }
+ struct Host { void gpu_read(uint64_t addr,void* out,size_t n) { ++live_reads; std::memcpy(out,live_bytes+addr-4096,n); } } host_object;
+ Host* host=&host_object;
+-uint32_t stage_handle(const NvnState&,const Stage&,uint32_t program) { ++vm_reads; return 0xABC000U+program; }
++uint32_t stage_handle(const NvnState&,const Stage&,uint32_t program,uint32_t element=0) { ++vm_reads; return 0xABC000U+program+0x1000U*element; }
+ '''
+     checks = r'''
+ int main() {
+@@ -102,7 +102,7 @@ def main():
+  st.nvn_stage=-1; all(3,0,0,"invalid user stage"); st.nvn_stage=2;
+  t={}; i={}; t.handle_program=i.handle_program=3;
+  const int before=recorded_reads+live_reads;
+- eq(handle_of(s,st,t,9),0xABC003,"VM array bypass");
++ eq(handle_of(s,st,t,9),0xABC003+0x9000,"VM array element 9 (a handle table: its record)");
+  eq(descriptor_handle(s,st,t),0xABC003,"VM texture bypass");
+  eq(descriptor_handle(s,st,i),0xABC003,"VM image bypass");
+  eq(vm_reads,3,"VM call count"); eq(recorded_reads+live_reads,before,"VM no ordinary reads");
+diff --git a/tests/test_translation_pools.py b/tests/test_translation_pools.py
+index 73a4a085b..7f0762d19 100644
+--- a/tests/test_translation_pools.py
++++ b/tests/test_translation_pools.py
+@@ -27,6 +27,7 @@ def cut(text, start, end):
+ #include <cstdio>
+ #include <cstdlib>
+ #include <memory>
++#include <string>
+ #include <new>
+ #include <thread>
+ #include <vector>

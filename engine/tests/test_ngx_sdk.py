@@ -104,7 +104,7 @@ class TableTests(unittest.TestCase):
 
 class FetchTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="hookshot-ngx-sdk-")
+        self.temp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-ngx-sdk-")
         self.addCleanup(self.temp.cleanup)
         self.sdk = os.path.join(self.temp.name, "sdk")
         self.good = {"lib/Windows_x86_64/x64/nvsdk_ngx_s.lib": b"lib", "LICENSE.txt": b"license",

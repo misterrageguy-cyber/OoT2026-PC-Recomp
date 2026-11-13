@@ -26,7 +26,7 @@ def load_builder():
     tk.filedialog = sys.modules["tkinter.filedialog"]
     tk.messagebox = sys.modules["tkinter.messagebox"]
     tk.ttk = sys.modules["tkinter.ttk"]
-    spec = importlib.util.spec_from_file_location("hookshot_builder_free_space", ROOT / "builder" / "linux" / "hookshot_builder.py")
+    spec = importlib.util.spec_from_file_location("ocarina_reborn_builder_free_space", ROOT / "builder" / "linux" / "ocarina_reborn_builder.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -50,13 +50,13 @@ def measured(path, home):
 
 class FreeSpaceTests(unittest.TestCase):
     def test_a_tilde_path_is_measured_under_the_home_folder(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-free-") as home:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-free-") as home:
             gb, asked = measured("~/Games/Hookshot", home)
             self.assertEqual(gb, 1.0)
             self.assertEqual(asked, [home])    # (the nearest folder that exists, not "/")
 
     def test_a_path_that_exists_is_measured_as_it_is(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-free-") as home:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-free-") as home:
             gb, asked = measured(home, home)
             self.assertEqual(asked, [home])
 

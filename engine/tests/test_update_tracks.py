@@ -70,7 +70,7 @@ class Tracks(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.tmp = tempfile.TemporaryDirectory(prefix="hookshot-tracks-")
+        cls.tmp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-tracks-")
         folder = Path(cls.tmp.name)
         code = FIXTURE.replace("/* PORTABLE */", "#include <ctype.h>\n#include <stdlib.h>\n#include <string.h>\n" +
                                portable((ROOT / "host/hos_update.c").read_text(encoding="utf-8")))
@@ -122,8 +122,8 @@ class Tracks(unittest.TestCase):
                 raise OSError("rate limited")
             if url == linux_update.LATEST_API:
                 return b'{"tag_name": "v2.0.14"}'
-            if url.endswith("/releases/download/nightly/hookshot-linux.txt"):
-                return ("tag v2.1.0-rc.1-3-g1a2b3c4\npart %s 10 usr/share/hookshot https://example.invalid/a.zip\nfile x\n"
+            if url.endswith("/releases/download/nightly/ocarina_reborn-linux.txt"):
+                return ("tag v2.1.0-rc.1-3-g1a2b3c4\npart %s 10 usr/share/ocarina_reborn https://example.invalid/a.zip\nfile x\n"
                         % ("a" * 64)).encode()
             raise OSError(url)
         self.assertEqual(linux_update.latest_tag(get), "v2.0.14")
@@ -131,9 +131,9 @@ class Tracks(unittest.TestCase):
         self.assertEqual(linux_update.latest_tag(get, "rc"), "v2.0.14")   # (no API answer: the latest release)
         self.assertEqual(linux_update.latest_tag(get, "nightly"), "v2.1.0-rc.1-3-g1a2b3c4")
         self.assertEqual(linux_update.list_url("v2.1.0-rc.1-3-g1a2b3c4"),
-                         "https://github.com/NotRexed/Hookshot/releases/download/nightly/hookshot-linux.txt")
+                         "https://github.com/NotRexed/Hookshot/releases/download/nightly/ocarina_reborn-linux.txt")
         self.assertEqual(linux_update.list_url("v2.1.0-rc.2"),
-                         "https://github.com/NotRexed/Hookshot/releases/download/v2.1.0-rc.2/hookshot-linux.txt")
+                         "https://github.com/NotRexed/Hookshot/releases/download/v2.1.0-rc.2/ocarina_reborn-linux.txt")
         self.assertEqual(linux_update.list_url(None), linux_update.LATEST_LIST)
 
     def test_what_each_track_updates_to(self):

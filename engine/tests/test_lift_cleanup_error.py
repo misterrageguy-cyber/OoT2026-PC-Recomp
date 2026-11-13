@@ -38,7 +38,7 @@ def production():
 
 class LiftCleanupErrorTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="hookshot-lift-cleanup-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-lift-cleanup-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
         self.assertEqual(self.root.parent, Path(tempfile.gettempdir()).resolve())

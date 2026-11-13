@@ -18,7 +18,7 @@ spec.loader.exec_module(make_game)
 
 class BuildLogTests(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-log-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-log-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.log = self.root / "build log \u6f22.txt"

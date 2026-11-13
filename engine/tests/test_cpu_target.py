@@ -128,18 +128,18 @@ class AppImageCheck(unittest.TestCase):
         return None, out.getvalue()
 
     def test_appimage_without_avx2_stops(self):
-        code, out = self.run_check({"HOOKSHOT_VK_PREBUILT": "/x/hookshot_vk.so"}, "x86-64-v2")
+        code, out = self.run_check({"HOOKSHOT_VK_PREBUILT": "/x/ocarina_reborn_vk.so"}, "x86-64-v2")
         self.assertEqual(code, 1)
         self.assertIn("AVX2", out)
 
     def test_appimage_with_avx2_goes_on(self):
-        self.assertIsNone(self.run_check({"HOOKSHOT_VK_PREBUILT": "/x/hookshot_vk.so"}, "x86-64-v3")[0])
+        self.assertIsNone(self.run_check({"HOOKSHOT_VK_PREBUILT": "/x/ocarina_reborn_vk.so"}, "x86-64-v3")[0])
 
     def test_source_build_without_avx2_goes_on(self):
         self.assertIsNone(self.run_check({}, "x86-64-v2")[0])
 
     def test_rx_march_is_the_players_choice(self):
-        env = {"HOOKSHOT_VK_PREBUILT": "/x/hookshot_vk.so", "RX_MARCH": "x86-64-v2"}
+        env = {"HOOKSHOT_VK_PREBUILT": "/x/ocarina_reborn_vk.so", "RX_MARCH": "x86-64-v2"}
         self.assertIsNone(self.run_check(env, "x86-64-v2")[0])
 
     def test_checked_before_the_game_is_read(self):

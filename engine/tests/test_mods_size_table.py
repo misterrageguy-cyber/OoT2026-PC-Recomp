@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
         top = tmp / name
         game = top / "game"
         (game / "prompts/xbox").mkdir(parents=True)
-        (game / "hookshot_options.ini").write_text("button_prompts=2\n")   # (Xbox: no controller asked for)
+        (game / "ocarina_reborn_options.ini").write_text("button_prompts=2\n")   # (Xbox: no controller asked for)
         (game / "romfs" / TABLE).parent.mkdir(parents=True)
         (game / "romfs" / TABLE).write_bytes(frame(restbl(*GAME)))
         (game / "prompts/External.bfotf").write_bytes(struct.pack("<I", 0x18029A7F) + bytes(28))   # (every face's: one font)
@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
             for rel, data in files.items():
                 (top / "mods" / folder / "romfs" / rel).parent.mkdir(parents=True, exist_ok=True)
                 (top / "mods" / folder / "romfs" / rel).write_bytes(data)
-        env = dict(os.environ, TEST_GAME_EXE=str(game / "hookshot"), HOS_MODS=str(top / "mods"), TEST_ROMFS=str(game / "romfs"))
+        env = dict(os.environ, TEST_GAME_EXE=str(game / "ocarina_reborn"), HOS_MODS=str(top / "mods"), TEST_ROMFS=str(game / "romfs"))
         out = subprocess.run([str(exe), *opens], env=env, check=True, capture_output=True, text=True, timeout=60).stdout
         served = {}
         for line in out.splitlines():

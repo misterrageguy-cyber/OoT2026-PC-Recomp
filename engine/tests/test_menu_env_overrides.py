@@ -1,4 +1,4 @@
-"""An environment switch over a menu row lasts for its run: hookshot_options.ini keeps the player's value.
+"""An environment switch over a menu row lasts for its run: ocarina_reborn_options.ini keeps the player's value.
 
 RX_VK_FRAMEGEN_MULT, RX_VK_PACE, RX_VK_UPSCALE, HOS_REALTIME_STEP, HOS_DYNRES and HOS_OUTPUT_RES are applied to the
 rows in menu_init. They used to be copied into the rows as if chosen, so the next save (any row changed in the menu)
@@ -45,7 +45,7 @@ FIXTURE = r"""
 #include <iterator>
 #include <mutex>   // (save() locks since the control bridge, #926)
 #include <string>
-#include "hookshot_env.h"   // (gpu/vk/compat: env_value_off, the switches' rule)
+#include "ocarina_reborn_env.h"   // (gpu/vk/compat: env_value_off, the switches' rule)
 #include "hos_wide_size.h"   // (host/: the output sizes the menu accepts, hos_output_size_valid)
 #include "display_modes.h"   // (gpu/vk/: the sizes the Output resolution offers)
 using namespace mkwvk;
@@ -212,7 +212,7 @@ def main():
                        "-I", str(args.source / "gpu" / "vk" / "compat"), "-I", str(args.source / "gpu" / "vk"),
                        str(src), "-o", str(exe)]
         subprocess.run(command, cwd=tmp, check=True)
-        subprocess.run([str(exe), str(Path(tmp) / "hookshot_options.ini")], check=True)
+        subprocess.run([str(exe), str(Path(tmp) / "ocarina_reborn_options.ini")], check=True)
 
 
 if __name__ == "__main__":

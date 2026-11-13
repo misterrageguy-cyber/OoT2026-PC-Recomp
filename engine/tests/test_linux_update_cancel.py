@@ -30,7 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "builder" / "linux"))
 import linux_update  # noqa: E402
 
-SOURCE = ROOT / "builder" / "linux" / "hookshot_builder.py"
+SOURCE = ROOT / "builder" / "linux" / "ocarina_reborn_builder.py"
 BUILDER = next(node for node in ast.parse(SOURCE.read_text(encoding="utf-8")).body
                if isinstance(node, ast.ClassDef) and node.name == "Builder")
 
@@ -125,17 +125,17 @@ class DownloadTests(unittest.TestCase):
 
 class InstallTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(prefix="hookshot-update-cancel-")
+        self.tmp = tempfile.TemporaryDirectory(prefix="ocarina_reborn-update-cancel-")
         self.addCleanup(self.tmp.cleanup)
         self.home = Path(self.tmp.name) / "home"
-        self.versions = self.home / "hookshot" / "builder" / "versions"
+        self.versions = self.home / "ocarina_reborn" / "builder" / "versions"
         (self.versions / "v1").mkdir(parents=True)
         (self.versions / "v1" / "kept").write_bytes(b"the version installed before")
         (self.versions.parent / "current").write_text("v1\n", encoding="utf-8")
         patch = mock.patch.dict(os.environ, {"HOOKSHOT_BUILDER_HOME": str(self.home)})
         patch.start()
         self.addCleanup(patch.stop)
-        tools, self.tools = part(".", {"usr/share/hookshot/builder/linux/AppRun": b"#!/bin/sh\n", "inside": b"inside"})
+        tools, self.tools = part(".", {"usr/share/ocarina_reborn/builder/linux/AppRun": b"#!/bin/sh\n", "inside": b"inside"})
         library, self.library = part("usr/lib", {"target": b"library"})
         self.manifest = linux_update.Manifest("v2", [tools, library])
         self.payloads = {tools.url: self.tools, library.url: self.library}

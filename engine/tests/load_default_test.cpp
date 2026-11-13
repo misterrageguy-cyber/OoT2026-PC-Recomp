@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     CHECK(!choose(nullptr, true, true).create);
     CHECK(!choose(nullptr, false, true).create);
     CHECK(choose("", true, false).create && choose("1", true, false).create && !choose("yes", false, false).create);
-    CHECK(std::strstr(choose(nullptr, true, true).why, "hookshot_load_start.txt"));
+    CHECK(std::strstr(choose(nullptr, true, true).why, "ocarina_reborn_load_start.txt"));
     // the safety net: the measured good sessions pass, the measured bad ones do not; at the limits it has not fired
     using load_default::too_slow;
     CHECK(!too_slow(6.7, 24.4) && !too_slow(2.0, 10.8) && !too_slow(100.0, 500.0));
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     // however long the session
     CHECK(!caches_lacked(0));
     // the marker: not there, written, there; its text says how to take it away
-    const std::string path = std::string(argv[1]) + "/hookshot_load_start.txt";
+    const std::string path = std::string(argv[1]) + "/ocarina_reborn_load_start.txt";
     CHECK(!load_default::marker_there(path));
     CHECK(load_default::marker_write(path, 884.4, 2556.6) && load_default::marker_there(path));
     char text[400]{};

@@ -1,7 +1,7 @@
 """The shaders are prepared again when the seed changes, not only when the translator does.
 
-prepare_run (gpu/vk/vk_draw.cpp) prepared once per translator: hookshot_prepared.bin held program_cache_stamp() and nothing
-else. The seed (hookshot_shaders.bin, nx2/shader_census.py) grows apart from the translator (4221050d added 19 compute
+prepare_run (gpu/vk/vk_draw.cpp) prepared once per translator: ocarina_reborn_prepared.bin held program_cache_stamp() and nothing
+else. The seed (ocarina_reborn_shaders.bin, nx2/shader_census.py) grows apart from the translator (4221050d added 19 compute
 programs), and a folder prepared before such an update never prepared the new programs: each was translated in play when
 first met. The record now also holds the seed's hash, size and write time; prepare_check hashes the seed only when its size
 or time is not the recorded one. This builds the record's helpers as they are in the source and checks, on files in a
@@ -92,7 +92,7 @@ void old_record(uint64_t stamp) {   // (from before the seed was in it: the tran
     fclose(f);
 }
 int main(int argc, char** argv) {
-    dir = argv[1], rec = dir + "/hookshot_prepared.bin", seed = dir + "/hookshot_shaders.bin";
+    dir = argv[1], rec = dir + "/ocarina_reborn_prepared.bin", seed = dir + "/ocarina_reborn_shaders.bin";
     std::string bytes(3 * (1 << 20) + 77, '\0');   // (more than one read, and bytes over the last 32)
     for (size_t i = 0; i < bytes.size(); i++) bytes[i] = (char)(i * 2654435761u >> 13);
     put(seed, bytes);

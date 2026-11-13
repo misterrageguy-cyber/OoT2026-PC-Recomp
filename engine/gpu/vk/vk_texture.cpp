@@ -4322,12 +4322,12 @@ void texture_frame(uint64_t completed) {
     uint64_t rule_budget = budget;
 #ifdef _WIN32
     {   // (Ocarina Reborn) RAM guard: engine_v21.py RAM_GUARD
-        static const uint64_t reserve = (uint64_t)(getenv("OCR_RAM_RESERVE_MB") ? std::max(0, atoi(getenv("OCR_RAM_RESERVE_MB"))) : 1024) << 20;
+        static const uint64_t reserve = (uint64_t)(getenv("OCR_RAM_RESERVE_MB") ? std::max(512, atoi(getenv("OCR_RAM_RESERVE_MB"))) : 1024) << 20;
         static uint64_t held = 0;   // (0: no hold)
-        static uint64_t said_at = 0;
+        static uint64_t said_at = 0, pressure_at = 0;
         MEMORYSTATUSEX ms{};
         ms.dwLength = sizeof ms;
-        if (reserve && GlobalMemoryStatusEx(&ms)) {
+        if (GlobalMemoryStatusEx(&ms)) {
             // (Auto texture memory on a PC with little RAM: at most 40% of the RAM. AMD counts video memory toward the
             // process' commit, so a 16 GB PC with a 16 GB card had an 11 GB budget, 8.9 GB of textures, 14 of 15 GB VRAM,
             // and lost the device (RX 6950 XT, 16 GB RAM, 2026-11-12). 32 GB of RAM keeps 12.8 GB: unchanged there)
@@ -4341,6 +4341,10 @@ void texture_frame(uint64_t completed) {
                     budget = ram_cap;
                 }
             }
+            if (frame_no % 600 == 0)
+                logf("[OcarinaReborn/MEM] system: commit free %llu MB, RAM free %llu MB, reserve %llu MB",
+                     (unsigned long long)(ms.ullAvailPageFile >> 20), (unsigned long long)(ms.ullAvailPhys >> 20),
+                     (unsigned long long)(reserve >> 20));
             const uint64_t floor = std::min<uint64_t>(1536ull << 20, budget), step = 256ull << 20;
             // (and physical RAM: with commit to spare, Windows still pages the game out when RAM runs short, and the whole
             // game stops 1-3 s at a time: RTX 4070 SUPER, 31 GB RAM, private bytes 17 -> 29 GB over a session, dozens of
@@ -4360,6 +4364,7 @@ void texture_frame(uint64_t completed) {
             if (short_commit || short_phys || short_vram) {   // (short: the hold one step lower, at most the shortfall)
                 const uint64_t short_by = std::max(std::max(short_commit, short_phys), short_vram), from = held ? held : std::min(budget, total_bytes);
                 const uint64_t lower = std::max(from > short_by ? from - short_by : 0, from > step ? from - step : 0);
+                pressure_at = frame_no;
                 const uint64_t was = held;
                 held = std::max(lower, floor);
                 if (held != was && (frame_no - said_at >= 600 || !said_at))
@@ -4367,7 +4372,7 @@ void texture_frame(uint64_t completed) {
                                              "VRAM %llu of %llu MB: textures held at %llu MB", (unsigned long long)(ms.ullAvailPageFile >> 20),
                                              (unsigned long long)(ms.ullAvailPhys >> 20), (unsigned long long)(vused >> 20),
                                              (unsigned long long)(vallowed >> 20), (unsigned long long)(held >> 20));
-            } else if (held && roomy && frame_no - said_at >= 300) {
+            } else if (held && roomy && frame_no - pressure_at >= 300 && frame_no - said_at >= 300) {
                 // (room again: let go slowly, 128 MB every 5 s at the most, so it does not swing back at once)
                 said_at = frame_no;
                 held += 128ull << 20;

@@ -20,7 +20,7 @@ class CompilerFailureTests(unittest.TestCase):
         functions = [node for node in source.body if isinstance(node, ast.FunctionDef)
                      and node.name in ('compile_one', 'cache_put')]
         self.assertEqual(len(functions), 2)
-        with tempfile.TemporaryDirectory(prefix='hookshot-compiler-failure-') as temporary:
+        with tempfile.TemporaryDirectory(prefix='ocarina_reborn-compiler-failure-') as temporary:
             folder = Path(temporary)
             compiler = folder / 'compiler.py'
             compiler.write_text('''import os, signal, sys

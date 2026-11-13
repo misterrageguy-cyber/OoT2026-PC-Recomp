@@ -25,7 +25,7 @@ DAV1D = {"dav1d/1.5.4/include/dav1d/dav1d.h": b"authored dav1d header",
 
 class CpmAdd(unittest.TestCase):
     def setUp(self):
-        temporary = tempfile.TemporaryDirectory(prefix="hookshot-cpm-add-")
+        temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-cpm-add-")
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
         self.part = self.root / "authored-cpm.zip"

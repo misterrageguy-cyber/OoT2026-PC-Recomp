@@ -35,7 +35,7 @@ fixture = r'''
 #include <cstdlib>
 #include <initializer_list>
 #include <mutex>
-#include "hookshot_env.h"
+#include "ocarina_reborn_env.h"
 using VkSwapchainKHR=uint64_t;using VkLatencyMarkerNV=int;
 constexpr uint64_t VK_NULL_HANDLE=0;
 constexpr int VK_SUCCESS=0,VK_STRUCTURE_TYPE_LATENCY_SLEEP_INFO_NV=1,
@@ -129,7 +129,7 @@ int main(){
     reflex_present_frame=kReflexThisFrame;   // (then frame generation off: the frame being made, 7, goes up from 5)
     if(reflex_present_id(&next)!=&state.pid||*state.pid.pPresentIds!=7||marked_id!=7)return 20;
     // a queue submit's tag (reflex_submit_id): the frame its GPU work belongs to; none where there is no such frame.
-    // RX_VK_REFLEX_SUBMIT_IDS follows hookshot_env.h's rule: this runs once with =on (tags on) and once with =0 (off)
+    // RX_VK_REFLEX_SUBMIT_IDS follows ocarina_reborn_env.h's rule: this runs once with =on (tags on) and once with =0 (off)
     if(getenv("EXPECT_SUBMIT_IDS_OFF")){reset();state.id=3;if(reflex_submit_id(&next)!=&next)return 29;std::puts("PASS: RX_VK_REFLEX_SUBMIT_IDS=0 leaves the submits untagged");return 0;}
     using Tag=VkLatencySubmissionPresentIdNV;
     reset();state.id=3;

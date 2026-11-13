@@ -1,6 +1,6 @@
 // RX_VK_RECORDER=thread at process exit, on Windows (tests/test_recorder_sync.py builds and runs it; skipped elsewhere).
 //
-// Built twice: with RX_EXIT_DLL, a DLL holding the real vk_work.h / vk_recorder.h (as hookshot_vk.dll does) and a fake vkCmdDraw;
+// Built twice: with RX_EXIT_DLL, a DLL holding the real vk_work.h / vk_recorder.h (as ocarina_reborn_vk.dll does) and a fake vkCmdDraw;
 // without, an exe that loads it, has the recorder parked in idle() holding sleep_mu (the test hook RX_REC_TEST_HOOKS), and calls
 // ExitProcess, as the window's close (host/display.c) and svcExitProcess do. Windows ends the recorder thread first, then runs the
 // DLL's global destructors. A destructor that takes sleep_mu, now owned by a dead thread, either hangs (MinGW-w64 GCC and

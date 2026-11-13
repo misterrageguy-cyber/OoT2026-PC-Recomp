@@ -5,7 +5,7 @@ a sleep under a millisecond by yielding until its time (the Windows timer wakes 
 processor busy for each sleeping thread. With SHORT_SLEEP_TIMER_THREADS logical processors or fewer those loops take the
 time the frame's threads need, so there the game's own sleeps (SleepThread) wait on the timer; the host's own short
 sleeps (the frame limiter, the audio renderer) still yield and come back at their time. HOS_SHORT_SLEEP_TIMER, when it is
-set, is read by env_on's rule (gpu/vk/compat/hookshot_env.h): on is the timer for every short sleep, off (0, false, off,
+set, is read by env_on's rule (gpu/vk/compat/ocarina_reborn_env.h): on is the timer for every short sleep, off (0, false, off,
 no, empty) is yielding for every one; not set, the processors decide.
 
 Where the game's short sleeps yield (more processors), at most HOS_SHORT_SLEEP_POLLERS of the game's threads (not set: a
@@ -54,7 +54,7 @@ FIXTURE = r'''#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hookshot_env.h"   /* (env_value_off: the switches' one rule) */
+#include "ocarina_reborn_env.h"   /* (env_value_off: the switches' one rule) */
 #ifndef _WIN32
 #define _WIN32 1   /* (the choice by processors is the Windows build's: the cut code is that build on every runner) */
 #endif

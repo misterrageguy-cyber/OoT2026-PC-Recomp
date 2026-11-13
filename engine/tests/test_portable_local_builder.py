@@ -26,7 +26,7 @@ int wmain(int argc, wchar_t **argv) {
     if (found != (argv[3][0] == L'1')) return 21;
     if (found) {
         wchar_t expected[MAX_PATH];
-        _snwprintf(expected, MAX_PATH, L"%ls\\hookshot.exe", argv[2]);
+        _snwprintf(expected, MAX_PATH, L"%ls\\ocarina_reborn.exe", argv[2]);
         if (wcscmp(expected, out)) return 22;
         if (local_builder(argv[1], argv[2], out, 3)) return 23;
     }
@@ -39,8 +39,8 @@ int wmain(int argc, wchar_t **argv) {
         subprocess.run([args.cc, "-std=c11", "-Wall", "-Wextra", "-Werror", "-municode", str(c), "-o", str(exe)], check=True)
         game = root / "Game ü, moved"
         game.mkdir()
-        metadata = game / "hookshot_version.txt"
-        launcher = game / "hookshot.exe"
+        metadata = game / "ocarina_reborn_version.txt"
+        launcher = game / "ocarina_reborn.exe"
         metadata.write_text("builder_local=1\nbuilder=C:\\unrelated.exe\nbuilder_args=ignored\n")
         def run(expected):
             subprocess.run([str(exe), str(metadata), str(game), str(expected)], cwd=root, check=True)

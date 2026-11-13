@@ -55,7 +55,7 @@ class Case(unittest.TestCase):
         self.data = self.home / ".local" / "share"
         self.appdata = self.home / "AppData" / "Roaming"
         self.localappdata = self.home / "AppData" / "Local"
-        self.hs = self.data / "hookshot" / "save" / UID
+        self.hs = self.data / "ocarina_reborn" / "save" / UID
         self.li = eden_save(self.data / "eden")
         make_save(self.hs, b"HS")
         make_save(self.li, b"LI", slots=("slot_00",))
@@ -89,7 +89,7 @@ class Discovery(Case):
         for program in oot.EMULATORS:
             folder, found = oot.locate(program, None, "--from")
             self.assertEqual(list(found.values()), [str(expect[program.name])], program.name)
-        self.assertEqual(oot.locate(oot.HOOKSHOT, None, "--hookshot")[1], {UID: str(self.hs)})
+        self.assertEqual(oot.locate(oot.HOOKSHOT, None, "--ocarina_reborn")[1], {UID: str(self.hs)})
 
     def test_every_entry_on_windows(self):
         win_li = eden_save(self.appdata / "eden")
@@ -103,11 +103,11 @@ class Discovery(Case):
             for program in oot.EMULATORS:
                 self.assertEqual(list(oot.locate(program, None, "--from")[1].values()), [str(expect[program.name])])
             with self.assertRaises(oot.Fail) as e:
-                oot.locate(oot.HOOKSHOT, None, "--hookshot")
-            self.assertIn("--hookshot", str(e.exception))
+                oot.locate(oot.HOOKSHOT, None, "--ocarina_reborn")
+            self.assertIn("--ocarina_reborn", str(e.exception))
             game = self.tmp / "Hookshot"
             make_save(game / "user" / "save" / UID, b"W")
-            self.assertEqual(oot.locate(oot.HOOKSHOT, str(game), "--hookshot")[1], {UID: str(game / "user" / "save" / UID)})
+            self.assertEqual(oot.locate(oot.HOOKSHOT, str(game), "--ocarina_reborn")[1], {UID: str(game / "user" / "save" / UID)})
 
     def test_lichii_s_own_folder_first(self):
         # (Lichii from its build 150 on keeps %APPDATA%\\lichii, ~/.local/share/lichii; the others stay in Eden's)
@@ -153,7 +153,7 @@ class Discovery(Case):
         for root in (data, data / "nand", data / "nand" / "user" / "save", self.li.parent.parent, self.li.parent,
                      self.li):
             self.assertEqual(oot.find_saves(str(root)), {PROFILE: str(self.li)}, root)
-        for root in (self.data / "hookshot", self.hs.parent, self.hs):
+        for root in (self.data / "ocarina_reborn", self.hs.parent, self.hs):
             self.assertEqual(oot.find_saves(str(root)), {UID: str(self.hs)}, root)
 
     def test_empty_title_folder_is_a_target(self):
@@ -263,7 +263,7 @@ class Copy(Case):
         self.assertEqual(code, 0, err)
         self.assertEqual(tree(self.li), tree(self.hs))
         make_save(self.li / "slot_02", b"X", slots=())
-        code, out, err = self.run_main("to-hookshot", "--lichii", str(self.data / "eden"))
+        code, out, err = self.run_main("to-ocarina_reborn", "--lichii", str(self.data / "eden"))
         self.assertEqual(code, 0, err)
         self.assertIn("slot_02", {Path(k).parts[0] for k in tree(self.hs)})
         names = [b.name for b in self.backup_dirs()]
@@ -350,7 +350,7 @@ class Copy(Case):
             with self.subTest(extra=extra), mock.patch.object(
                 oot.shutil, "copytree", side_effect=AssertionError("recursive backup copy started")
             ):
-                code, _, err = self.run_main("import", "--from", str(self.li), "--hookshot", str(self.hs), *extra)
+                code, _, err = self.run_main("import", "--from", str(self.li), "--ocarina_reborn", str(self.hs), *extra)
                 self.assertEqual(code, 1)
                 self.assertIn("--backup-dir outside the target save folder", err)
                 self.assertFalse(self.backups.exists())

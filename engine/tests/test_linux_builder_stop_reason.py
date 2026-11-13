@@ -17,7 +17,7 @@ from types import SimpleNamespace
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "builder" / "linux" / "hookshot_builder.py"
+SOURCE = ROOT / "builder" / "linux" / "ocarina_reborn_builder.py"
 BUILDER = next(node for node in ast.parse(SOURCE.read_text(encoding="utf-8")).body
                if isinstance(node, ast.ClassDef) and node.name == "Builder")
 

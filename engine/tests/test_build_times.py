@@ -28,7 +28,7 @@ build = load("build_times", ROOT / "nx2" / "build.py")
 
 class TimesRecordTests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="hookshot-times-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="ocarina_reborn-times-")
         self.addCleanup(self.temporary.cleanup)
         self.work = Path(self.temporary.name)
 
@@ -165,8 +165,8 @@ class PhaseTests(unittest.TestCase):
         self.t[0] = 452.0
         c.line("491 files, 24 jobs, -D_CRT_SECURE_NO_WARNINGS -O1 -DA64_POLLING -DA64_WRITE_TRACK")
         c.line("compiled in 1282s, 0 failed")
-        c.line(r"linked E:\work\sa\build\hookshot.exe: 440 MB (3s)")
-        c.line("linked /home/me/work/sa/build/hookshot_vk.so: 11 MB (0s)")
+        c.line(r"linked E:\work\sa\build\ocarina_reborn.exe: 440 MB (3s)")
+        c.line("linked /home/me/work/sa/build/ocarina_reborn_vk.so: 11 MB (0s)")
         self.t[0] = 1743.0
         c.enter("finish")
         self.t[0] = 1800.0
@@ -175,7 +175,7 @@ class PhaseTests(unittest.TestCase):
         self.assertEqual((s["checks"], s["read"], s["lift"], s["compile"], s["finish"]), (2.0, 10.0, 331.0, 1300.0, 57.0))
         self.assertEqual((s["lift: image and discovery"], s["lift: emit and write"], s["lift: patches"]), (70.0, 170.5, 7.9))
         self.assertEqual((s["compile: planning"], s["compile: compiling"]), (9.0, 1282.0))
-        self.assertEqual((s["compile: linking hookshot.exe"], s["compile: linking hookshot_vk.so"]), (3.0, 0.0))
+        self.assertEqual((s["compile: linking ocarina_reborn.exe"], s["compile: linking ocarina_reborn_vk.so"]), (3.0, 0.0))
         table = c.table()
         self.assertEqual(table[0], "where the time went:")
         self.assertTrue(any("emit and write" in row and "170 s" in row for row in table))
@@ -201,11 +201,11 @@ class PhaseTests(unittest.TestCase):
         self.assertNotIn("compile: planning", c.seconds)
 
     def test_the_phases_are_kept_with_the_build(self):
-        with tempfile.TemporaryDirectory(prefix="hookshot-phases-") as d:
-            make_game.record_times(d, {}, 10.0, 20.0, phases={"lift": 331.04, "compile: linking hookshot.exe": 3.0})
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-phases-") as d:
+            make_game.record_times(d, {}, 10.0, 20.0, phases={"lift": 331.04, "compile: linking ocarina_reborn.exe": 3.0})
             make_game.record_times(d, {}, 10.0, 20.0)
             builds = json.loads((Path(d) / "build_times.json").read_text(encoding="utf-8"))["builds"]
-        self.assertEqual(builds[0]["phases"], {"lift": 331.0, "compile: linking hookshot.exe": 3.0})
+        self.assertEqual(builds[0]["phases"], {"lift": 331.0, "compile: linking ocarina_reborn.exe": 3.0})
         self.assertNotIn("phases", builds[1])
 
     def test_the_build_feeds_the_clock(self):

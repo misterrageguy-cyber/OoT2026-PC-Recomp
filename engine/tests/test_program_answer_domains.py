@@ -12,8 +12,8 @@ import os
 import subprocess
 import tempfile
 
-# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/hookshot_env.h)
-ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "hookshot_env.h")
+# (env_on, the switches' rule, before the code cut out of the sources: gpu/vk/compat/ocarina_reborn_env.h)
+ENV_ON_H = str(Path(__file__).resolve().parents[1] / "gpu" / "vk" / "compat" / "ocarina_reborn_env.h")
 
 RUN_ALL_ARGS = ["--cxx", "clang++", "--headers", "{vulkan_headers}"]
 
@@ -43,7 +43,7 @@ static uint32_t handles[3]{};
 static uint8_t answers[4]{0,2,2,2};
 uint32_t driver_bank_word(const NvnState&, int, int, uint32_t offset) { return handles[offset/8]; }
 uint32_t stage_cbuf_word(const NvnState&, const Stage&, uint32_t, uint32_t offset) { return handles[offset/8]; }
-uint32_t stage_handle(const NvnState&, const Stage&, uint32_t) { std::abort(); }
+uint32_t stage_handle(const NvnState&, const Stage&, uint32_t, uint32_t) { std::abort(); }
 uint8_t texture_answer(uint32_t h) { return h ? answers[h] : 0xff; }
 uint32_t texture_slot_version(int id) { return 10+id; }
 #include MATCHER_FUNCTIONS

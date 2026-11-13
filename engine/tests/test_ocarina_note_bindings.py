@@ -79,7 +79,7 @@ static const char *ini_dir;
 #else
 #define EXE_SEP "/"
 #endif
-static DWORD GetModuleFileNameA(void *m, char *b, DWORD n) { (void)m; return (DWORD)snprintf(b, n, "%s" EXE_SEP "hookshot.exe", ini_dir); }
+static DWORD GetModuleFileNameA(void *m, char *b, DWORD n) { (void)m; return (DWORD)snprintf(b, n, "%s" EXE_SEP "ocarina_reborn.exe", ini_dir); }
 #define hos_game_path_a(b,n) GetModuleFileNameA(0,b,n)
 """
 
@@ -150,9 +150,9 @@ class OcarinaNoteBindingsTests(unittest.TestCase):
         hid = (ROOT / "host" / "nn_hid.c").read_text(encoding="utf-8")
         code = between(hid, "static const char *const bind_names[HOS_KEY_N]",
                        "void hos_bind(int set, int button, int slot, int code) {")
-        with tempfile.TemporaryDirectory(prefix="hookshot-note-bindings-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-note-bindings-") as tmp:
             tmp = Path(tmp)
-            (tmp / "hookshot_options.ini").write_text(
+            (tmp / "ocarina_reborn_options.ini").write_text(
                 "key_move_up=90,0\npad_a=5\nkey_note_y=78,0\n", encoding="utf-8")
             (tmp / "t.c").write_text(PRELUDE + code + MAIN, encoding="utf-8")
             binary = tmp / ("t.exe" if sys.platform == "win32" else "t")

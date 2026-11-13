@@ -1,4 +1,4 @@
-"""One rule for on/off switches: env_on (gpu/vk/compat/hookshot_env.h) in C and C++, kit.env_on in Python.
+"""One rule for on/off switches: env_on (gpu/vk/compat/ocarina_reborn_env.h) in C and C++, kit.env_on in Python.
 
 Unset, empty, 0, false, off and no (any case, spaces around them not counted) are off; 1 and anything else are on, so
 RX_VK_NO_PROGRAM_CACHE=0 no longer turns the feature on. env_int reads a number with a default. Compile the header as C
@@ -26,7 +26,7 @@ FIXTURE = r"""
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hookshot_env.h"
+#include "ocarina_reborn_env.h"
 #ifdef _WIN32
 static void put(const char* name, const char* value) {
     char s[256];
@@ -89,7 +89,7 @@ def main():
             exe = Path(tmp) / ("fixture_%s%s" % (suffix[1:], ".exe" if os.name == "nt" else ""))
             src.write_text(FIXTURE, encoding="utf-8")
             flags = ["-x", "c", "-D_POSIX_C_SOURCE=200809L"] if lang == "C" else []   # (C++'s compiler, told it is C)
-            # (_CRT_SECURE_NO_WARNINGS: the fixture's stdio.h comes before hookshot_env.h, and Windows' CRT then calls getenv
+            # (_CRT_SECURE_NO_WARNINGS: the fixture's stdio.h comes before ocarina_reborn_env.h, and Windows' CRT then calls getenv
             # deprecated for the rest of the file)
             subprocess.run([args.cxx, std, "-Wall", "-Wextra", "-Werror", "-D_CRT_SECURE_NO_WARNINGS", *flags, "-I", str(include),
                             str(src), "-o", str(exe)], check=True)

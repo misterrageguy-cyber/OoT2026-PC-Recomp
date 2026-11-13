@@ -1,0 +1,20 @@
+Ocarina Reborn - source and credits
+
+Built on Hookshot by NotRexed and the Hookshot contributors.
+Original project: https://github.com/NotRexed/Hookshot
+Engine base: Hookshot v2.2.0-rc.1 (GPL-3.0-or-later).
+
+Hookshot provides the recompilation engine, console runtime, Vulkan renderer
+and game-build pipeline. Ocarina Reborn adds its own launcher, installer,
+presets, diagnostics, interface changes and custom gameplay hooks.
+Ocarina Reborn is independently maintained, not an official Hookshot release.
+
+Our engine, launcher and build source:
+https://github.com/misterrageguy-cyber/OoT2026-PC-Recomp
+Component credits and source links:
+https://github.com/misterrageguy-cyber/OoT2026-PC-Recomp/blob/main/CREDITS.md
+
+Hookshot's license is in engine/LICENSE. Original copyright, license and
+third-party notices are retained beside their code and dependencies.
+Third-party components and media retain their respective licenses and rights.
+Thank you to the Hookshot team and all upstream contributors.

@@ -83,7 +83,7 @@ static const char *ini_dir;
 #else
 #define EXE_SEP "/"
 #endif
-static DWORD GetModuleFileNameA(void *m, char *b, DWORD n) { (void)m; return (DWORD)snprintf(b, n, "%s" EXE_SEP "hookshot.exe", ini_dir); }
+static DWORD GetModuleFileNameA(void *m, char *b, DWORD n) { (void)m; return (DWORD)snprintf(b, n, "%s" EXE_SEP "ocarina_reborn.exe", ini_dir); }
 #define hos_game_path_a(b,n) GetModuleFileNameA(0,b,n)
 static int held[256];
 static int key(int vk) { return held[vk & 255]; }
@@ -258,7 +258,7 @@ class OcarinaNotesTests(unittest.TestCase):
         self.assertIn("controls[i].button >= HOS_KEY_MOVE_UP && controls[i].button <= HOS_KEY_CAM_RIGHT", menu,
                       "keys_only does not leave the note rows a gamepad column")
         self.assertIn("i >= HOS_KEY_OC_NOTE_L && i <= HOS_KEY_OC_NOTE_X", menu, "the ini save writes no pad_ line for a note row")
-        with tempfile.TemporaryDirectory(prefix="hookshot-oc-notes-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-oc-notes-") as tmp:
             tmp = Path(tmp)
             (tmp / "t.c").write_text(PRELUDE + code + MAIN, encoding="utf-8")
             binary = tmp / ("t.exe" if sys.platform == "win32" else "t")

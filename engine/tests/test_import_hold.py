@@ -13,7 +13,7 @@ class ImportHoldTests(unittest.TestCase):
         compiler = shutil.which("g++") or shutil.which("clang++")
         if not compiler:
             self.skipTest("no C++ compiler")
-        with tempfile.TemporaryDirectory(prefix="hookshot-import-hold-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-import-hold-") as tmp:
             binary = Path(tmp) / "import_hold_test"
             compile = subprocess.run(
                 [compiler, "-std=c++20", "-Wall", "-Wextra", "-Werror",

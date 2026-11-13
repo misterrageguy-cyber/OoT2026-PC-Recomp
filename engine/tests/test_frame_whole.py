@@ -76,7 +76,7 @@ class FrameWholeTests(unittest.TestCase):
         compiler = shutil.which("gcc") or shutil.which("clang")
         if not compiler:
             self.skipTest("no C compiler")
-        with tempfile.TemporaryDirectory(prefix="hookshot-frame-whole-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="ocarina_reborn-frame-whole-") as tmp:
             tmp = Path(tmp)
             (tmp / "t.c").write_text(FIXTURE, encoding="utf-8")
             binary = tmp / "t.exe"

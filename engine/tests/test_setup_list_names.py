@@ -10,7 +10,7 @@ import unittest
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "builder" / "py"))
-from hookshot_builder import setup_parts  # noqa: E402
+from ocarina_reborn_builder import setup_parts  # noqa: E402
 
 SHA = "0123456789abcdef" * 4
 

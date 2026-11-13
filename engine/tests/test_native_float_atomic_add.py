@@ -218,7 +218,7 @@ def check_source():
 
 
 # RX_VK_NATIVE_FADD's value (None: unset), the driver (VkDriverId: the Vulkan specification's numbers), and whether the
-# float add is then asked to be the GPU's own: unset, NVIDIA's driver alone; set, #2042's rule (hookshot_env.h
+# float add is then asked to be the GPU's own: unset, NVIDIA's driver alone; set, #2042's rule (ocarina_reborn_env.h
 # env_value_off) whatever the driver
 DRIVERS = {"AMD_PROPRIETARY": 1, "MESA_RADV": 3, "NVIDIA_PROPRIETARY": 4, "INTEL_PROPRIETARY_WINDOWS": 5,
            "INTEL_OPEN_SOURCE_MESA": 6, "MESA_NVK": 24}
@@ -255,7 +255,7 @@ def check_switch(cxx, tmp):
     cpp, exe = tmp / "switch.cpp", tmp / "switch"
     drivers = ", ".join("VK_DRIVER_ID_%s = %d" % kv for kv in DRIVERS.items())
     cpp.write_text(SWITCH_FIXTURE.replace("@@DRIVERS@@", drivers).replace("@@WANTED@@", wanted), encoding="utf-8")
-    r = subprocess.run([cxx, "-std=c++20", "-include", str(VK / "compat" / "hookshot_env.h"), "-Wall", "-Wextra", "-Werror",
+    r = subprocess.run([cxx, "-std=c++20", "-include", str(VK / "compat" / "ocarina_reborn_env.h"), "-Wall", "-Wextra", "-Werror",
                         str(cpp), "-o", str(exe)], capture_output=True, text=True, timeout=120)
     if r.returncode:
         print(r.stdout + r.stderr)

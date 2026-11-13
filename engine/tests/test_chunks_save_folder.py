@@ -17,7 +17,7 @@ import chunks  # noqa: E402
 
 
 def main():
-    with tempfile.TemporaryDirectory(prefix="hookshot-chunks-save-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-chunks-save-") as temp:
         # (a standalone lift's folder: <work>/image, with <work> existing and image/ not)
         work = Path(temp) / "work"
         work.mkdir()

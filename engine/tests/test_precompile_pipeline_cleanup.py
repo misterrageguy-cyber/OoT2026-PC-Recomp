@@ -33,7 +33,7 @@ class PrecompilePipelineCleanupTests(unittest.TestCase):
         compiler = COMPILER or shutil.which('clang++') or shutil.which('g++')
         if not compiler:
             raise AssertionError('a C++20 compiler is required')
-        cls.temporary = tempfile.TemporaryDirectory(prefix='hookshot-precompile-cleanup-')
+        cls.temporary = tempfile.TemporaryDirectory(prefix='ocarina_reborn-precompile-cleanup-')
         cls.addClassCleanup(cls.temporary.cleanup)
         directory = Path(cls.temporary.name)
         entry, block = production_parts()

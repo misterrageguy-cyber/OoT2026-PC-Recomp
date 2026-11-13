@@ -128,7 +128,7 @@ class BakeSkeletonTests(unittest.TestCase):
 
     def test_bake_end_to_end(self):
         with tempfile.TemporaryDirectory(prefix="bake-skel-") as tmp:
-            seed = os.path.join(tmp, "hookshot_shaders.bin")
+            seed = os.path.join(tmp, "ocarina_reborn_shaders.bin")
             synthetic_seed(seed)
             bank = os.path.join(tmp, "bank")
             path, stats = bake.bake_seed(seed, bank)
@@ -164,7 +164,7 @@ class BakeSkeletonTests(unittest.TestCase):
 
     def test_cli_bake(self):
         with tempfile.TemporaryDirectory(prefix="bake-cli-") as tmp:
-            seed = os.path.join(tmp, "hookshot_shaders.bin")
+            seed = os.path.join(tmp, "ocarina_reborn_shaders.bin")
             synthetic_seed(seed)
             bank = os.path.join(tmp, "bank")
             r = subprocess.run(
@@ -218,7 +218,7 @@ class BakeTranslateTests(unittest.TestCase):
     def test_translate_exact_keys_and_spirv(self):
         require_toolchain(self)
         with tempfile.TemporaryDirectory(prefix="bake-sb-") as tmp:
-            seed = os.path.join(tmp, "hookshot_shaders.bin")
+            seed = os.path.join(tmp, "ocarina_reborn_shaders.bin")
             self.real_seed(seed)
             bank = os.path.join(tmp, "bank")
             bake.bake_seed(seed, bank)
@@ -278,7 +278,7 @@ class BakeVerifyTests(unittest.TestCase):
         require_toolchain(self)
         t = BakeTranslateTests()
         with tempfile.TemporaryDirectory(prefix="bake-verify-") as tmp:
-            seed = os.path.join(tmp, "hookshot_shaders.bin")
+            seed = os.path.join(tmp, "ocarina_reborn_shaders.bin")
             t.real_seed(seed)
             bank = os.path.join(tmp, "bank")
             bake.bake_seed(seed, bank)
@@ -316,7 +316,7 @@ class BakeVerifyTests(unittest.TestCase):
         require_toolchain(self)
         t = BakeTranslateTests()
         with tempfile.TemporaryDirectory(prefix="bake-partial-") as tmp:
-            seed = os.path.join(tmp, "hookshot_shaders.bin")
+            seed = os.path.join(tmp, "ocarina_reborn_shaders.bin")
             t.real_seed(seed)
             bank = os.path.join(tmp, "bank")
             bake.bake_seed(seed, bank)

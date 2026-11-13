@@ -171,7 +171,7 @@ def main():
     if "disk_taken.find(key)" not in keep[:keep.index("} else {")]:
         raise SystemExit("FAIL: a borrowed program leaves out the records read in already: their predictions are never built")
 
-    with tempfile.TemporaryDirectory(prefix="hookshot-predict-types-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-predict-types-") as temp:
         temp = Path(temp)
         (temp / "predict_types.inc").write_text("\n".join(pieces) + "\n", encoding="utf-8")
         (temp / "check.cpp").write_text(CHECK, encoding="utf-8")

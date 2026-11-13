@@ -142,7 +142,7 @@ int main() {
     std::puts("PASS: array clears and BC volume clears preserve mip and slice addressing");
 }
 '''
-    with tempfile.TemporaryDirectory(prefix="hookshot-clear-mip-") as directory:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-clear-mip-") as directory:
         cpp, exe = Path(directory) / "test.cpp", Path(directory) / "test.exe"
         cpp.write_text(fixture, encoding="utf-8")
         flags = ["-fsanitize=address,undefined", "-fno-sanitize-recover=all"] if args.sanitize else []

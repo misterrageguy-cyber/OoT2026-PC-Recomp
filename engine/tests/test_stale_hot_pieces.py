@@ -70,7 +70,7 @@ def main():
     a64_lift.CHUNK_BYTES = 4000
     addrs = [0x80000000 + 0x40 * i for i in range(120)]
     want = {"f_%08x" % a for a in addrs}
-    with tempfile.TemporaryDirectory(prefix="hookshot-hot-pieces-") as work:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-hot-pieces-") as work:
         gen, defined = lift(work, addrs, addrs[::7])
         check("the hot functions are in pieces", any(n.startswith("code_hot_") for n in os.listdir(gen)))
         check("a lift with a hot list defines each function once", set(defined) == want and max(defined.values()) == 1)

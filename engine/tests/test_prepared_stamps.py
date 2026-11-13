@@ -1,6 +1,6 @@
 """The prepare keeps two stamps, and the driver's part is made from the program cache.
 
-hookshot_prepared.bin said what the shaders were translated for (the translator and the seed), and the stage libraries were built
+ocarina_reborn_prepared.bin said what the shaders were translated for (the translator and the seed), and the stage libraries were built
 only as a program was translated. A program kept already was never translated again, so its libraries were never built again
 either: a player who prepared without libraries and then switched them on had "0 new, 0 stage libraries", and after a driver
 update, which empties the driver's cache, nothing made them again. The record now has a sixth word for the driver's part, and
@@ -66,7 +66,7 @@ def main():
 #include <vector>
 """ + helpers + r"""
 int main(int argc, char** argv) {
-    const std::string dir = argv[1], path = dir + "/hookshot_prepared.bin", seed = dir + "/hookshot_shaders.bin";
+    const std::string dir = argv[1], path = dir + "/ocarina_reborn_prepared.bin", seed = dir + "/ocarina_reborn_shaders.bin";
     int fails = 0;
     const auto put = [&](const std::string& to, const void* d, size_t n) {
         FILE* f = fopen(to.c_str(), "wb");

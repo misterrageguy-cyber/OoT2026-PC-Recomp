@@ -21,7 +21,7 @@ def load_builder():
     tk.filedialog = sys.modules["tkinter.filedialog"]
     tk.messagebox = sys.modules["tkinter.messagebox"]
     tk.ttk = sys.modules["tkinter.ttk"]
-    spec = importlib.util.spec_from_file_location("hookshot_builder_scale", ROOT / "builder" / "linux" / "hookshot_builder.py")
+    spec = importlib.util.spec_from_file_location("ocarina_reborn_builder_scale", ROOT / "builder" / "linux" / "ocarina_reborn_builder.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -78,7 +78,7 @@ class ScaleTests(unittest.TestCase):
         self.assertEqual(builder.ui_scale(1080, environ={"GDK_SCALE": "2"}), 2.0)
         self.assertEqual(builder.ui_scale(1080, environ={"QT_SCALE_FACTOR": "1.25"}), 1.25)
 
-    def test_hookshot_ui_scale_overrides_everything(self):
+    def test_ocarina_reborn_ui_scale_overrides_everything(self):
         self.assertEqual(builder.ui_scale(2160, dpi=192, environ={"HOOKSHOT_UI_SCALE": "1", "GDK_SCALE": "2"}), 1.0)
         self.assertEqual(builder.ui_scale(1080, environ={"HOOKSHOT_UI_SCALE": "junk"}), 1.0)
         self.assertEqual(builder.ui_scale(1080, environ={"HOOKSHOT_UI_SCALE": "40"}), 4.0)

@@ -86,15 +86,15 @@ def main():
     env.pop("HOS_HEADLESS", None)
     for name in ("SDL_VIDEODRIVER", "SDL_VIDEO_DRIVER", "XDG_CURRENT_DESKTOP", HINT):
         env.pop(name, None)
-    with tempfile.TemporaryDirectory(prefix="hookshot-libdecor-hint-") as folder:
+    with tempfile.TemporaryDirectory(prefix="ocarina_reborn-libdecor-hint-") as folder:
         tmp = Path(folder)
         (tmp / "display_init_actual.inc").write_text(actual + "\n", encoding="utf-8")
         (tmp / "harness.cpp").write_text(HARNESS, encoding="utf-8")
         exe = tmp / ("harness.exe" if os.name == "nt" else "harness")
         command = [cxx, "-std=c++20", "-O0", "-Wall", "-Wextra", "-Werror", "-Wno-unused-function",
                    "-D_CRT_SECURE_NO_WARNINGS", "-I" + str(tmp), str(tmp / "harness.cpp"), "-o", str(exe),
-                   # (env_on, the switches' rule: gpu/vk/compat/hookshot_env.h)
-                   "-include", str(args.source_root / "gpu/vk/compat/hookshot_env.h")]
+                   # (env_on, the switches' rule: gpu/vk/compat/ocarina_reborn_env.h)
+                   "-include", str(args.source_root / "gpu/vk/compat/ocarina_reborn_env.h")]
         result = subprocess.run(command, cwd=tmp, env=env, capture_output=True, text=True, timeout=60,
                                 creationflags=flags)
         if result.returncode:
