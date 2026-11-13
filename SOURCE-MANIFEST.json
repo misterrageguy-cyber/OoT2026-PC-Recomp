@@ -2124,7 +2124,7 @@
     "engine/wgpu-native/wgpu-native-meta/webgpu.yml": "7c6a591979e7241c6f72a42a60205096522a147de472d769d48067b29c75c1d3",
     "engine/wgpu-native/wgpu-native-meta/wgpu-native-git-tag": "390263a8ff03ba3577a2d161b36b5bceb3efa9b668b9dd8aa225aa308aefd03a"
   },
-  "notes": "Engine code matches the released installer. engine_source_sha256 records the original shipped bytes. git_normalized_source_sha256 records the five files whose line endings Git normalizes to LF in source archives. Compiler/runtime binaries and private game data are excluded.",
+  "notes": "Engine code matches the released installer. engine_source_sha256 records the original shipped bytes. git_normalized_source_sha256 records the five repository blobs Git normalizes to LF; archive and checkout line endings follow engine/.gitattributes. Compiler/runtime binaries and private game data are excluded.",
   "git_normalized_source_sha256": {
     "engine/gpu/build-shadertool.bat": "9c799d781e874d8f224ee44b54ecc2c21cf7f4d872c62046177129506811ca77",
     "engine/NOTICE-OCARINA-REBORN.txt": "414888f5bb2f02ee71d85306c5d9ecf5c568ac7e5055dff807ef0f905bf4d3d9",
