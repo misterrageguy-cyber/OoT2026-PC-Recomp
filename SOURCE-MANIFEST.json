@@ -1740,7 +1740,6 @@
     "engine/third_party/a64-kit/lift/a64_lift.py": "5b943ec8a15131137b9146799a31339e42e73b2f3916b969faa40579200febf5",
     "engine/third_party/a64-kit/lift/a64_rtgen.py": "1882dd60c72c7f864555c69c837833323a361c4d3ceb59e5755bcb73b8bc5dea",
     "engine/third_party/a64-kit/lift/a64emit.cpp": "da9ef920766f68899e05497b7bea60861d6af4ef7693648e59b03dc79b5c376f",
-    "engine/third_party/a64-kit/lift/a64emit.dll.sha1": "776027c44e529dd20f374ef7239f13544919d15ae61230d6408c38c980d86aa0",
     "engine/third_party/a64-kit/lift/a64emit.py": "cdd886365701c2c611d8c2fd6d2fa570508d7bd702b5cec7afc65f05fb3b70bf",
     "engine/third_party/a64-kit/lift/build_emit.py": "6348334a5f57cc43d5d7bc9fa7536d92eeadf2bb9df6ad4df889a6e66b2ccce4",
     "engine/third_party/a64-kit/lift/suyu/arm64_to_c.h": "09669e671b444f8b2ce6e14899c6e7c88ea9dedbda9544cf08c250a829554472",
