@@ -18,7 +18,7 @@ import time
 import tkinter as tk
 import zipfile
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, ttk, colorchooser, simpledialog
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import license as lic  # noqa: E402
@@ -32,6 +32,7 @@ import advisor  # noqa: E402
 import performance  # noqa: E402
 import mods_manager  # noqa: E402
 import classic_voices  # noqa: E402
+import tunic_colors  # noqa: E402
 import gamepad  # noqa: E402
 
 INSTALL = Path(__file__).resolve().parent.parent
@@ -1815,6 +1816,25 @@ class App(tk.Tk):
             self.settings_status = ('', ui.GOLD)
             self.ready()
 
+        def choose_tunic(hex_input=False):
+            current = tunic_colors.hex_color(cur | self.pending_settings)
+            if hex_input:
+                selected = simpledialog.askstring(T('Tunika-Farbe', 'Tunic color'),
+                    T('HEX-Farbe, z. B. #5080FF:', 'Hex color, e.g. #5080FF:'), initialvalue=current, parent=self)
+            else:
+                _, selected = colorchooser.askcolor(color=current, title=T('Tunika-Farbe', 'Tunic color'), parent=self)
+            if selected is None:
+                return
+            try:
+                values = tunic_colors.from_hex(selected)
+            except ValueError:
+                messagebox.showerror(T('Tunika-Farbe', 'Tunic color'),
+                    T('Bitte sechs HEX-Zeichen eingeben, z. B. #5080FF.', 'Enter six hex digits, e.g. #5080FF.'), parent=self)
+                return
+            self.pending_settings.update(values)
+            self.settings_status = (T('Nicht gespeichert', 'Not saved yet'), ui.SUB)
+            self.settings_page(tab, True)
+
         # the rows of this tab: (key, name, help, cost, labels, current label, pick)
         rows = []
         if tab < len(game_settings.SECTIONS):
@@ -1958,6 +1978,23 @@ class App(tk.Tk):
                 h = ctx.dropdown(rx + cw - dw - 20 * s, ry + (rh - min(48 * s, rh - 10 * s)) / 2, dw,
                                  min(48 * s, rh - 10 * s), labels, shown, pick, size=18)
                 h.enter = lambda info=info: explain(*info)
+            if tab < len(game_settings.SECTIONS) and game_settings.SECTIONS[tab][1] == 'Tunic':
+                color = tunic_colors.hex_color(cur | self.pending_settings)
+                py = gy + 106 * s
+                ctx.panel(x + 30 * s, py, 100 * s, 100 * s, r=16, fill=color, alpha=1, border=ui.LINE)
+                ctx.text(x + 150 * s, py + 12 * s, color, 26, 'semibold', ui.TEXT)
+                ctx.text(x + 150 * s, py + 50 * s, 'RGB  ' + ' / '.join(map(str, tunic_colors.rgb(cur | self.pending_settings))),
+                         18, 'regular', ui.SUB)
+                ctx.button(x + 30 * s, py + 124 * s, 240 * s, 46 * s, T('Farbe auswählen', 'Choose color'),
+                           choose_tunic, kind='primary', size=20)
+                ctx.button(x + 288 * s, py + 124 * s, 170 * s, 46 * s, T('HEX eingeben', 'Enter HEX'),
+                           lambda: choose_tunic(True), size=18)
+                ctx.text(x + 30 * s, py + 175 * s,
+                         T('Für Kinder-Link und die erwachsenen Tuniken. Auch unter F1 → Gameplay.\n'
+                           'Speichern und Spiel neu starten. Die Vorschau zeigt die gewählte Farbe ohne Beleuchtung.',
+                           'For young Link and adult tunics. Also under F1 → Gameplay.\n'
+                           'Save and restart the game. The preview shows the selected color without lighting.'),
+                         17, 'regular', ui.SUB, width=w - 60 * s)
             if tab == len(game_settings.SECTIONS):
                 ctx.text(x + 30 * s, gy + gh - 30 * s, T('Gilt ab dem nächsten Spielstart. F1 → Debug → Enemy damage startet mit diesem Wert '
                                                          'und kann ihn im Spiel ändern.', 'Applies at the next start. F1 → Debug → Enemy '

@@ -171,6 +171,12 @@ SECTIONS = [
          'Echtzeit: das Spiel bleibt gleich schnell, auch wenn die FPS fallen. Pro Bild: es wird mit den FPS langsamer, wie auf der Konsole.',
          'Real time: the game keeps its speed when the fps drop. Per frame: it slows down with the fps, as on the console.', ''),
     ]),
+    ('Tunika', 'Tunic', [
+        ('custom_tunic_color', 'Eigene Tunika-Farbe', 'Custom tunic color',
+         [(0, 'Original', 'Original'), (1, 'Eigene Farbe', 'Custom color')],
+         'Wähle unten eine beliebige Farbe. Speichern und das Spiel neu starten. Original stellt die ursprünglichen Farben wieder her.',
+         'Choose any color below. Save and restart the game. Original restores the original colors.', ''),
+    ]),
     ('Steuerung', 'Controls', [
         ('mouse_camera', 'Maus-Kamera', 'Mouse camera', [(0, 'Wie der Stick', 'As the stick'), (1, 'Nativ (wie PC-Spiele)', 'Native (as PC games)')],
          'Wie die Maus die Kamera dreht. Nativ dreht direkt, wie man es von PC-Spielen kennt.',
@@ -292,6 +298,6 @@ def reset(game):
         lines = f.read_text(encoding='utf-8', errors='replace').splitlines()
     except OSError:
         return
-    keys = {k for _, en, rows in SECTIONS if en not in ('Gameplay', 'Controls', 'Audio') for k, *_ in rows}   # (graphics only)
+    keys = {k for _, en, rows in SECTIONS if en not in ('Gameplay', 'Controls', 'Audio', 'Tunic') for k, *_ in rows}   # (graphics only)
     kept = [l for l in lines if not ('=' in l and l.split('=', 1)[0].strip() in keys)]
     f.write_text('\n'.join(kept) + '\n', encoding='utf-8')
