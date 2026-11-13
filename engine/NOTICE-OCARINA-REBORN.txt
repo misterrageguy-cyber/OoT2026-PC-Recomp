@@ -1,0 +1,5 @@
+Ocarina Reborn builds the game with Hookshot (https://github.com/NotRexed/Hookshot), GPL-3.0 (LICENSE).
+Changes: the window title, message boxes, menu heading, icon and start-up screen say Ocarina Reborn, the files the build
+makes are named ocarina_reborn* instead of hookshot*, and the Cheats page has Enemy damage (tools/alpha/stage_alpha.py).
+Where the view distances sit in the game's memory (host/ocr_view.c) was found by hotoni (Graphics-Menu mod).
+The Hookshot copyright and license notices are kept as the GPL requires.

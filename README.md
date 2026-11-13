@@ -1,12 +1,18 @@
 # Ocarina Reborn
 
-This repository mirrors installer releases for RecompStore. The main website is [ocarina-pc-native-build.github.io](https://ocarina-pc-native-build.github.io/).
+This repository contains the **Ocarina Reborn launcher, patched engine and build scripts**, and hosts installer releases for RecompStore. The website is [ocarina-pc-native-build.github.io](https://ocarina-pc-native-build.github.io/).
 
 A native Windows x64 version of **The Legend of Zelda: Ocarina of Time (Switch 2)**, built on your PC from your own `.nup` game file.
 
 **Current release: v1.0.3 · November 13, 2026**
 
 [Download the latest release](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/latest) · [Website](https://ocarina-pc-native-build.github.io/) · [Discord](https://discord.gg/vDPAcc6JnY)
+
+## Source code
+
+The actual **v1.0.3 source** is here: [engine](engine/), [launcher](tools/alpha/launcher/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md).
+
+`engine/` contains the already-patched sources used by the released installer, including the classic counters fix. The launcher includes automatic classic-voice preparation. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.0.3 source archives contain this project source; the website lives in its separate repository.
 
 ## Get started
 
@@ -49,7 +55,7 @@ For help or bug reports, join the [Discord](https://discord.gg/vDPAcc6JnY). Incl
 
 Ocarina Reborn combines its own launcher, installer, settings and interface customizations with the [Hookshot v2.2.0-rc.1 engine](https://github.com/NotRexed/Hookshot/tree/v2.2.0-rc.1), licensed under GPL-3.0. The engine's copyright and license notices are retained in the distribution.
 
-This repository hosts the release mirror and project information. The website redirects to the main project website. It does not contain the current launcher and engine build sources on `main`.
+This repository hosts the project source, build instructions and installer releases. Its Pages entry redirects to the main project website.
 
 Ocarina Reborn is an unofficial community project and is not affiliated with Nintendo.
 
