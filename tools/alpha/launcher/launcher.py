@@ -1730,7 +1730,7 @@ class App(tk.Tk):
             x, w = self.content(ctx)
             self.heading(ctx, x, top + 34 * ctx.s, T('Klassische Stimmen', 'Classic voices'),
                          T('Deine Stimmen-Datei wird vorbereitet. Beim ersten Mal kann das etwa eine Minute dauern …',
-                           'Preparing the included voice. The first time can take about a minute …'), icon='settings', w=w)
+                           'Preparing your selected voice file. The first time can take about a minute …'), icon='settings', w=w)
         self.show('play', body)
         threading.Thread(target=work, daemon=True).start()
         poll()
@@ -1889,9 +1889,9 @@ class App(tk.Tk):
                     was = int(state['enabled'])
                     now = min(self.pending_settings.get(key, was), len(labels) - 1)
                     rows.append((key, label,
-                                 T('Mitgelieferte N64-Stimme für Angriffe, Treffer und Bewegung. Auswählen und speichern; '
+                                 T('Eigene Stimmen-ZIP für Angriffe, Treffer und Bewegung importieren und speichern; '
                                    'spezielle Zwischensequenz-Stimmen bleiben erhalten.',
-                                   'Included N64 voice for attacks, damage and movement. Select and save; '
+                                   'Import your own voice ZIP for attacks, damage and movement, then save; '
                                    'dedicated cutscene voices stay unchanged.'), '', labels, labels[now],
                                  lambda lab, key=key, labels=labels, was=was: changed(key, labels.index(lab), was)))
         elif tab > len(game_settings.SECTIONS):   # Cheats: the engine's own debug tools, on from the start (HOS_OOT_CHEATS)

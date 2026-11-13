@@ -8,6 +8,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import distribution_guard as guard
 
 class DistributionGuard(unittest.TestCase):
+    def test_old_animations_and_unreviewed_project_videos_are_blocked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp)
+            (p / 'tools/alpha').mkdir(parents=True)
+            (p / 'tools/alpha/fairy.gif').write_bytes(b'withdrawn fixture')
+            (p / 'gameplay.webm').write_bytes(b'unreviewed fixture')
+            self.assertEqual(len(guard.problems(p, {'files': {}})), 2)
+
     def test_disguised_recording_archive_and_game_data_are_blocked(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)

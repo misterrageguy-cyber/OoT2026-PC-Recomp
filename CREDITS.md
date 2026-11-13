@@ -1,3 +1,5 @@
+> Public downloads are paused after the distribution review. Old release links and checksums below are historical; do not re-upload previous installers or media. Use the current main source and its distribution guard.
+
 > **Distribution notice:** Public installer downloads are paused. Previous packages have been withdrawn during a media cleanup. See [DISTRIBUTION.md](DISTRIBUTION.md). Historical installation instructions below do not indicate an available download.
 
 # Source & credits
