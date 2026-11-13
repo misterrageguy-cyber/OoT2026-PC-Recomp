@@ -1,4 +1,18 @@
-# Development changelog
+# Release and development history
+
+## v1.0.3 — November 13, 2026
+
+- Included classic Link voices with automatic preparation and separate Young/Adult selections in Settings > Audio.
+- Classic N64 counters: rupees appear after loading a save; pickup counters above Link are hidden.
+- FXAA, view distance, grass density and shadow distance; engine v2.2.0-rc.1.
+- Expanded RAM/VRAM protection, a RAM-based texture-memory limit and an AMD RX 6000 mesh-shader fix.
+- Fairy/death-counter, startup-text, preset and settings-navigation fixes.
+
+[Full notes, installer and SHA-256](https://github.com/misterrageguy-cyber/OoT2026-PC-Recomp/releases/tag/v1.0.3)
+
+## Archived development reports — November 5, 2026
+
+The following reports describe the early development state and do not represent the current release.
 
 This log summarizes the supplied local development reports. Commit identifiers refer to local development history; the website repository does not automatically contain those commits or the game code. Individual commit dates were not supplied.
 
