@@ -44,6 +44,7 @@
 #include "vk_fsr3.h"      // (the Upscaler row: whether AMD FSR 3.1 runs on this GPU)
 #include "vk_fsr3fi.h"    // (the Frame generation row: whether FSR 3.1 makes the frame)
 #include "vk_fsr4.h"
+namespace mkwvk { int ocr_tunic = 0, ocr_tunic_r = 80, ocr_tunic_g = 160, ocr_tunic_b = 75; }
 namespace mkwvk { int ocr_counters = 0; std::atomic<int> ocr_rupees{-1}; }   // (Classic counters row; the wallet, -1: none)
 #define OCR_OPT_RUPEES 4084   /* (Ocarina Reborn) rx_option_set from the game side: the wallet, host/ocr_counters.c */
 namespace mkwvk { int ocr_view = 1, ocr_grass = 2, ocr_shadows = 1; }   // (View distance rows)
@@ -126,6 +127,7 @@ const char* tx_framegen(int v) {
     static const char* t[] = {"Off", "Auto", "2x", "3x", "4x", "5x", "6x", "7x", "8x"};
     return t[v];
 }
+const char* tx_tunic_rgb(int v) { static char b[16]; snprintf(b, sizeof b, "%d", v); return b; }
 const char* tx_onoff(int v) { return v ? "On" : "Off"; }
 const char* tx_fps_level(int v) { return fps_stats::level_name(v); }
 const char* tx_fps_corner(int v) { return fps_stats::corner_name(v); }   // (the FPS counter row: Off, FPS, Frame time, Graph, Breakdown)
@@ -1255,6 +1257,15 @@ Row rows[] = {
      "The speakers the game mixes its sound for. Applies after a restart.", hn_audio_output, true, true},
 
     // Gameplay
+    {TAB_GAMEPLAY, "Custom tunic color", &ocr_tunic, 0, 1, 1,
+     +[](int v) -> const char* { return v ? "Custom" : "Original"; },
+     "Recolors young Link and adult tunics. Choose any RGB color below. Original restores the original clothes. Save and restart.", nullptr, true, true},
+    {TAB_GAMEPLAY, "Tunic red", &ocr_tunic_r, 0, 255, 1, tx_tunic_rgb,
+     "RGB color component (0-255). Enable Custom tunic color, then save and restart. Lighting affects the result.", nullptr, true, true},
+    {TAB_GAMEPLAY, "Tunic green", &ocr_tunic_g, 0, 255, 1, tx_tunic_rgb,
+     "RGB color component (0-255). Enable Custom tunic color, then save and restart. Lighting affects the result.", nullptr, true, true},
+    {TAB_GAMEPLAY, "Tunic blue", &ocr_tunic_b, 0, 255, 1, tx_tunic_rgb,
+     "RGB color component (0-255). Enable Custom tunic color, then save and restart. Lighting affects the result.", nullptr, true, true},
     {TAB_GAMEPLAY, "FPS counter", &opts.show_fps, 0, fps_stats::kLevels - 1, 1, tx_fps_level,
      "Frames per second in the top right corner, and as much more as you choose.", hn_fps, false, true},
     {TAB_GAMEPLAY, "FPS counter position", &opts.fps_corner, 0, 3, 1, tx_fps_corner,
@@ -1710,9 +1721,9 @@ constexpr int64_t kMarqueeStep = 150000000LL, kMarqueeRest = 1200000000LL;   // 
 int hover_tab = -1;
 int drag_row = -1;
 bool mouse_read = false;   // (the menu has read the mouse since it opened)
-bool is_slider(const Row& r) { return r.value == &opts.sharpness || r.value == &opts.mouse_sens || r.value == &opts.gyro_sens_x || r.value == &opts.gyro_sens_y || r.value == &opts.volume || r.value == &opts.camera_speed || r.value == &opts.fov; }
+bool is_slider(const Row& r) { return r.value == &ocr_tunic_r || r.value == &ocr_tunic_g || r.value == &ocr_tunic_b || r.value == &opts.sharpness || r.value == &opts.mouse_sens || r.value == &opts.gyro_sens_x || r.value == &opts.gyro_sens_y || r.value == &opts.volume || r.value == &opts.camera_speed || r.value == &opts.fov; }
 /// (a scale: the arrows and a click stop at its ends; Rumble strength would go from Off to its strongest)
-bool stops_at_ends(const Row& r) { return r.value == &opts.ultrawide || r.value == &opts.mouse_sens || r.value == &opts.rumble || r.value == &opts.gyro_sens_x || r.value == &opts.gyro_sens_y || r.value == &opts.volume || r.value == &opts.camera_speed || r.value == &opts.fov; }
+bool stops_at_ends(const Row& r) { return r.value == &ocr_tunic_r || r.value == &ocr_tunic_g || r.value == &ocr_tunic_b || r.value == &opts.ultrawide || r.value == &opts.mouse_sens || r.value == &opts.rumble || r.value == &opts.gyro_sens_x || r.value == &opts.gyro_sens_y || r.value == &opts.volume || r.value == &opts.camera_speed || r.value == &opts.fov; }
 /// (the ini's Rumble strength on the menu's steps: 0 to 150, the nearest 25)
 int rumble_step(int v) { return (std::min(std::max(v, 0), 150) + 12) / 25 * 25; }
 // (hookshot) A run's environment over a saved row (RX_VK_PACE=1, HOS_OUTPUT_RES=...): for that run only. save() writes the
@@ -2997,6 +3008,11 @@ inline bool cheat_is_toggle(int c) { return c == 0 || c == 1 || c == 7; }
 /// Draws a row's value cell (slider, toggle, choice, or subpage arrow), shared between the full menu and tuning bar
 void row_value_cell(ui::Ctx& c, const Row& r, ImVec2 va, ImVec2 vb, bool selected, float* t0, float* t1) {
     const float s = c.s, mid = (va.y + vb.y) * 0.5f;
+    if (r.value == &ocr_tunic) {
+        c.d->AddRectFilled(ImVec2(va.x + 4*s, va.y + 9*s), ImVec2(va.x + 27*s, vb.y - 9*s),
+            ui::rgba(ocr_tunic_r, ocr_tunic_g, ocr_tunic_b), 3*s);
+        va.x += 32*s;
+    }
     const std::string tool = r.cheat >= 0 ? cheat_value(r.cheat) : "";
     if (r.cheat >= 0 && cheat_is_toggle(r.cheat)) {
         halves_cell(c, va, vb, "Off", "On", tool == "On", selected, false);

@@ -2414,6 +2414,9 @@ def main(a=None):
     staged.append((os.path.join(work, "sa", "image", "image.bin"), os.path.join(out, "image.bin")))
     if launcher:
         staged.append((launcher, os.path.join(out, BESIDE[0])))
+    if not LINUX:
+        import tunic_assets
+        tunic_assets.ship_runtime(ROOT, out)
     for src, dst in staged:
         try:
             if os.path.exists(dst + ".new"):

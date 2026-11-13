@@ -1989,7 +1989,9 @@ static int game_main(int argc, char **argv) {
     memory_notice();
 #endif
     void hos_mods_init(const char *image_path);
-    hos_mods_init(image);   /* mods.c: <exe folder>\mods (RomFS files) */
+    hos_mods_init(image);
+    void ocr_tunic_init(const char *romfs);
+    ocr_tunic_init(hos_romfs_dir);   /* mods.c: <exe folder>\mods (RomFS files) */
 
     Ctx *c = hos_boot_main_thread(hos_main_stack_size);
     uint64_t sp = c->x[31];

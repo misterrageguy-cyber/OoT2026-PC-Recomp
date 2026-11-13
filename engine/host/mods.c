@@ -235,3 +235,17 @@ int hos_mods_dir_extras(const char *rel, const char *base_dir, void (*fn)(void *
     }
     return n;
 }
+
+/* Ocarina Reborn: snapshot the already-resolved mod stack before adding the tunic.
+   UTF-8 paths: the game's Windows manifest selects the UTF-8 active code page. */
+int hos_mods_export_tunic_sources(const char *path) {
+    FILE *f = fopen(path, "wb");
+    if (!f) return 0;
+    for (size_t i = 0; i < table_cap; ++i) {
+        const Entry *e = &table[i];
+        if (e->key && !e->is_dir) fprintf(f, "%s\t%s\n", e->key, e->host);
+    }
+    int ok = !ferror(f);
+    return fclose(f) == 0 && ok;
+}
+int hos_mods_add_tunic(const char *path) { return index_romfs(path, "", 0); }
