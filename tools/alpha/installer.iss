@@ -47,6 +47,9 @@ Source: "{#Stage}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs crea
 ; an update replaces the program files only; player data lives elsewhere
 Type: filesandordirs; Name: "{app}\src"
 Type: filesandordirs; Name: "{app}\launcher"
+; Withdraw old bundled recordings when upgrading; user-imported mods and saves live elsewhere.
+Type: files; Name: "{app}\data\voices\OOT_YoungLink.zip"
+Type: files; Name: "{app}\data\voices\OOT_AdultLink.zip"
 
 [Icons]
 Name: "{group}\Ocarina Reborn"; Filename: "{app}\OcarinaReborn.exe"; IconFilename: "{app}\OcarinaReborn.ico"

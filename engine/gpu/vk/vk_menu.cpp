@@ -3078,18 +3078,12 @@ void draw_options(ui::Ctx& c) {
         hits.add(x, 0, x + tw[i], hh, menu_hit::kTab, i);
         x += tw[i];
     }
-    {   // (Ocarina Reborn) the banner's left: a gold Triforce, OCARINA REBORN, Powered by Sorax under it (no version: the log has it)
+    {   // (Ocarina Reborn) the banner's left: an original circle mark, OCARINA REBORN, Powered by Sorax under it (no version: the log has it)
         const float room = (c.w - total) * 0.5f - 60 * s - c.safe, x0 = c.safe, tri = 30 * s;
         if (room > tri + 40 * s) {
-            const float th = tri * 0.866f, top = ty - th * 0.5f, half = tri * 0.5f;
-            auto triangle = [&](float cx, float y, float side, ImU32 col) {
-                c.d->AddTriangleFilled(ImVec2(cx, y), ImVec2(cx - side * 0.5f, y + side * 0.866f), ImVec2(cx + side * 0.5f, y + side * 0.866f), col);
-            };
-            const ImU32 rim = ui::rgba(122, 84, 10), gold = ui::rgba(244, 196, 48), light = ui::rgba(255, 226, 120);
-            triangle(x0 + half, top + s, half, rim), triangle(x0 + half * 0.5f, top + th * 0.5f + s, half, rim);
-            triangle(x0 + half * 1.5f, top + th * 0.5f + s, half, rim);
-            triangle(x0 + half, top, half, light), triangle(x0 + half * 0.5f, top + th * 0.5f, half, gold);
-            triangle(x0 + half * 1.5f, top + th * 0.5f, half, gold);
+            const ImVec2 centre(x0 + tri * 0.5f, ty);
+            c.d->AddCircle(centre, tri * 0.42f, ui::rgba(114, 215, 234), 24, 2 * s);
+            c.d->AddLine(ImVec2(x0 + tri * 0.25f, ty), ImVec2(x0 + tri * 0.75f, ty), ui::kInkBright, 2 * s);
             const float tx = x0 + tri + 12 * s, text_room = room - tri - 12 * s;
             const auto width = [&](float p) { return ui::size_of(c.f.heading, p, "OCARINA REBORN").x; };
             const float px = ui::fit_px(20 * s, 12 * s, 0.5f * s, text_room, width);

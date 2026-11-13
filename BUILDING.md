@@ -1,3 +1,5 @@
+> **Distribution notice:** Public installer downloads are paused. Previous packages have been withdrawn during a media cleanup. See [DISTRIBUTION.md](DISTRIBUTION.md). Historical installation instructions below do not indicate an available download.
+
 # Building Ocarina Reborn v1.0.5
 
 This checkout contains the actual launcher and patched engine source used by the v1.0.5 installer. It contains no game executable, extracted game filesystem, saves or private signing material. A game build still requires your own supported game file.

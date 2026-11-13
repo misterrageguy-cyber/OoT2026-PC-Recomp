@@ -1,3 +1,5 @@
+> **Distribution notice:** Public installer downloads are paused. Previous packages have been withdrawn during a media cleanup. See [DISTRIBUTION.md](DISTRIBUTION.md). Historical installation instructions below do not indicate an available download.
+
 # Publishing and maintenance
 
 The website is static HTML and CSS. It requires no build step, dependencies, analytics service, or API keys.

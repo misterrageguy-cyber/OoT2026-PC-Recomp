@@ -30,3 +30,14 @@ license.dat
 **/licensing-server/database/
 **/licensing-server/licenses/
 config.local.*
+
+# Never distribute private game/voice inputs or withdrawn launcher media.
+**/voices/*.zip
+**/music.wav
+**/music.mp3
+**/fairy.bin
+*.nup
+*.nsp
+*.xci
+prod.keys
+title.keys

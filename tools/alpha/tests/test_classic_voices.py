@@ -92,6 +92,8 @@ class ClassicVoices(unittest.TestCase):
     def test_independent_switches_and_stale_source_detection(self):
         with tempfile.TemporaryDirectory() as tmp:
             game = Path(tmp)
+            pack = game / 'own-voice.zip'
+            pack.write_bytes(b'synthetic test data')
             original = game / 'romfs/Sound/Resource/Player_Child.bars.zs'
             original.parent.mkdir(parents=True)
             original.write_bytes(b'original')
@@ -116,42 +118,37 @@ class ClassicVoices(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'prepare'):
                 cv.set_enabled(tmp, 'child', True)
 
-    def test_both_bundled_packs_are_complete_and_for_the_right_age(self):
-        for age in cv.AGES:
-            pack = cv.PACKS / ('OOT_' + cv.AGES[age][1] + '.zip')
-            clips = cv.read_pack(pack, age)
-            self.assertIn('Hurt3', clips)
-            self.assertIn('Attack4', clips)
-
     def test_selection_prepares_without_download_and_reuses_current_bank(self):
         with tempfile.TemporaryDirectory() as tmp:
             game = Path(tmp)
+            pack = game / 'own-voice.zip'
+            pack.write_bytes(b'synthetic test data')
             original = game / 'romfs/Sound/Resource/Player_Child.bars.zs'
             original.parent.mkdir(parents=True)
             original.write_bytes(b'original')
             with patch.object(cv, 'import_pack', return_value=3) as convert:
-                self.assertEqual(cv.prepare(game, 'child'), 3)
-                convert.assert_called_once_with(game, 'child', cv.PACKS / 'OOT_YoungLink.zip')
+                self.assertEqual(cv.prepare(game, 'child', pack), 3)
+                convert.assert_called_once_with(game, 'child', pack)
             _, off = cv.paths(game, 'child')
             off.mkdir(parents=True)
             (off / cv.MARKER).write_text(json.dumps(dict(format=cv.FORMAT, age='child', mapping={'a': 'b'},
                 bank='Sound/Resource/Player_Child.bars.zs',
                 original_sha256=cv.hashlib.sha256(b'original').hexdigest(),
-                pack_sha256=cv.hashlib.sha256((cv.PACKS / 'OOT_YoungLink.zip').read_bytes()).hexdigest())))
+                pack_sha256=cv.hashlib.sha256((pack).read_bytes()).hexdigest())))
             with patch.object(cv, 'import_pack', return_value=2) as convert:
-                self.assertEqual(cv.prepare(game, 'child'), 1)
+                self.assertEqual(cv.prepare(game, 'child', pack), 1)
                 convert.assert_not_called()
                 cv.set_enabled(game, 'child', True)
-                self.assertEqual(cv.prepare(game, 'child'), 1)
+                self.assertEqual(cv.prepare(game, 'child', pack), 1)
                 convert.assert_not_called()
                 original.write_bytes(b'updated')
-                self.assertEqual(cv.prepare(game, 'child'), 2)
+                self.assertEqual(cv.prepare(game, 'child', pack), 2)
                 convert.assert_called_once()
 
-    def test_missing_bundle_fails_without_enabling_or_touching_the_game(self):
-        with tempfile.TemporaryDirectory() as tmp, patch.object(cv, 'PACKS', Path(tmp) / 'absent'):
-            with self.assertRaisesRegex(ValueError, 'repair'):
-                cv.prepare(Path(tmp) / 'game', 'adult')
+    def test_missing_user_file_fails_without_touching_the_game(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ValueError, 'own voice ZIP'):
+                cv.prepare(Path(tmp) / 'game', 'adult', Path(tmp) / 'missing.zip')
             self.assertEqual(list(Path(tmp).iterdir()), [])
 
     def test_malformed_bank_is_rejected(self):

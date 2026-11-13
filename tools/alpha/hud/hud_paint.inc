@@ -1,4 +1,4 @@
-// ---- (Ocarina Reborn) the HUD's look: a dark navy panel with a glowing cyan frame, a golden Triforce and the title in the
+// ---- (Ocarina Reborn) the HUD's look: a dark navy panel with a glowing cyan frame, a golden project mark and the title in the
 // header, RESUME and X at its right (the options page; both close the HUD, nothing else), "Powered by Sorax" under the title.
 // Drawn with fill() only (no GDI paths), at the menu's own scale s, so it is as sharp at 4K as at 720p ----
 int hud_hover = -1;   // the header button under the cursor: 0 RESUME, 1 X, -1 none (menu_tick)
@@ -28,16 +28,14 @@ void arrow(HDC dc, int cx, int y, bool up, int s) {
         fill(dc, cx - half - s / 2, y + r * s, 2 * half + s, s, RGB(0, 229, 255));
     }
 }
-/// the Triforce: three triangles, size wide, its top at (x + size / 2, y); a darker rim under it for depth
-void triforce(HDC dc, int x, int y, int size, int s) {
-    const int half = size / 2, th = half * 866 / 1000;
-    const COLORREF rim = RGB(120, 84, 10), gold = RGB(244, 196, 48), light = RGB(255, 226, 120);
-    triangle(dc, x + half, y + s, half, rim);
-    triangle(dc, x + half / 2, y + th + s, half, rim);
-    triangle(dc, x + half + half / 2, y + th + s, half, rim);
-    triangle(dc, x + half, y, half, light);
-    triangle(dc, x + half / 2, y + th, half, gold);
-    triangle(dc, x + half + half / 2, y + th, half, gold);
+/// the project mark: three triangles, size wide, its top at (x + size / 2, y); a darker rim under it for depth
+void project_mark(HDC dc, int x, int y, int size, int s) {
+    HPEN pen = CreatePen(PS_SOLID, 2 * s, RGB(114, 215, 234));
+    HGDIOBJ oldpen = SelectObject(dc, pen), oldbrush = SelectObject(dc, GetStockObject(HOLLOW_BRUSH));
+    Ellipse(dc, x, y, x + size, y + size);
+    MoveToEx(dc, x + size / 4, y + size / 2, nullptr);
+    LineTo(dc, x + size * 3 / 4, y + size / 2);
+    SelectObject(dc, oldbrush); SelectObject(dc, oldpen); DeleteObject(pen);
 }
 /// the glowing frame: bright cyan at the edge, fading into the navy over 4 lines (times s)
 void frame(HDC dc, int w, int h, int s) {
@@ -50,11 +48,11 @@ void frame(HDC dc, int w, int h, int s) {
         fill(dc, w - o - s, o, s, h - 2 * o, ring[i]);
     }
 }
-/// the header: the Triforce, the title, "Powered by Sorax" under it; RESUME and X when buttons
+/// the header: the project mark, the title, "Powered by Sorax" under it; RESUME and X when buttons
 void header(HDC dc, int w, int s, const char* title, bool buttons) {
     fill(dc, 0, 0, w, 44 * s, RGB(10, 22, 52));                        // (a shade lighter than the panel)
     fill(dc, 12 * s, 43 * s, w - 24 * s, std::max(1, s), RGB(0, 150, 220));   // (a cyan rule under it)
-    triforce(dc, 16 * s, 10 * s, 26 * s, s);
+    project_mark(dc, 16 * s, 10 * s, 26 * s, s);
     HFONT big = font(18 * s, FW_BOLD), small = font(11 * s, FW_SEMIBOLD);
     HGDIOBJ old = SelectObject(dc, big);
     SetTextColor(dc, RGB(236, 242, 255));

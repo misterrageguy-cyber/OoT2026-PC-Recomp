@@ -1,4 +1,4 @@
-"""Prepare the bundled classic Link voices against the player's local game files.
+"""Import the player's own voice ZIP against their local game files.
 
 Only the named gameplay whitelist below is changed. Original RomFS stays read-only;
 each age is an ordinary, independently switchable RomFS mod. BARS/AMTA metadata and
@@ -23,7 +23,6 @@ AGES = {'child': ('Child', 'YoungLink', 'Young Link'), 'adult': ('Adult', 'Adult
 KEYS = tuple('classic_voice_' + age for age in AGES)
 MARKER = 'classic-voices.json'
 FORMAT = 1
-PACKS = Path(__file__).resolve().parent.parent / 'data' / 'voices'
 # Fixed, stable second-order predictors; each 14-sample frame selects its best fit.
 COEFS = ((0, 0), (2048, 0), (3072, -1024), (3584, -1536),
          (3840, -1792), (4096, -2048), (1024, 0), (1024, 1024))
@@ -258,11 +257,11 @@ def validate_active(game):
                 raise ValueError('Game audio changed. Select Default, then Classic (N64) again for ' + AGES[age][2] + '.')
 
 
-def prepare(game, age):
+def prepare(game, age, zip_path):
     """Prepare once on selection; reuse a matching bank on subsequent selections."""
-    pack = PACKS / ('OOT_' + AGES[age][1] + '.zip')
+    pack = Path(zip_path)
     if not pack.is_file():
-        raise ValueError('The classic voice pack is missing. Please repair the Ocarina Reborn installation.')
+        raise ValueError('Select your own voice ZIP. Voice recordings are not included or downloaded.')
     current = status(game, age)
     if current['installed']:
         path = paths(game, age)[0 if current['enabled'] else 1]

@@ -1,3 +1,5 @@
+> **Distribution notice:** Public installer downloads are paused. Previous packages have been withdrawn during a media cleanup. See [DISTRIBUTION.md](DISTRIBUTION.md). Historical installation instructions below do not indicate an available download.
+
 # Ocarina Reborn
 
 This repository contains the **Ocarina Reborn launcher, patched engine and build scripts**, and hosts installer releases for RecompStore. The website is [ocarina-pc-native-build.github.io](https://ocarina-pc-native-build.github.io/).

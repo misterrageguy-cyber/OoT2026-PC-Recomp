@@ -2,7 +2,7 @@
 
 The menu keeps the engine's layout and behaviour; what the player sees is Ocarina Reborn's: night navy panels, a glowing cyan
 edge, blue tabs and selection, white text, gold for the chosen value; the banner's left says OCARINA REBORN beside a gold
-Triforce, "Powered by Sorax" under it, and no version; the start-up screen shows the Ocarina Reborn logo on navy, no wordmark,
+project mark, "Powered by Sorax" under it, and no version; the start-up screen shows the Ocarina Reborn logo on navy, no wordmark,
 no version. HDR is the engine's own (vk_imgui.cpp converts the overlays for HDR10).
 """
 import re
@@ -30,18 +30,12 @@ COLOURS = {
     (14, 10, 6): (5, 10, 26), (46, 33, 18, 4): (0, 110, 255, 4), (72, 255, 110): (90, 190, 255),
 }
 
-TRIFORCE_TITLE = '''    {   // (Ocarina Reborn) the banner's left: a gold Triforce, OCARINA REBORN, Powered by Sorax under it (no version: the log has it)
+PROJECT_TITLE = '''    {   // (Ocarina Reborn) the banner's left: an original circle mark, OCARINA REBORN, Powered by Sorax under it (no version: the log has it)
         const float room = (c.w - total) * 0.5f - 60 * s - c.safe, x0 = c.safe, tri = 30 * s;
         if (room > tri + 40 * s) {
-            const float th = tri * 0.866f, top = ty - th * 0.5f, half = tri * 0.5f;
-            auto triangle = [&](float cx, float y, float side, ImU32 col) {
-                c.d->AddTriangleFilled(ImVec2(cx, y), ImVec2(cx - side * 0.5f, y + side * 0.866f), ImVec2(cx + side * 0.5f, y + side * 0.866f), col);
-            };
-            const ImU32 rim = ui::rgba(122, 84, 10), gold = ui::rgba(244, 196, 48), light = ui::rgba(255, 226, 120);
-            triangle(x0 + half, top + s, half, rim), triangle(x0 + half * 0.5f, top + th * 0.5f + s, half, rim);
-            triangle(x0 + half * 1.5f, top + th * 0.5f + s, half, rim);
-            triangle(x0 + half, top, half, light), triangle(x0 + half * 0.5f, top + th * 0.5f, half, gold);
-            triangle(x0 + half * 1.5f, top + th * 0.5f, half, gold);
+            const ImVec2 centre(x0 + tri * 0.5f, ty);
+            c.d->AddCircle(centre, tri * 0.42f, ui::rgba(114, 215, 234), 24, 2 * s);
+            c.d->AddLine(ImVec2(x0 + tri * 0.25f, ty), ImVec2(x0 + tri * 0.75f, ty), ui::kInkBright, 2 * s);
             const float tx = x0 + tri + 12 * s, text_room = room - tri - 12 * s;
             const auto width = [&](float p) { return ui::size_of(c.f.heading, p, "OCARINA REBORN").x; };
             const float px = ui::fit_px(20 * s, 12 * s, 0.5f * s, text_room, width);
@@ -93,8 +87,8 @@ def swap(t, old, new, what, regex=False):
 
 
 def patch_menu(t):
-    # the banner's left: the build's version -> the Triforce and the name
-    t = swap(t, r'    \{   // \(which build, at the banner\'s left.*?\n    \}\n(?=    // the rows, in the column)', TRIFORCE_TITLE,
+    # the banner's left: the build's version -> the project mark and the name
+    t = swap(t, r'    \{   // \(which build, at the banner\'s left.*?\n    \}\n(?=    // the rows, in the column)', PROJECT_TITLE,
              'the version at the banner\'s left', regex=True)
     # (the tab keys' caps: dark, as the banner's ink is light now)
     t = swap(t, 'hover ? ui::kTabInset : ui::kBannerInk, 3 * s);', 'hover ? ui::kTabInset : ui::kCellDark, 3 * s);', 'the tab key caps')

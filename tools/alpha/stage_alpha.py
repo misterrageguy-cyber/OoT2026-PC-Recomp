@@ -779,6 +779,16 @@ def main():
     a = ap.parse_args()
     W, O = a.work.resolve(), a.out.resolve()
     O.mkdir(parents=True, exist_ok=True)
+    # Old output directories can retain files that copytree no longer supplies.
+    for rel in ('data/voices/OOT_YoungLink.zip', 'data/voices/OOT_AdultLink.zip',
+                'launcher/assets/music.wav', 'launcher/assets/music.mp3', 'launcher/assets/fairy.bin',
+                'engine/docs/images/linux-builder-newer-game.png',
+                'engine/docs/images/setup-runtime-incomplete.png',
+                'engine/docs/images/windows-portable-folders.png'):
+        stale = (O / rel).resolve()
+        if not stale.is_relative_to(O):
+            raise SystemExit('Output path escaped the stage')
+        stale.unlink(missing_ok=True)
     base = Path(sys.base_prefix)
     copy(base, O / 'python', shutil.ignore_patterns('site-packages', '__pycache__', 'test', 'Doc', 'Scripts',
                                                      'Tools', 'idlelib', 'turtledemo', 'include', 'libs'))
@@ -832,6 +842,12 @@ def main():
            and GENERATED_MARKER.encode() in p.read_bytes()]
     if bad:
         raise SystemExit(f'game-derived files in the stage: {bad[:5]}')
+    from distribution_guard import check as check_distribution
+    media = json.loads((A / 'MEDIA-PROVENANCE.json').read_text(encoding='utf-8'))
+    for rel in media['files']:
+        if rel.startswith('engine/') and (O / rel).parent.is_dir():
+            shutil.copy2(ROOT / rel, O / rel)
+    check_distribution(O)
     print('staged', O)
 
 

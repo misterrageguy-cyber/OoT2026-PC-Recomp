@@ -447,7 +447,6 @@ class App(tk.Tk):
         self.fairy = None
         self.float_ctl = None
         self.step = 'files'
-        self.after(600, self.start_fairy)
         self.update_info = None
         self.news = None
         threading.Thread(target=self.check_update, daemon=True).start()
@@ -1694,13 +1693,18 @@ class App(tk.Tk):
     def prepare_classic_voice(self, age, tab):
         if self.busy:
             return
+        pack = filedialog.askopenfilename(
+            title=T('Eigene Stimmen-ZIP auswählen', 'Select your own voice ZIP'),
+            filetypes=[('Voice ZIP', '*.zip')])
+        if not pack:
+            return
         game = Path(self.cfg['game_dir'])
         self.busy = True
         result = queue.Queue()
 
         def work():
             try:
-                count = classic_voices.prepare(game, age)
+                count = classic_voices.prepare(game, age, pack)
                 result.put((count, None))
             except Exception as e:
                 result.put((0, str(e)))
@@ -1725,7 +1729,7 @@ class App(tk.Tk):
         def body(ctx, top):
             x, w = self.content(ctx)
             self.heading(ctx, x, top + 34 * ctx.s, T('Klassische Stimmen', 'Classic voices'),
-                         T('Die mitgelieferte Stimme wird vorbereitet. Beim ersten Mal kann das etwa eine Minute dauern …',
+                         T('Deine Stimmen-Datei wird vorbereitet. Beim ersten Mal kann das etwa eine Minute dauern …',
                            'Preparing the included voice. The first time can take about a minute …'), icon='settings', w=w)
         self.show('play', body)
         threading.Thread(target=work, daemon=True).start()
@@ -2006,8 +2010,8 @@ class App(tk.Tk):
                            icon='download', size=17, r=12)
             if tab < len(game_settings.SECTIONS) and game_settings.SECTIONS[tab][1] == 'Audio':
                 ctx.text(x + 30 * s, gy + gh - 38 * s,
-                         T('N64-Stimmen sind enthalten. Pro Link auswählen, speichern und das Spiel neu starten.',
-                           'N64 voices are included. Choose for each Link, save and restart the game.'),
+                         T('Eigene Stimmen-ZIP importieren, speichern und das Spiel neu starten. Keine Aufnahmen enthalten.',
+                           'Import your own voice ZIP, save and restart the game. No recordings are included.'),
                          17, 'regular', ui.SUB, anchor='w', width=w - 60 * s)
             ctx.panel(x, hpy, w, hph, r=14, fill=ui.CELL, alpha=0.9, border=ui.LINE)
             ctx.icon(x + 34 * s, hpy + hph / 2, 'info', 24, ui.ACCENT_HI)
