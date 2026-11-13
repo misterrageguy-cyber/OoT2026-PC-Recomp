@@ -2,6 +2,8 @@
 
 This repository contains the **Ocarina Reborn launcher, patched engine and build scripts**, and hosts installer releases for RecompStore. The website is [ocarina-pc-native-build.github.io](https://ocarina-pc-native-build.github.io/).
 
+**Built on [Hookshot](https://github.com/NotRexed/Hookshot) by NotRexed and its contributors.** Hookshot provides the recompilation engine, Vulkan renderer and game-build pipeline. Ocarina Reborn adds its own launcher, installer and project-specific changes. [Source & credits](CREDITS.md) · [Hookshot license](LICENSE-HOOKSHOT)
+
 A native Windows x64 version of **The Legend of Zelda: Ocarina of Time (Switch 2)**, built on your PC from your own `.nup` game file.
 
 **Current release: v1.0.3 · November 13, 2026**
@@ -10,7 +12,7 @@ A native Windows x64 version of **The Legend of Zelda: Ocarina of Time (Switch 2
 
 ## Source code
 
-The actual **v1.0.3 source** is here: [engine](engine/), [launcher](tools/alpha/launcher/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md).
+The actual **v1.0.3 source** is here: [engine and renderer](engine/), [Hookshot game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The upstream [Hookshot Builder source](engine/builder/) is also retained; our distributed launcher is the Ocarina Reborn launcher linked above.
 
 `engine/` contains the already-patched sources used by the released installer, including the classic counters fix. The launcher includes automatic classic-voice preparation. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.0.3 source archives contain this project source; the website lives in its separate repository.
 
@@ -53,7 +55,9 @@ For help or bug reports, join the [Discord](https://discord.gg/vDPAcc6JnY). Incl
 
 ## Project and credits
 
-Ocarina Reborn combines its own launcher, installer, settings and interface customizations with the [Hookshot v2.2.0-rc.1 engine](https://github.com/NotRexed/Hookshot/tree/v2.2.0-rc.1), licensed under GPL-3.0. The engine's copyright and license notices are retained in the distribution.
+The released engine is based on [Hookshot v2.2.0-rc.1](https://github.com/NotRexed/Hookshot/tree/v2.2.0-rc.1), by **NotRexed and the Hookshot contributors**, under **GPL-3.0-or-later**. The original copyright, license and third-party notices are retained. Our changes are published alongside the engine. Ocarina Reborn is independently maintained and is not an official Hookshot release.
+
+See [Source & credits](CREDITS.md) for the component links, upstream acknowledgements and license scope. Thanks to the Hookshot team and the projects it builds on for making this work possible.
 
 This repository hosts the project source, build instructions and installer releases. Its Pages entry redirects to the main project website.
 

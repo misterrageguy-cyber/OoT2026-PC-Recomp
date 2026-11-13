@@ -47,6 +47,8 @@ def stage(runtime, output):
         shutil.copytree(runtime / 'amd-fsr4', output / 'amd-fsr4')
     shutil.copy2(ROOT / 'tools/alpha/ocarina_prepare.py', output / 'ocarina_prepare.py')
     shutil.copy2(ROOT / 'tools/alpha/OcarinaReborn.ico', output / 'OcarinaReborn.ico')
+    for name in ('CREDITS.md', 'LICENSE-HOOKSHOT'):
+        shutil.copy2(ROOT / name, output / name)
     info = json.loads((ROOT / 'build-info.json').read_text())
     info.update(version=version, commit='source-v' + version,
                 stamp=datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
