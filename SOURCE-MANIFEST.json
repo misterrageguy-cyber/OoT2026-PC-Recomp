@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6",
-  "installer_stamp": "20261114-002952",
+  "version": "1.0.7",
+  "installer_stamp": "20261114-021248",
   "engine_base": "v2.2.0-rc.1",
   "engine_source_sha256": {
     "engine/.gitattributes": "e5f3ddcef39226a920751f1f54d040b0a2fadecf2dfd423d4652c5840c23a7bc",
@@ -2128,9 +2128,8 @@
     "engine/wgpu-native/wgpu-native-meta/webgpu.yml": "7c6a591979e7241c6f72a42a60205096522a147de472d769d48067b29c75c1d3",
     "engine/wgpu-native/wgpu-native-meta/wgpu-native-git-tag": "390263a8ff03ba3577a2d161b36b5bceb3efa9b668b9dd8aa225aa308aefd03a"
   },
-  "notes": "Reviewed media and public engine source for v1.0.6. No game data or translated game code included.",
-  "distribution_status": "media-cleaned release 1.0.6",
-  "installer_sha256": "696e91ba8b7ac77302b2af9dc64601a512df6d0f47112c5dbb2b564e01816775",
+  "notes": "Public engine source for v1.0.7; restored project presentation is documented in MEDIA-PROVENANCE.json. No game data, translated game code or bundled voice recordings included.",
+  "distribution_status": "release 1.0.7 with restored project presentation; no bundled recordings",
   "git_normalized_source_sha256": {
     "engine/NOTICE-OCARINA-REBORN.txt": "8ccd3264dcf240e0da46bd63e2bec7e79e501f4bd675740b9341fd1627c5a86e",
     "engine/docs/development.md": "d366686620231ffcad579227957b0c95464c313d55baf51434659beb5a3f53a7",
@@ -2143,5 +2142,5 @@
     "engine/wgpu-native/include/webgpu/wgpu.h": "7bd23656d394f620a804b1f174444ea17082b6d330a2fca0c0e6b1121ec4b284",
     "engine/wgpu-native/wgpu-native-meta/webgpu.yml": "f9e2ef6f1b5f91ad1c077c15c6fba5f55e6f52935af2adef40bc5597b06bb5ca"
   },
-  "unreleased_changes": "Launcher Ocarina/Navi artwork and matching game startup logo restored after v1.0.6. Version/stamp describe the unchanged public base release; these visual changes are not yet in its installer."
+  "installer_sha256": "707a72869afa3bfc1b75a03b3f71888f08c06ee0acd20d580490a9c7c1213d5f"
 }

@@ -6,15 +6,15 @@ This repository contains the **Ocarina Reborn launcher, patched engine and build
 
 A native Windows x64 version of **The Legend of Zelda: Ocarina of Time (Switch 2)**, built on your PC from your own `.nup` game file.
 
-**Current release: v1.0.6 · November 14, 2026**
+**Current release: v1.0.7 · November 14, 2026**
 
 [Download the latest release](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/latest) · [Website](https://ocarina-pc-native-build.github.io/) · [Discord](https://discord.gg/vDPAcc6JnY)
 
 ## Source code
 
-The actual **v1.0.6 source** is here: [engine and renderer](engine/), [Hookshot game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The upstream [Hookshot Builder source](engine/builder/) is also retained; our distributed launcher is the Ocarina Reborn launcher linked above.
+The actual **v1.0.7 source** is here: [engine and renderer](engine/), [Hookshot game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The upstream [Hookshot Builder source](engine/builder/) is also retained; our distributed launcher is the Ocarina Reborn launcher linked above.
 
-`engine/` contains the already-patched sources used by the released installer, including custom tunic colors and the classic counters fix. Classic-voice preparation imports a user-selected ZIP; recordings are not bundled. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.0.6 source archives contain this project source; the website lives in its separate repository.
+`engine/` contains the already-patched sources used by the released installer, including custom tunic colors and the classic counters fix. Classic-voice preparation imports a user-selected ZIP; recordings are not bundled. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.0.7 source archives contain this project source; the website lives in its separate repository.
 
 ## Get started
 
@@ -36,17 +36,15 @@ You need Windows x64, a Vulkan-capable graphics card and your own supported game
 
 NVIDIA's DLSS files are downloaded separately through the launcher after accepting NVIDIA's license.
 
-## What's new in v1.0.6
+## What's new in v1.0.7
 
-- Launcher updates resume with original project graphics and no bundled recordings or launcher music.
-- Audio stop/reset and playback-status fixes; the reported boss/ocarina music case still needs confirmation.
-- Loading-memory safeguards, integrated-GPU texture limits and improved crash/GPU diagnostics.
-- Experimental read-only import of your own amiibo .bin files in the launcher and F1 menu; no tag files or keys included.
-- Discord link removed from the F1 menu.
+- Restored Ocarina launcher artwork and animated Navi.
+- Restored the previous build-screen artwork and shader/pipeline loading logo.
+- Updated the website preview image and simplified its title to **Ocarina Reborn**.
 
-Update over the existing installation and let the launcher update the game components. Saves and settings stay; an existing working installation does not need uninstalling or game-file reimport.
+Update over the existing installation and let the launcher update the game components. Saves, settings and local voice mods stay; no uninstall or game-file reimport is required. No voice recordings or launcher music are bundled.
 
-[Full release notes and SHA-256](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/tag/v1.0.6) · [All releases](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases)
+[Full release notes and SHA-256](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/tag/v1.0.7) · [All releases](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases)
 
 ## Feedback and troubleshooting
 
