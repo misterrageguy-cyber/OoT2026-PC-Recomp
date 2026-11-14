@@ -2,7 +2,7 @@
   "origin": "Mixed project artwork: generated geometric graphics remain outside the restored launcher files listed below. Launcher Ocarina graphics and Navi animation were restored from a pre-cleanup local backup at the user's request on 2026-11-14. Original authorship and redistribution permission for the restored media remain unverified; recorded hashes are not a rights assessment.",
   "files": {
     "OcarinaReborn.ico": "da82281ceb385d082c1c9d476e4c5df5e1606d5129362cbbd69f210665e664cd",
-    "engine/assets/ocarina_reborn.png": "3eef7c915f69330cad3a29f17c25c822ead716ff7e396f626574acf6d5706f19",
+    "engine/assets/ocarina_reborn.png": "938a139e0dcb826927dc6335157bc64fd225e7080c5a18e82ecd044294b38bb5",
     "engine/builder/HookshotBuilder/Images/ocarina_reborn.png": "1ac441c8fae91c91d5d75dbd9b1aa1ac5cca350d50015ebe889dc06ac59c4b71",
     "engine/builder/py/hookshot_builder/assets/ocarina_reborn.ico": "e57087f24d0387111528adb89bf76fe61ff44df530663e17682cc8256c2af918",
     "engine/builder/py/hookshot_builder/assets/ocarina_reborn.png": "1ac441c8fae91c91d5d75dbd9b1aa1ac5cca350d50015ebe889dc06ac59c4b71",
@@ -37,11 +37,11 @@
     "tools/alpha/launcher/assets/ocarina-80.png": "24b1ae8767608340d75c1688a3a26532d38bffc4e8ffc0b02131d69f03887ccd",
     "tools/alpha/launcher/assets/ocarina-96.png": "e4b1a1369612aea3d8865179e935870acf176442202a72f6079c1d5346dde3d5",
     "tools/alpha/ocarina-icon.png": "1ac441c8fae91c91d5d75dbd9b1aa1ac5cca350d50015ebe889dc06ac59c4b71",
-    "tools/alpha/startup-logo.png": "3eef7c915f69330cad3a29f17c25c822ead716ff7e396f626574acf6d5706f19"
+    "tools/alpha/startup-logo.png": "938a139e0dcb826927dc6335157bc64fd225e7080c5a18e82ecd044294b38bb5"
   },
   "restored_launcher_media": {
-    "source": "Local authoring-before backup of tools/alpha/launcher/assets and tools/alpha/OcarinaReborn.ico; exact original files, no image modifications.",
-    "request": "2026-11-14: restore Ocarina and Navi in the launcher.",
+    "source": "Local authoring-before backup of tools/alpha/launcher/assets and tools/alpha/OcarinaReborn.ico; exact original files, no image modifications. Startup logo also copied unchanged from authoring-before/tools/alpha/startup-logo.png.",
+    "request": "2026-11-14: restore Ocarina and Navi in the launcher. Follow-up: restore the matching old Ocarina image on the game shader/pipeline loading screen as well.",
     "rights_status": "Original authorship and redistribution permission not established.",
     "files": {
       "OcarinaReborn.ico": "da82281ceb385d082c1c9d476e4c5df5e1606d5129362cbbd69f210665e664cd",
@@ -64,7 +64,9 @@
       "tools/alpha/launcher/assets/ocarina-64.png": "aa9a97b2cbfd666d5859e159fa6c765e9c8c8e23f2dde5d6e7ca116e3d022d08",
       "tools/alpha/launcher/assets/ocarina-72.png": "18ce37e82bf971f7b50098bea1e4c17b8c098a3da86350adf41036bce7d2a4d8",
       "tools/alpha/launcher/assets/ocarina-80.png": "24b1ae8767608340d75c1688a3a26532d38bffc4e8ffc0b02131d69f03887ccd",
-      "tools/alpha/launcher/assets/ocarina-96.png": "e4b1a1369612aea3d8865179e935870acf176442202a72f6079c1d5346dde3d5"
+      "tools/alpha/launcher/assets/ocarina-96.png": "e4b1a1369612aea3d8865179e935870acf176442202a72f6079c1d5346dde3d5",
+      "tools/alpha/startup-logo.png": "938a139e0dcb826927dc6335157bc64fd225e7080c5a18e82ecd044294b38bb5",
+      "engine/assets/ocarina_reborn.png": "938a139e0dcb826927dc6335157bc64fd225e7080c5a18e82ecd044294b38bb5"
     }
   }
 }

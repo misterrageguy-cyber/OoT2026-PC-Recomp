@@ -6,7 +6,7 @@
     "engine/.gitattributes": "e5f3ddcef39226a920751f1f54d040b0a2fadecf2dfd423d4652c5840c23a7bc",
     "engine/.gitignore": "10b6463acece47a27e16c5e22b89e3801a609beea6f25e971348ff714a45f7fa",
     "engine/.release-please-manifest.json": "6a358fa0b39055f0d8db9249efb694b5573fbc85e7f45c979905ed8cd49a8c9e",
-    "engine/assets/ocarina_reborn.png": "3eef7c915f69330cad3a29f17c25c822ead716ff7e396f626574acf6d5706f19",
+    "engine/assets/ocarina_reborn.png": "938a139e0dcb826927dc6335157bc64fd225e7080c5a18e82ecd044294b38bb5",
     "engine/assets/pipeline_states/contrib/brett-d-rtx-5090-fork-fg-2x.bin.xz": "51eee444f189c2e8ce7b419af75f03cf4cf49150101003428abd0db644378208",
     "engine/assets/pipeline_states/contrib/brett-d-rtx-5090-fork-fg-2x.md": "3cc085c6ade2fc9c8a1ebd5e778e531b61989957f4e8ab06936218b6101b2c4c",
     "engine/assets/pipeline_states/contrib/brett-d-rtx-5090-main-1152p-fg.bin.xz": "67fa0d9cb6b0087dd05a59246263a2a3eca6ac141c6ab3285c6f638ff68cc8c4",
@@ -2142,5 +2142,6 @@
     "engine/wgpu-native/include/webgpu/webgpu.h": "a483031c3fed05ea5dd1c74082a71676c46c5b2b820ccca10da515c033efc997",
     "engine/wgpu-native/include/webgpu/wgpu.h": "7bd23656d394f620a804b1f174444ea17082b6d330a2fca0c0e6b1121ec4b284",
     "engine/wgpu-native/wgpu-native-meta/webgpu.yml": "f9e2ef6f1b5f91ad1c077c15c6fba5f55e6f52935af2adef40bc5597b06bb5ca"
-  }
+  },
+  "unreleased_changes": "Launcher Ocarina/Navi artwork and matching game startup logo restored after v1.0.6. Version/stamp describe the unchanged public base release; these visual changes are not yet in its installer."
 }
