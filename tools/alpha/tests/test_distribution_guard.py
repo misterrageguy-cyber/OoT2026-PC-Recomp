@@ -1,4 +1,5 @@
 import hashlib
+import struct
 import sys
 import tempfile
 import unittest
@@ -8,6 +9,35 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import distribution_guard as guard
 
 class DistributionGuard(unittest.TestCase):
+    def test_recorded_fairy_is_allowed_only_at_launcher_paths(self):
+        raw = b'FAIRY1' + struct.pack('<HHH', 16, 1, 33) + bytes(16 * 16 * 4 * 2)
+        manifest = {'files': {}, 'restored_launcher_media': {'files': {
+            guard.FAIRY_SOURCE: hashlib.sha256(raw).hexdigest()}}}
+        for rel in (guard.FAIRY_SOURCE, 'launcher/assets/fairy.bin'):
+            with self.subTest(rel=rel), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                p = root / rel
+                p.parent.mkdir(parents=True)
+                p.write_bytes(raw)
+                self.assertEqual(guard.problems(root, manifest), [])
+                p.write_bytes(raw[:-1] + b'X')
+                self.assertEqual(len(guard.problems(root, manifest)), 1)
+                p.write_bytes(raw)
+                (root / 'fairy.bin').write_bytes(raw)
+                self.assertEqual(len(guard.problems(root, manifest)), 1)
+                self.assertEqual(len(guard.problems(root, {'files': manifest['restored_launcher_media']['files']})), 2)
+
+    def test_recorded_fairy_must_be_a_complete_animation(self):
+        for raw in (b'not animation', b'FAIRY1' + struct.pack('<HHH', 16, 1, 33)):
+            with self.subTest(raw=raw), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                p = root / guard.FAIRY_SOURCE
+                p.parent.mkdir(parents=True)
+                p.write_bytes(raw)
+                manifest = {'files': {}, 'restored_launcher_media': {'files': {
+                    guard.FAIRY_SOURCE: hashlib.sha256(raw).hexdigest()}}}
+                self.assertEqual(len(guard.problems(root, manifest)), 1)
+
     def test_old_animations_and_unreviewed_project_videos_are_blocked(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp)

@@ -1,8 +1,9 @@
-"""Fail packaging on game payloads, bundled recordings, or unverified project art."""
+"""Check packaging for listed payloads and unrecorded media; not a rights assessment."""
 from pathlib import Path
 import argparse
 import hashlib
 import json
+import struct
 import zipfile
 
 FORBIDDEN_NAMES = {'oot_younglink.zip', 'oot_adultlink.zip', 'music.wav', 'music.mp3', 'fairy.bin', 'fairy.gif',
@@ -10,6 +11,22 @@ FORBIDDEN_NAMES = {'oot_younglink.zip', 'oot_adultlink.zip', 'music.wav', 'music
 GAME_SUFFIXES = {'.nup', '.nsp', '.xci', '.nca', '.nso', '.rom', '.z64', '.n64', '.v64', '.bwav', '.bars', '.bfwav'}
 MEDIA_SUFFIXES = {'.png', '.jpg', '.jpeg', '.webp', '.ico', '.raw', '.wav', '.mp3', '.ogg',
                   '.gif', '.mp4', '.webm', '.flac', '.aac', '.m4a', '.avi'}
+
+FAIRY_SOURCE = 'tools/alpha/launcher/assets/fairy.bin'
+
+def recorded_launcher_fairy(path, rel, manifest):
+    """Only the explicitly recorded launcher animation may use the fairy.bin name."""
+    if rel not in (FAIRY_SOURCE, 'launcher/assets/fairy.bin'):
+        return False
+    expected = manifest.get('restored_launcher_media', {}).get('files', {}).get(FAIRY_SOURCE)
+    if not expected or path.stat().st_size > 16 * 1024 * 1024:
+        return False
+    raw = path.read_bytes()
+    if len(raw) < 12 or raw[:6] != b'FAIRY1' or hashlib.sha256(raw).hexdigest() != expected:
+        return False
+    size, frames, ms = struct.unpack_from('<HHH', raw, 6)
+    return (0 < size <= 256 and 0 < frames <= 120 and ms > 0
+            and len(raw) == 12 + 2 * frames * size * size * 4)
 
 def problems(root, manifest):
     root = Path(root)
@@ -19,6 +36,8 @@ def problems(root, manifest):
         if not path.is_file() or '.git' in path.relative_to(root).parts or '__pycache__' in path.parts:
             continue
         rel = path.relative_to(root).as_posix()
+        if path.name.lower() == 'fairy.bin' and recorded_launcher_fairy(path, rel, manifest):
+            continue
         if path.name.lower() in FORBIDDEN_NAMES or path.suffix.lower() in GAME_SUFFIXES:
             issues.append(rel + ': prohibited distribution payload')
             continue
@@ -44,7 +63,7 @@ def check(root):
     found = problems(root, manifest)
     if found:
         raise SystemExit('Distribution guard failed:\n' + '\n'.join(found[:40]))
-    print('Distribution guard passed: no listed payloads or unverified project media.')
+    print('Distribution guard passed: no prohibited payloads or unrecorded project media.')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

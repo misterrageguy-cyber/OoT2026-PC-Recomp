@@ -36,6 +36,7 @@ config.local.*
 **/music.wav
 **/music.mp3
 **/fairy.bin
+!tools/alpha/launcher/assets/fairy.bin
 **/fairy.gif
 *.nup
 *.nsp

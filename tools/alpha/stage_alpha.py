@@ -789,7 +789,7 @@ def main():
     O.mkdir(parents=True, exist_ok=True)
     # Old output directories can retain files that copytree no longer supplies.
     for rel in ('data/voices/OOT_YoungLink.zip', 'data/voices/OOT_AdultLink.zip',
-                'launcher/assets/music.wav', 'launcher/assets/music.mp3', 'launcher/assets/fairy.bin',
+                'launcher/assets/music.wav', 'launcher/assets/music.mp3',
                 'engine/docs/images/linux-builder-newer-game.png',
                 'engine/docs/images/setup-runtime-incomplete.png',
                 'engine/docs/images/windows-portable-folders.png'):

@@ -456,6 +456,7 @@ class App(tk.Tk):
         self.after(500, self.poll_update)
         self.protocol('WM_DELETE_WINDOW', self.quit_app)
         self.after(50, self.route)
+        self.after(600, self.start_fairy)
 
     def quit_app(self):
         self.music.close()
@@ -465,6 +466,8 @@ class App(tk.Tk):
 
     def start_fairy(self):
         """the fairy over the launcher (fairy.py); without it (an old Windows, no asset) the launcher is as it was"""
+        if self.fairy and self.fairy.alive:
+            return
         try:
             self.fairy = fairy.Fairy(self, ASSETS / 'fairy.bin')
         except Exception as e:
