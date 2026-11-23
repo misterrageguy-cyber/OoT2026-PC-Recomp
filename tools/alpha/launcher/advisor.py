@@ -9,6 +9,7 @@ import subprocess
 import os
 import json
 import performance
+from pt_br import tr
 
 NO_WINDOW = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 INTEGRATED = ('intel(r) uhd', 'intel(r) iris', 'intel(r) hd', 'intel(r) arc(tm) graphics', 'amd radeon(tm) graphics',
@@ -220,7 +221,7 @@ def recommend(facts, dlss_ready=False):
 
 
 def pc_warnings(facts, active_gpu=None, de=True):
-    T = (lambda d, e: d) if de else (lambda d, e: e)
+    T = (lambda d, e: d) if de else (lambda d, e: tr(e))
     w = []
     if facts.get('on_battery'):
         w.append(T('Der Laptop läuft im Akkubetrieb: Die Grafikkarte bremst sich dann stark. Schließ das Netzteil an.',
@@ -269,7 +270,7 @@ PERF = re.compile(r'\[perf\] fps ([\d.]+) \| frame ([\d.]+) ms avg, ([\d.]+) ms 
 
 def diagnose(lines, settings=None, de=True):
     """the session in plain words: [(kind, text)], kind 'ok', 'tip' or 'warn'; [] when it has no [perf] lines"""
-    T = (lambda d, e: d) if de else (lambda d, e: e)
+    T = (lambda d, e: d) if de else (lambda d, e: tr(e))
     lines = list(lines)
     startup_advice = performance.renderer_failure_advice(performance.renderer_startup_failure(lines), de)
     if startup_advice:
@@ -351,7 +352,7 @@ def diagnose(lines, settings=None, de=True):
 def vendor_tips(facts, diag=None, de=True):
     """what the graphics card's own driver software adds, for this card's maker (AMD: Fluid Motion Frames, Radeon Super
     Resolution, Anti-Lag 2; NVIDIA: DLSS here, Reflex). Said only for the maker the PC has"""
-    T = (lambda d, e: d) if de else (lambda d, e: e)
+    T = (lambda d, e: d) if de else (lambda d, e: tr(e))
     name = main_gpu(facts)[0].lower() if facts else ''
     low = any(k == 'warn' for k, _ in (diag or []))
     tips = []

@@ -37,6 +37,8 @@ import mods_manager  # noqa: E402
 import classic_ui  # noqa: E402
 import classic_voices  # noqa: E402
 import tunic_colors  # noqa: E402
+from pt_br import tr  # noqa: E402
+import pt_br  # noqa: E402
 import interface_theme  # noqa: E402
 import settings_reset  # noqa: E402
 import amiibo  # noqa: E402
@@ -70,13 +72,14 @@ LANGS = [('de', 'Deutsch'), ('en-US', 'English (US)'), ('en-GB', 'English (UK)')
          ('fr-CA', 'Français (Canada)'), ('it', 'Italiano'), ('es', 'Español'), ('es-419', 'Español (Latinoamérica)'),
          ('pt-BR', 'Português (Brasil)'), ('nl', 'Nederlands'), ('pl', 'Polski'), ('ru', 'Русский'), ('ja', '日本語'),
          ('ko', '한국어'), ('zh-Hans', '简体中文'), ('zh-Hant', '繁體中文')]
+UI_LANGS = [('de', 'Deutsch'), ('en', 'English'), ('pt-BR', 'Português (Brasil)')]   # the launcher's own (pt_br.py: English → pt-BR)
 
 
-UI_LANG = ['de']   # the launcher's language: settings.json "ui_language", else Windows' language
+UI_LANG = pt_br.UI_LANG   # the launcher's language: settings.json "ui_language", else Windows' language
 
 
 def T(de, en):
-    return de if UI_LANG[0] == 'de' else en
+    return de if UI_LANG[0] == 'de' else tr(en)
 
 
 def audio_devices():
@@ -257,11 +260,12 @@ def tester_id():
 def default_settings():
     import ctypes
     try:
-        de = (ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3ff) == 0x07
+        primary = ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3ff
     except (OSError, AttributeError):
-        de = False
-    return dict(game_dir=str(Path.home() / 'Games' / 'Ocarina Reborn'), language='de' if de else 'en-US', workers='auto',
-                ui_language='de' if de else 'en', audio='default', navi_enabled=True)
+        primary = 0
+    de, pt = primary == 0x07, primary == 0x16   # (LANG_GERMAN, LANG_PORTUGUESE)
+    return dict(game_dir=str(Path.home() / 'Games' / 'Ocarina Reborn'), language='de' if de else 'pt-BR' if pt else 'en-US',
+                workers='auto', ui_language='de' if de else 'pt-BR' if pt else 'en', audio='default', navi_enabled=True)
 
 
 def settings():
@@ -307,7 +311,7 @@ def find_nups():
 
 def age(ts):
     d = (time.time() - ts) / 86400
-    return 'heute' if d < 1 else 'gestern' if d < 2 else f'vor {int(d)} Tagen'
+    return T('heute', 'today') if d < 1 else T('gestern', 'yesterday') if d < 2 else T(f'vor {int(d)} Tagen', f'{int(d)} days ago')
 
 
 def free_gb(path):
@@ -547,7 +551,7 @@ class App(tk.Tk):
                     save_settings(updated)
                 except OSError as e:
                     messagebox.showerror('Ocarina Reborn',
-                        'Could not save this preference. Please try again.\n\n' + str(e), parent=self)
+                        tr('Could not save this preference. Please try again.\n\n') + tr(str(e)), parent=self)
                     return
                 self.cfg.update(updated)
             self.route()
@@ -556,20 +560,20 @@ class App(tk.Tk):
             s = ctx.s
             x, w = self.content(ctx)
             (hy, _), (cy, ch), (fy, fh) = layout(ctx, top, [(76, 34, 0), (300, 34, 1), (82, 30, 0)])
-            self.heading(ctx, x, hy, 'Help improve Ocarina Reborn',
-                         'Stutters or crashes? Your reports help us improve the game.', icon='bug', w=w)
+            self.heading(ctx, x, hy, tr('Help improve Ocarina Reborn'),
+                         tr('Stutters or crashes? Your reports help us improve the game.'), icon='bug', w=w)
             ctx.panel(x, cy, w, ch, r=16, fill=ui.PANEL, fill2=ui.CELL, border=ui.LINE)
-            ctx.text(x + 32*s, cy + 24*s, '1. MARK THE PROBLEM', 16, 'semibold', ui.LINK)
+            ctx.text(x + 32*s, cy + 24*s, tr('1. MARK THE PROBLEM'), 16, 'semibold', ui.LINK)
             ctx.text(x + 32*s, cy + 58*s,
-                     'If you notice stutters or crashes, press Ctrl+F8 when the problem happens, '
-                     'then close the game and create a fresh Debug Package.',
+                     tr('If you notice stutters or crashes, press Ctrl+F8 when the problem happens, '
+                        'then close the game and create a fresh Debug Package.'),
                      22, color=ui.TEXT, width=w - 64*s)
             second = cy + ch * .52
             ctx.hline(x + 32*s, second - 16*s, w - 64*s, ui.LINE, .7)
-            ctx.text(x + 32*s, second, '2. SHARE YOUR REPORT', 16, 'semibold', ui.LINK)
+            ctx.text(x + 32*s, second, tr('2. SHARE YOUR REPORT'), 16, 'semibold', ui.LINK)
             ctx.text(x + 32*s, second + 34*s,
-                     'Send it in #post-your-logs-here, in the Discord together with the area and what happened. '
-                     'Reports from lower-end PCs are especially helpful.',
+                     tr('Send it in #post-your-logs-here, in the Discord together with the area and what happened. '
+                        'Reports from lower-end PCs are especially helpful.'),
                      22, color=ui.TEXT, width=w - 64*s)
             ctx.button(x, fy, 320*s, fh, T('Nicht mehr anzeigen', "Don't show again"),
                        lambda: dismiss(True), size=22, r=14)
@@ -679,7 +683,7 @@ class App(tk.Tk):
         if not changes:
             return messagebox.showinfo(T('Leistung', 'Performance'), report)
         values = performance.signature(current)
-        labels = {key: (d if de else e, {str(v): cd if de else ce for v, cd, ce in choices})
+        labels = {key: (d if de else tr(e), {str(v): cd if de else tr(ce) for v, cd, ce in choices})
                   for key, d, e, choices in game_settings.ROWS}
         preview = []
         for key, value in changes.items():
@@ -701,7 +705,7 @@ class App(tk.Tk):
                     'Gespeichert. Vergleiche beim nächsten Start dieselben Spielszenen. Die bisherigen Einstellungen liegen im Reports-Ordner.',
                     'Saved. Compare the same scenes on your next run. Previous settings are in the Reports folder.'))
             except OSError as exc:
-                messagebox.showerror(T('Leistung', 'Performance'), str(exc))
+                messagebox.showerror(T('Leistung', 'Performance'), tr(str(exc)))
 
     def apply_preset(self, key):
         """a preset's options into the game's options file (the same keys the in-game menu saves)"""
@@ -738,7 +742,7 @@ class App(tk.Tk):
             self.settings_status = (T('Preset übernommen. Gilt ab dem nächsten Spielstart.', 'Preset applied. Applies at the next start.'), ui.GOLD)
             log(f'preset {key}: {values}')
         except OSError as e:
-            self.settings_status = (str(e), RED)
+            self.settings_status = (tr(str(e)), RED)
         self.settings_page(1, True)
 
     # ---- NVIDIA DLSS: NVIDIA's SDK may not be shipped with this GPL engine (its license, 4(e)); the player accepts it and
@@ -779,7 +783,7 @@ class App(tk.Tk):
                 state['done'] = 'ok' if r.returncode == 0 and (sdk / 'lib' / 'nvsdk_ngx_s.lib').is_file() else \
                     (r.stderr.strip().splitlines() or ['exit %d' % r.returncode])[-1]
             except (OSError, subprocess.SubprocessError) as e:
-                state['done'] = str(e)
+                state['done'] = tr(str(e))
 
         def poll():
             if state['done'] is None:
@@ -989,7 +993,7 @@ class App(tk.Tk):
             if state['done'] != 'ok':
                 log(f'update download failed: {state["done"]}')
                 messagebox.showerror('Ocarina Reborn', T('Das Update konnte nicht geladen werden:\n', 'The update could not be downloaded:\n')
-                                     + state['done'])
+                                     + tr(state['done']))
                 return self.route()
             log(f'update {info["version"]} downloaded and checked: {dst}')
             subprocess.Popen([str(dst)])
@@ -1058,7 +1062,7 @@ class App(tk.Tk):
         ctx.text(152 * s, hh / 2, 'Ocarina Reborn', 28, 'bold', ui.TEXT, anchor='w')
         title_end = 152 * s + ctx.text_width('Ocarina Reborn', 28, 'bold')
         # the steps: Game files > Build > Play, the current one lit
-        items = (('files', 'folder', 'Game files'), ('build', 'cube', 'Build'), ('play', 'play', T('Spielen', 'Play')))
+        items = (('files', 'folder', tr('Game files')), ('build', 'cube', 'Build'), ('play', 'play', T('Spielen', 'Play')))
         pad, isz, gap, chev = 30 * s, 26 * s, 12 * s, 44 * s
         widths = [pad * 2 + isz + gap + ctx.text_width(t, 21) for _, _, t in items]
         total = sum(widths) + chev * 2 + 8 * s
@@ -1068,7 +1072,7 @@ class App(tk.Tk):
         nw = 48 * s + max(ctx.text_width(T('Navi an', 'Navi on'), 16), ctx.text_width(T('Navi aus', 'Navi off'), 16))
         music_label = T('Musik aus', 'Music off') if self.muted else T('Musik an', 'Music on')
         mw = 48 * s + ctx.text_width(music_label, 16) if self.music.ok else 0
-        update_label = f'Update {self.update_info["version"]}' if self.update_info and not self.busy else ''
+        update_label = tr(f'Update {self.update_info["version"]}') if self.update_info and not self.busy else ''
         uw = 56 * s + ctx.text_width(update_label, 16, 'semibold') if update_label else 0
         # Reserve the actual controls' width, including when an update is available.
         right_room = ((3 * 66 + 14) * s if self.chrome.ok else 0) + nw + 22 * s
@@ -1171,10 +1175,10 @@ class App(tk.Tk):
             s = ctx.s
             x, w = self.content(ctx)
             (hy, _), (cy, chh), (fy, fh) = layout(ctx, top, [(76, 34, 0), (300, 34, 1), (82, 30, 0)])
-            self.heading(ctx, x, hy, 'Private Alpha Build', T('Bitte vor dem Start lesen.', 'Please read before you start.'),
+            self.heading(ctx, x, hy, tr('Private Alpha Build'), T('Bitte vor dem Start lesen.', 'Please read before you start.'),
                          icon='warning', icon_color=ui.GOLD, w=w)
             ctx.panel(x, cy, w, chh, r=16, fill=ui.PANEL, alpha=0.85, border=ui.LINE)
-            ctx.text(x + 40 * s, cy + 36 * s, 'PRIVATE ALPHA BUILD', 18, 'semibold', ui.GOLD)
+            ctx.text(x + 40 * s, cy + 36 * s, tr('PRIVATE ALPHA BUILD'), 18, 'semibold', ui.GOLD)
             ctx.text(x + 40 * s, cy + 76 * s, T(
                 'Dies ist eine sehr instabile Testversion. Abstürze, Hänger, Grafikfehler und kaputtes Gameplay sind zu '
                 'erwarten. Sie ist nur zum Testen gedacht.', 'This is a highly unstable development build. Crashes, '
@@ -1196,7 +1200,7 @@ class App(tk.Tk):
         try:
             hw = lic.hardware_id()
         except RuntimeError as ex:
-            hw = str(ex)
+            hw = tr(str(ex))
 
         def body(ctx, top):
             s = ctx.s
@@ -1212,7 +1216,7 @@ class App(tk.Tk):
 
             def load():
                 f = filedialog.askopenfilename(title=T('Lizenzdatei auswählen', 'Select your license file'),
-                                               filetypes=[('Ocarina Reborn license', '*.dat'), ('*', '*.*')])
+                                               filetypes=[(tr('Ocarina Reborn license'), '*.dat'), ('*', '*.*')])
                 if not f:
                     return
                 try:
@@ -1222,7 +1226,7 @@ class App(tk.Tk):
                     log(f'license loaded, tester {p["tester_id"]}')
                     self.route()
                 except (OSError, ValueError, lic.LicenseError) as ex:
-                    messagebox.showerror('Ocarina Reborn', str(ex))
+                    messagebox.showerror('Ocarina Reborn', tr(str(ex)))
             ctx.button(x, top + 280 * s, 220 * s, 52 * s, T('PC-ID kopieren', 'Copy PC-ID'), copy)
             ctx.button(x + 240 * s, top + 280 * s, 260 * s, 52 * s, T('Lizenzdatei laden', 'Load license file'), load,
                        kind='primary')
@@ -1297,7 +1301,7 @@ class App(tk.Tk):
                 text, col = self.nup_status.get(str(f), ('', ui.SUB))
                 pw = 193 * s
                 ctx.panel(x + w - pw - 25 * s, y + ch / 2 - 23 * s, pw, 46 * s, r=10, fill=ui.CELL, alpha=0.9, border=ui.LINE)
-                ctx.icon(x + w - pw - 25 * s + 36 * s, y + ch / 2, 'sync' if text.startswith(('Überprüfe', 'Checking')) else
+                ctx.icon(x + w - pw - 25 * s + 36 * s, y + ch / 2, 'sync' if text.startswith(('Überprüfe', 'Checking', tr('Checking'))) else
                          'check' if col == ui.GREEN else 'info', 20, col, key=f'nupi{i}')
                 ctx.text(x + w - pw - 25 * s + 64 * s, y + ch / 2, text.lstrip('✓✗ '), 18, 'regular',
                          ui.TEXT if col == ui.SUB else col, anchor='w', key=f'nup{i}')
@@ -1332,7 +1336,7 @@ class App(tk.Tk):
             ctx.dropdown(lx, iy, lw, 52 * s, [n for _, n in LANGS], self.sel_language, pick_lang, size=21)
             ctx.vline(wx - sep, oy, 90 * s, ui.LINE, 0.6)
             ctx.icon(wx + 18 * s, oy + 12 * s, 'chip', 24, ui.TEXT)
-            ctx.text(wx + 46 * s, oy + 12 * s, 'Build Workers', 20, 'regular', ui.TEXT, anchor='w')
+            ctx.text(wx + 46 * s, oy + 12 * s, tr('Build Workers'), 20, 'regular', ui.TEXT, anchor='w')
             workers = [AUTO] + [str(i) for i in (2, 4, 6, 8, 12, 16) if i <= (os.cpu_count() or 8)]
             shown = {AUTO: T('Automatisch', 'Automatic')}
             ctx.dropdown(wx, iy, ww_, 52 * s, [shown.get(v, v) for v in workers], shown.get(self.sel_workers, self.sel_workers),
@@ -1516,7 +1520,7 @@ class App(tk.Tk):
                     log(f'saves backed up to {dst}')
                 except (OSError, sm.SaveError) as e:
                     return messagebox.showerror('Ocarina Reborn', T('Das Backup ist fehlgeschlagen, das Update wurde abgebrochen:\n',
-                                                                    'The backup failed, the update was cancelled:\n') + str(e))
+                                                                    'The backup failed, the update was cancelled:\n') + tr(str(e)))
             self.run_build(job)
 
         def later():
@@ -1607,8 +1611,8 @@ class App(tk.Tk):
                        ('speaker', T('Audioausgabe', 'Audio output'), 'audio', [T('Windows-Standard', 'Windows default')] + devs,
                         devs[int(self.cfg['audio'])] if self.cfg.get('audio', 'default') != 'default' and
                         int(self.cfg['audio']) < len(devs) else T('Windows-Standard', 'Windows default')),
-                       ('monitor', T('Launcher-Sprache', 'Launcher language'), 'ui', ['Deutsch', 'English'],
-                        'Deutsch' if UI_LANG[0] == 'de' else 'English')))
+                       ('monitor', T('Launcher-Sprache', 'Launcher language'), 'ui', [n for _, n in UI_LANGS],
+                        dict(UI_LANGS).get(UI_LANG[0], 'English'))))
             room = chh - 92 * s
             step = room / 3
             for i, (icon, title, key, values, cur) in enumerate(fields):
@@ -1698,7 +1702,7 @@ class App(tk.Tk):
                 log(f'manual backup: {dst}')
                 status(T('Backup erstellt und geprüft: ', 'Backup made and verified: ') + str(dst))
             except (OSError, sm.SaveError) as e:
-                status(str(e), RED)
+                status(tr(str(e)), RED)
 
         def restore():
             if not self.saves_sel:
@@ -1716,7 +1720,7 @@ class App(tk.Tk):
                          'Restored. Your previous save is backed up as ') + str(safety))
             except (OSError, sm.SaveError) as e:
                 status(T('Nicht wiederhergestellt, dein Spielstand ist unverändert: ',
-                         'Not restored, your save is unchanged: ') + str(e), RED)
+                         'Not restored, your save is unchanged: ') + tr(str(e)), RED)
 
         def do_import(source, label):
             status(T('Wird importiert …', 'Importing …'), ui.SUB, redraw=False)
@@ -1727,7 +1731,7 @@ class App(tk.Tk):
                          f'Imported {len(info["slots"])} save slots. Your previous save is backed up as ') + str(safety))
             except (OSError, sm.SaveError) as e:
                 status(T('Nicht importiert, dein Spielstand ist unverändert: ',
-                         'Not imported, your save is unchanged: ') + str(e), RED)
+                         'Not imported, your save is unchanged: ') + tr(str(e)), RED)
 
         def import_auto():
             status(T('Es wird gesucht …', 'Looking …'), ui.SUB, redraw=False)
@@ -1812,7 +1816,7 @@ class App(tk.Tk):
                 if on:
                     ctx.panel(x + 10 * s, ry, w - 20 * s, rh - 4 * s, r=8, fill=ui.ACCENT, fill2=ui.ACCENT_LO, alpha=0.9,
                               border=ui.ACCENT_HI)
-                vals = (bk['timestamp'].replace('T', '  '), bk['kind'], bk['reason'][:28], str(bk['files']),
+                vals = (bk['timestamp'].replace('T', '  '), tr(bk['kind']), tr(bk['reason'])[:28], str(bk['files']),
                         f"{bk['size'] / 1048576:.1f} MB")
                 for (_, fx), v in zip(cols, vals):
                     ctx.text(x + 24 * s + fx * iw, ry + rh / 2 - 2 * s, v, 17, 'regular', ui.TEXT if on else '#d2e2dc', anchor='w')
@@ -1865,7 +1869,7 @@ class App(tk.Tk):
                 log(f"mods: {m['name']} {'off' if m['enabled'] else 'on'}")
                 status(T('Gilt ab dem nächsten Spielstart.', 'Applies at the next start of the game.'), ui.GOLD)
             except (OSError, ValueError) as e:
-                status(str(e), RED)
+                status(tr(str(e)), RED)
 
         def add(source):
             if not source:
@@ -1876,7 +1880,7 @@ class App(tk.Tk):
                 status(T('Hinzugefügt: ', 'Added: ') + ', '.join(names) + T('. Gilt ab dem nächsten Spielstart.',
                                                                            '. Applies at the next start of the game.'), ui.GOLD)
             except (OSError, ValueError, zipfile.BadZipFile) as e:
-                status(str(e), RED)
+                status(tr(str(e)), RED)
 
         def open_root():
             root.mkdir(parents=True, exist_ok=True)
@@ -1948,7 +1952,7 @@ class App(tk.Tk):
         try:
             installed = classic_ui.state(game)
         except (OSError, ValueError) as exc:
-            messagebox.showerror('Classic UI', str(exc), parent=self)
+            messagebox.showerror(tr('Classic UI'), tr(str(exc)), parent=self)
             return
         if not keep:
             self.classic_ui_selection = dict(installed['selection'])
@@ -1958,7 +1962,7 @@ class App(tk.Tk):
         def choose(key, choices, label):
             if self.busy:
                 return
-            self.classic_ui_selection[key] = next(row[0] for row in choices if row[1] == label)
+            self.classic_ui_selection[key] = next(row[0] for row in choices if tr(row[1]) == label)
             self.classic_ui_status = (T('Auswahl geändert. Mit „Installieren und aktivieren“ übernehmen.',
                                        'Selection changed. Choose "Install and enable" to apply.'), ui.GOLD)
             self.classic_ui_page(True)
@@ -1970,14 +1974,14 @@ class App(tk.Tk):
                 classic_ui.set_enabled(game, not installed['enabled'])
                 self.classic_ui_status = (T('Gilt ab dem nächsten Spielstart.', 'Applies at the next game start.'), ui.GOLD)
             except (OSError, ValueError) as exc:
-                self.classic_ui_status = (str(exc), RED)
+                self.classic_ui_status = (tr(str(exc)), RED)
             self.classic_ui_page(True)
 
         def install():
             if self.busy:
                 return
             if sm.game_running():
-                return messagebox.showinfo('Classic UI', T('Bitte zuerst das Spiel schließen.', 'Please close the game first.'), parent=self)
+                return messagebox.showinfo(tr('Classic UI'), T('Bitte zuerst das Spiel schließen.', 'Please close the game first.'), parent=self)
             selection = dict(self.classic_ui_selection)
             self.busy = True
             self._classic_ui_cancel = threading.Event()
@@ -1995,7 +1999,7 @@ class App(tk.Tk):
                                        cancel=self._classic_ui_cancel, progress=progress)
                     result.put(('done', None))
                 except Exception as exc:
-                    result.put(('done', str(exc)))
+                    result.put(('done', tr(str(exc))))
 
             def poll():
                 last = None
@@ -2032,11 +2036,11 @@ class App(tk.Tk):
             x, w = self.content(ctx)
             (hy, _), (cy, ch), (sy, sh), (fy, fh) = layout(
                 ctx, top, [(76, 34, 0), (280, 24, 1), (100, 18, 0), (60, 18, 0)])
-            self.heading(ctx, x, hy, 'Classic UI', T('Klassisches HUD von kuledawg · Version 2.0.0',
+            self.heading(ctx, x, hy, tr('Classic UI'), T('Klassisches HUD von kuledawg · Version 2.0.0',
                          'Classic HUD by kuledawg · Version 2.0.0'), icon='layers', w=w)
             ctx.panel(x, cy, w, ch, r=16, fill=ui.PANEL, fill2=ui.CELL, border=ui.LINE)
             state_text = T('Aktiv', 'Enabled') if installed['enabled'] else T('Aus', 'Off') if installed['installed'] else T('Nicht installiert', 'Not installed')
-            ctx.text(x+28*s, cy+24*s, 'Classic UI · ' + state_text, 22, 'semibold', ui.GREEN if installed['enabled'] else ui.TEXT)
+            ctx.text(x+28*s, cy+24*s, tr('Classic UI') + ' · ' + state_text, 22, 'semibold', ui.GREEN if installed['enabled'] else ui.TEXT)
             if installed['installed']:
                 ctx.button(x+w-238*s, cy+16*s, 210*s, 42*s,
                            T('Ausschalten', 'Turn off') if installed['enabled'] else T('Einschalten', 'Turn on'),
@@ -2048,8 +2052,8 @@ class App(tk.Tk):
             for i, (key, label, choices) in enumerate(rows):
                 ry = cy + (88 + i*62)*s
                 ctx.text(x+28*s, ry+23*s, label, 19, anchor='w')
-                current = next(r[1] for r in choices if r[0] == self.classic_ui_selection[key])
-                ctx.dropdown(x+w-dw-28*s, ry, dw, 46*s, [r[1] for r in choices], current,
+                current = tr(next(r[1] for r in choices if r[0] == self.classic_ui_selection[key]))
+                ctx.dropdown(x+w-dw-28*s, ry, dw, 46*s, [tr(r[1]) for r in choices], current,
                              lambda value, key=key, choices=choices: choose(key, choices, value), size=18)
             ctx.text(x+6*s, sy, T('Einmaliger Download der Auswahl: etwa 80 MB. Ein/Aus danach auch offline. Andere HUD-Mods können sich überschneiden.',
                      'Downloads only your selection: about 80 MB. On/off works offline afterwards. Other HUD mods may conflict.'),
@@ -2073,7 +2077,7 @@ class App(tk.Tk):
             return
         pack = filedialog.askopenfilename(
             title=T('Eigene Stimmen-ZIP auswählen', 'Select your own voice ZIP'),
-            filetypes=[('Voice ZIP', '*.zip')])
+            filetypes=[(tr('Voice ZIP'), '*.zip')])
         if not pack:
             return
         game = Path(self.cfg['game_dir'])
@@ -2085,7 +2089,7 @@ class App(tk.Tk):
                 count = classic_voices.prepare(game, age, pack)
                 result.put((count, None))
             except Exception as e:
-                result.put((0, str(e)))
+                result.put((0, tr(str(e))))
 
         def poll():
             try:
@@ -2096,7 +2100,7 @@ class App(tk.Tk):
             if error:
                 log('classic voices: preparation failed: ' + error)
                 self.settings_status = (T('Vorbereitung fehlgeschlagen.', 'Preparation failed.'), RED)
-                messagebox.showerror('Classic voices', error)
+                messagebox.showerror(tr('Classic voices'), tr(error))
             else:
                 self.pending_settings['classic_voice_' + age] = 1
                 log(f'classic voices: ready {age}, {count} gameplay events')
@@ -2139,7 +2143,7 @@ class App(tk.Tk):
             log('all preferences reset; backup: ' + str(backup))
             self.settings_page(tab, True)
         except (OSError, ValueError) as error:
-            messagebox.showerror('Ocarina Reborn', str(error))
+            messagebox.showerror('Ocarina Reborn', tr(str(error)))
 
     def settings_page(self, tab=0, keep_status=False):
         """the game's settings as a PC game has them: tabs (Display, Quality, Performance, Advanced, Difficulty), each row the
@@ -2148,7 +2152,7 @@ class App(tk.Tk):
         game = Path(self.cfg['game_dir'])
         de = UI_LANG[0] == 'de'
         cur = game_settings.read(game)
-        names = [d if de else e for d, e, _ in game_settings.SECTIONS] + [T('Schwierigkeit', 'Difficulty')] + ['Cheats']
+        names = [d if de else tr(e) for d, e, _ in game_settings.SECTIONS] + [T('Schwierigkeit', 'Difficulty')] + ['Cheats']
         if not hasattr(self, 'pending_settings'):
             self.pending_settings = {}   # (choices made on other tabs, not saved yet: kept while the tabs change)
         if not keep_status:
@@ -2201,7 +2205,7 @@ class App(tk.Tk):
                 self.pending_settings = {}
                 self.settings_status = (T('Gespeichert. Gilt ab dem nächsten Spielstart.', 'Saved. Applies at the next start.'), ui.GOLD)
             except (OSError, ValueError) as e:
-                self.settings_status = (str(e), RED)
+                self.settings_status = (tr(str(e)), RED)
             self.settings_page(tab, True)
 
         def reset():
@@ -2218,7 +2222,7 @@ class App(tk.Tk):
                 self.settings_status = ('', ui.GOLD)
                 self.settings_page(tab, True)
             except OSError as e:
-                self.settings_status = (str(e), RED)
+                self.settings_status = (tr(str(e)), RED)
                 self.stage.render()
 
         def back():
@@ -2244,7 +2248,7 @@ class App(tk.Tk):
                 self.sync_interface_theme()
                 self.settings_status = (T('Menüfarbe gespeichert', 'Interface color saved'), ui.SUB)
             except (OSError, ValueError) as e:
-                messagebox.showerror(T('Menüfarbe', 'Interface color'), str(e), parent=self)
+                messagebox.showerror(T('Menüfarbe', 'Interface color'), tr(str(e)), parent=self)
                 return
             self.settings_page(tab, True)
 
@@ -2284,7 +2288,7 @@ class App(tk.Tk):
                     message = T('Bereit für den nächsten amiibo-Scan im Spiel.', 'Ready for the next in-game amiibo scan.')
                 self.settings_status = (message, ui.GOLD)
             except (OSError, ValueError) as e:
-                self.settings_status = (str(e), RED)
+                self.settings_status = (tr(str(e)), RED)
             self.settings_page(tab, True)
 
         # the rows of this tab: (key, name, help, cost, labels, current label, pick)
@@ -2308,20 +2312,20 @@ class App(tk.Tk):
                 elif raw is not None and not any(str(v) == raw or e.split(' ')[0] == raw for v, _, e in choices):   # (a value the menu set that the list lacks)
                     choices = sorted(choices + [(int(raw) if raw.lstrip('-').isdigit() else raw, raw, raw)],
                                      key=lambda c: c[0] if isinstance(c[0], int) else 0)
-                labels = [d if de else e for _, d, e in choices]
+                labels = [d if de else tr(e) for _, d, e in choices]
                 was = game_settings.current(cur, key, choices)[0]
                 if key in LAUNCHER_KEYS:   # (the launcher's own, not the options file's: mesh_shaders)
                     was = self.cfg.get(key, was)
                 now = self.pending_settings.get(key, was)
                 shown = next((l for (v, _, _), l in zip(choices, labels) if v == now), labels[0])
-                rows.append((key, lde if de else len_, hde if de else hen, cost, labels, shown,
+                rows.append((key, lde if de else tr(len_), hde if de else tr(hen), cost, labels, shown,
                              lambda lab, key=key, choices=choices, labels=labels, was=was:
                              changed(key, choices[labels.index(lab)][0], was)))
             if game_settings.SECTIONS[tab][1] == 'Memory':   # (Ocarina Reborn's low-end rows: the launcher's, handed over at Play)
                 for key, lde, len_, labels_de, labels_en, hde, hen, cost in LOW_END_ROWS:
-                    labels = labels_de if de else labels_en
+                    labels = labels_de if de else tr(labels_en)
                     now = self.pending_settings.get(key, self.cfg.get(key, LOW_END_DEFAULTS[key]))
-                    rows.append((key, lde if de else len_, hde if de else hen, cost, labels, labels[min(now, len(labels) - 1)],
+                    rows.append((key, lde if de else tr(len_), hde if de else tr(hen), cost, labels, labels[min(now, len(labels) - 1)],
                                  lambda lab, key=key, labels=labels: changed(key, labels.index(lab),
                                                                              self.cfg.get(key, LOW_END_DEFAULTS[key]))))
             if game_settings.SECTIONS[tab][1] == 'Audio':
@@ -2332,7 +2336,7 @@ class App(tk.Tk):
                         state = classic_voices.status(game, age)
                     except (OSError, ValueError) as e:
                         state = dict(installed=False, enabled=False)
-                        self.settings_status = (str(e), RED)
+                        self.settings_status = (tr(str(e)), RED)
                     labels = [T('Standard', 'Default'), T('Klassisch (N64)', 'Classic (N64)')]
                     was = int(state['enabled'])
                     now = min(self.pending_settings.get(key, was), len(labels) - 1)
@@ -2353,7 +2357,7 @@ class App(tk.Tk):
                     ('protect_hearts', 'Herzen schützen', 'Protect hearts',
                      'Link verliert keine Herzen (Treffer werfen ihn trotzdem zurück). Nur mit Cheat-Werkzeugen an.',
                      'Link loses no hearts (hits still knock him back). Only with the cheat tools on.')):
-                rows.append((key, lde if de else len_, hde if de else hen, '', onoff,
+                rows.append((key, lde if de else tr(len_), hde if de else tr(hen), '', onoff,
                              onoff[1 if self.pending_settings.get(key, self.cfg.get(key, 0)) else 0],
                              lambda lab, key=key, onoff=onoff: changed(key, onoff.index(lab), self.cfg.get(key, 0))))
         else:   # Difficulty: the launcher's own, applied to the game's files at Play (enemy_health.py)
@@ -2364,7 +2368,7 @@ class App(tk.Tk):
                                              ('enemy_damage', 'Schaden von Gegnern', 'Damage from enemies',
                                               'Wie viel Schaden Link von Gegnern und Bossen bekommt.',
                                               'How much damage Link takes from enemies and bosses.')):
-                rows.append((key, lde if de else len_, hde if de else hen, '', ['x1', 'x2', 'x3', 'x4', 'x5'],
+                rows.append((key, lde if de else tr(len_), hde if de else tr(hen), '', ['x1', 'x2', 'x3', 'x4', 'x5'],
                              f'x{self.pending_settings.get(key, self.cfg.get(key, 1))}',
                              lambda lab, key=key: changed(key, int(lab[1:]), self.cfg.get(key, 1))))
             onoff = [T('Aus', 'Off'), T('An', 'On')]   # (Hardcore: hos_oot_life_change, OCARINA_ONE_HIT)
@@ -2471,7 +2475,7 @@ class App(tk.Tk):
                     ctx.panel(sx, sy, sw, 42*s, r=10, fill=value, alpha=1,
                               border=ui.TEXT if color == value else ui.LINE, bw=2 if color == value else 1)
                     ctx.hot(sx, sy, sw, 42*s, lambda value=value: choose_interface(value))
-                    ctx.text(sx + sw/2, sy + 54*s, name, 15, 'semibold', ui.SUB, anchor='center')
+                    ctx.text(sx + sw/2, sy + 54*s, tr(name), 15, 'semibold', ui.SUB, anchor='center')
                 ctx.button(x + 28*s, py + 132*s, 230*s, 46*s, T('Farbe auswählen', 'Choose color'),
                            choose_interface, kind='primary', size=19)
                 ctx.button(x + 276*s, py + 132*s, 180*s, 46*s, T('HEX eingeben', 'Enter HEX'),
@@ -2553,7 +2557,7 @@ class App(tk.Tk):
         elif key == 'audio':
             self.cfg['audio'] = str(self.audio_devs.index(value)) if value in self.audio_devs else 'default'
         elif key == 'ui':
-            self.cfg['ui_language'] = 'de' if value == 'Deutsch' else 'en'
+            self.cfg['ui_language'] = next((c for c, n in UI_LANGS if n == value), 'en')
             UI_LANG[0] = self.cfg['ui_language']
         save_settings(self.cfg)
         self.ready()
@@ -2680,7 +2684,7 @@ class App(tk.Tk):
                 shutil.copy2(state['backup'], game_settings.ini_file(game))
                 log(f"reborn auto: previous settings restored from {state['backup']}")
         except OSError as e:
-            messagebox.showerror('Reborn Auto', str(e))
+            messagebox.showerror('Reborn Auto', tr(str(e)))
         self.cfg['reborn_auto'] = None
         save_settings(self.cfg)
 
@@ -2714,7 +2718,7 @@ class App(tk.Tk):
                 return messagebox.showinfo('Reborn Auto', text + '\n\n' + '\n'.join(reasons) + '\n\n' + T(
                     'Nichts Eindeutiges zu verbessern: deine Einstellungen passen zu dem, was gemessen wurde.',
                     'Nothing clear to improve: your settings fit what was measured.'))
-            labels = {key: (d if de else e, {str(v): cd if de else ce for v, cd, ce in choices})
+            labels = {key: (d if de else tr(e), {str(v): cd if de else tr(ce) for v, cd, ce in choices})
                       for key, d, e, choices in game_settings.ROWS}
             values = performance.signature(current)
             preview = []
@@ -2724,8 +2728,8 @@ class App(tk.Tk):
                 preview.append(f'{name}: {choices.get(str(old), str(old))} → {choices.get(str(value), str(value))}')
             for key, value in low_end.items():
                 row = next(r for r in LOW_END_ROWS if r[0] == key)
-                labels_ = row[3] if de else row[4]
-                preview.append(f"{row[1] if de else row[2]}: {labels_[int(self.cfg.get(key, LOW_END_DEFAULTS[key]))]} → {labels_[value]}")
+                labels_ = row[3] if de else tr(row[4])
+                preview.append(f"{row[1] if de else tr(row[2])}: {labels_[int(self.cfg.get(key, LOW_END_DEFAULTS[key]))]} → {labels_[value]}")
             if not messagebox.askyesno('Reborn Auto', text + '\n\n' + '\n'.join(reasons) + '\n\n' +
                                        T('Vorschlag:', 'Suggestion:') + '\n' + '\n'.join(preview) + '\n\n' +
                                        T('Übernehmen und mit einem zweiten Lauf prüfen?', 'Apply and check with a second run?')):
@@ -2739,7 +2743,7 @@ class App(tk.Tk):
                 if changes:
                     game_settings.write(game, changes)
             except OSError as e:
-                return messagebox.showerror('Reborn Auto', str(e))
+                return messagebox.showerror('Reborn Auto', tr(str(e)))
             self.cfg['reborn_auto'] = dict(step='compare', baseline=summary, changes=changes, low_end=low_end,
                                            low_end_before={k: self.cfg.get(k, LOW_END_DEFAULTS[k]) for k in low_end},
                                            backup=str(backup))
@@ -2798,7 +2802,7 @@ class App(tk.Tk):
                                  creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
         except OSError as e:
             win.destroy()
-            return messagebox.showerror('Ocarina Reborn', str(e))
+            return messagebox.showerror('Ocarina Reborn', tr(str(e)))
         log('prepare shaders: started')
         self.busy = True
 
@@ -2845,7 +2849,7 @@ class App(tk.Tk):
         try:
             classic_voices.validate_active(game)
         except (OSError, ValueError) as e:
-            messagebox.showerror('Classic voices', str(e))
+            messagebox.showerror(tr('Classic voices'), tr(str(e)))
             return
         env = self.game_env()
         measured_settings = None
@@ -2879,7 +2883,7 @@ class App(tk.Tk):
                     diagnostics.finish(run, -1, game)
                 except Exception as diag_error:
                     log(f'run diagnostics could not finish: {diag_error}')
-            messagebox.showerror('Ocarina Reborn', str(e))
+            messagebox.showerror('Ocarina Reborn', tr(str(e)))
             return
         self.music.stop()
         self.withdraw()
@@ -2991,8 +2995,8 @@ class App(tk.Tk):
                 return
             executable, error = trace_capture.available()
             if error:
-                return messagebox.showinfo('Windows trace', error, parent=win)
-            if not messagebox.askyesno('Windows trace', T(
+                return messagebox.showinfo(tr('Windows trace'), tr(error), parent=win)
+            if not messagebox.askyesno(tr('Windows trace'), T(
                     '30 Sekunden Systemaktivität aufzeichnen? Die Datei kann Programmnamen und Dateipfade enthalten. '
                     'Wechsle nach dem Start innerhalb von 5 Sekunden ins laufende Spiel und wiederhole das Problem.',
                     'Record 30 seconds of system activity? The file can contain program names and file paths. '
@@ -3007,7 +3011,7 @@ class App(tk.Tk):
                     path = trace_capture.record(executable, DIRS['Reports'], messages.put)
                     messages.put(('done', str(path)))
                 except Exception as exc:
-                    messages.put(('error', str(exc)))
+                    messages.put(('error', tr(str(exc))))
             threading.Thread(target=work, daemon=False).start()
 
             def poll():
@@ -3017,10 +3021,10 @@ class App(tk.Tk):
                         if isinstance(item, tuple):
                             self._diagnostic_trace_running = False
                             if win.winfo_exists():
-                                capture_button.configure(state='normal'); status.set(item[1])
+                                capture_button.configure(state='normal'); status.set(tr(item[1]))
                             return
                         if win.winfo_exists():
-                            status.set(item)
+                            status.set(tr(item))
                 except queue.Empty:
                     self.after(200, poll)
             poll()
@@ -3063,7 +3067,7 @@ class App(tk.Tk):
                 return self.after(150, poll)
             self._debug_export_running = False
             if error:
-                return messagebox.showerror('Debug Package', error)
+                return messagebox.showerror(tr('Debug Package'), tr(error))
             log(f'debug package {out.name}')
             messagebox.showinfo('Ocarina Reborn', T('Debug-Paket erstellt:', 'Debug package created:') + f'\n\n{out}\n\n' + T('Schicke diese Datei dem Entwickler.', 'Send this file to the developer.'))
             os.startfile(out.parent)
