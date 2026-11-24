@@ -4890,6 +4890,9 @@ void draw_startup(ui::Ctx& c) {
     // the three steps (the picture keeps the thin lines between them)
     const char* names[3] = {ocr_tr("Check the launcher"), ocr_tr("Prepare the game"), ocr_tr("Start the game")};
     const float sx[3] = {329, 735, 1155}, lx[3] = {378, 785, 1210}, sy = 815, sr = 22;
+    // (where each name's room ends: the right of the box make_build_art.py cleared of the reference's own name, the thin line
+    // after it starting there. A longer translation, "Verificar o launcher", ran over the line: it is drawn smaller instead)
+    const float name_end[3] = {598, 1006, 1378};
     const int active = starting ? 2 : 1;
     for (int i = 0; i < 3; i++) {
         const ImVec2 cc = P(sx[i], sy);
@@ -4912,7 +4915,9 @@ void draw_startup(ui::Ctx& c) {
             c.d->AddCircle(cc, r, ui::rgba(96, 130, 136, 200), 48, 2 * k);
         }
         const ImU32 ink = i <= active ? ui::rgba(244, 246, 236) : ui::rgba(170, 186, 182);
-        ui::text_mid(c, c.f.body, 27 * k, ox + lx[i] * k, oy + (sy + 2) * k, ink, names[i]);
+        const auto width = [&](float p) { return ui::size_of(c.f.body, p, names[i]).x; };
+        const float px = ui::fit_px(27 * k, 16 * k, 0.5f * k, (name_end[i] - lx[i]) * k, width);
+        if (px > 0) ui::text_mid(c, c.f.body, px, ox + lx[i] * k, oy + (sy + 2) * k, ink, names[i]);
     }
     // under them, small: what the preparation counts and the time left (or what the end is doing)
     std::string under = v.left;
