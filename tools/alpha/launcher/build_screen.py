@@ -39,6 +39,9 @@ from pathlib import Path
 
 import numpy as np
 
+import pt_br
+from pt_br import tr
+
 STEPS = [('nup', ('NUP-Dateien vorbereiten', 'Preparing the NUP file')),
          ('extract', ('Spielressourcen extrahieren', 'Extracting game resources')),
          ('analyze', ('ROM-Daten analysieren', 'Analysing the game code')),
@@ -60,7 +63,7 @@ W, H = 1672, 941          # the reference artwork's size: every position below i
 
 def fmt(n, de):
     s = f'{n:,}'
-    return s.replace(',', '.') if de else s
+    return s.replace(',', '.') if de or pt_br.UI_LANG[0] == 'pt-BR' else s
 
 
 def reduced_motion():
@@ -198,7 +201,7 @@ class BuildScreen:
         screen draws the window's own buttons (the launcher's caption is its own: ui.Chrome), else Windows draws them"""
         self.app, self.cmd, self.de, self.on_done, self.on_back = app, cmd, de, on_done, on_back
         self.window = window
-        self.T = lambda d, e: d if de else e
+        self.T = lambda d, e: d if de else tr(e)
         self.assets = Path(assets)
         self.c = tk.Canvas(app, highlightthickness=0, bd=0, bg='#04140f')
         self.c.place(x=0, y=0, relwidth=1, relheight=1)
@@ -338,7 +341,7 @@ class BuildScreen:
                 self.state[s] = 'done'
                 self.step_frac[s] = 1.0
                 self.done_at[s] = time.perf_counter()
-                self.write_log(dict(STEPS)[s][0 if self.de else 1] + ' ✓')
+                self.write_log(self.T(*dict(STEPS)[s][:2]) + ' ✓')
             return
         if 'error' in m:
             kind, _, text = m['error'].partition(': ')
@@ -347,7 +350,7 @@ class BuildScreen:
                 self.state[st] = 'failed'
             self.phase = 'failed'
             self.error = (self.T('Nicht unterstützte Spielversion. ', 'Unsupported game version. ') if kind == 'unsupported'
-                          else '') + text
+                          else '') + tr(text)
             self.write_log(self.T('FEHLER: ', 'ERROR: ') + m['error'])
             return
         if m.get('finished'):
@@ -370,7 +373,7 @@ class BuildScreen:
         st = m.get('step')
         if st in self.state:
             if self.state[st] == 'wait':
-                self.write_log(STATUS[st][0 if self.de else 1])
+                self.write_log(self.T(*STATUS[st][:2]))
             if self.state[st] not in ('done', 'skipped'):
                 self.state[st] = 'run'
             f = min(max(float(m.get('frac', 0.0)), 0.0), 1.0)
@@ -381,7 +384,7 @@ class BuildScreen:
             if 'count' in m and 'total' in m:
                 total = max(int(m['total']), 0)
                 count = min(max(int(m['count']), 0), total)   # (never "761 / 760")
-                u = UNITS.get(m.get('unit'), ('', ''))[0 if self.de else 1]
+                u = self.T(*UNITS.get(m.get('unit'), ('', ''))[:2])
                 self.counter = f'{fmt(count, self.de)} / {fmt(total, self.de)} {u}'
                 if st in ('shaders', 'extract') and count % 5000 < 100 or count == total:
                     self.write_log(self.counter)
@@ -995,7 +998,7 @@ class BuildScreen:
             rx, _ = self.P(g['row_pct_x'], g['rows'][i])
             it['rows'].append(dict(
                 icon=c.create_image(ix, iy, image=sp['icon_wait'], anchor='center'),
-                label=c.create_text(lx, iy, text=names[0 if self.de else 1], fill='#7f989e', anchor='w', font=self.f_row),
+                label=c.create_text(lx, iy, text=self.T(*names[:2]), fill='#7f989e', anchor='w', font=self.f_row),
                 pct=c.create_text(rx, iy, text='', fill='#ffffff', anchor='e', font=self.f_pct)))
         # the status panel
         x0, y0, x1, y1 = g['panel']
@@ -1252,7 +1255,7 @@ class BuildScreen:
         for i, (s, names) in enumerate(STEPS):
             row = it['rows'][i]
             st = self.state[s]
-            name = names[0 if self.de else 1]
+            name = self.T(*names[:2])
             if st == 'done':
                 age = time.perf_counter() - self.done_at.get(s, 0)
                 img = sp['icon_flash'] if age < 0.7 and not self.still and int(age * 10) % 3 != 2 else sp['icon_done']
@@ -1316,9 +1319,9 @@ class BuildScreen:
                              'Der Build wird erstellt. Bitte das Fenster nicht schließen.',
                              'The update is being installed. Please do not close the window.' if upd else
                              'The build is running. Please do not close the window.') if run in (None, 'build') \
-                    else STATUS[run][0 if self.de else 1]
+                    else self.T(*STATUS[run][:2])
             else:
-                msg = STATUS[run][0 if self.de else 1]
+                msg = self.T(*STATUS[run][:2])
             if self.note and run == 'shaders':
                 msg = self.note
             icon, icol, tcol = ui.GLYPH['info'], '#d9eef4', '#f2f7f6'

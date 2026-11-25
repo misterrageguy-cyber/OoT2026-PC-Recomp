@@ -6,6 +6,8 @@ Percentiles are per five-second window, never presented as whole-session percent
 import math
 import re
 
+from pt_br import tr
+
 BASE = re.compile(r'\[perf\] fps ([\d.]+) \| frame ([\d.]+) ms avg, ([\d.]+) ms worst \| CPU \(renderer\) ([\d.]+) ms \| GPU '
                   r'([\d.]+) ms \| VRAM (\??)\s*([\d.]+) / ([\d.]+) GB')
 DETAIL = re.compile(r'stats2 seconds ([\d.]+) frames (\d+) p95 ([\d.]+) p99 ([\d.]+) over50 (\d+) over100 (\d+) '
@@ -71,7 +73,7 @@ def renderer_startup_failure(lines):
 def renderer_failure_advice(failure, de=True):
     if not failure:
         return []
-    t = lambda d, e: d if de else e
+    t = lambda d, e: d if de else tr(e)
     if failure['reason'] == 'vulkan_1_3_unavailable':
         message = t(
             'Dem Spiel stand kein Vulkan-1.3-Grafikgerät zur Verfügung. Deshalb kann das Bild schwarz bleiben, '
@@ -110,7 +112,7 @@ def gpu_failures(lines):
 
 
 def gpu_failure_advice(summary, de=True):
-    t = lambda d, e: d if de else e
+    t = lambda d, e: d if de else tr(e)
     advice = []
     if summary.get('gpu_hangs', 0):
         advice.append(('warn', t(
@@ -154,8 +156,8 @@ def memory_pressure_advice(de=True):
         'Wenig freier RAM oder Windows-Speicher im Spiel gemessen. Nachladen und Speicher auf Weniger Speicher stellen, '
         'RAM-Schutz auf Stark lassen und unnötige Hintergrundprogramme schließen. Ein Shader-Neubau hilft hier nicht.'
         if de else
-        'Low available RAM or Windows commit headroom was measured during play. Set Streaming and memory to '
-        'Lower memory, keep RAM guard on Strong, and close unnecessary background apps. Rebuilding shaders will not fix this.')
+        tr('Low available RAM or Windows commit headroom was measured during play. Set Streaming and memory to '
+        'Lower memory, keep RAM guard on Strong, and close unnecessary background apps. Rebuilding shaders will not fix this.'))
 
 
 def memory_events(lines):
@@ -167,8 +169,8 @@ def memory_advice(de=True):
             'Windows-Speicher war erschöpft; der Renderer meldete Speicherfehler oder Windows musste die Auslagerungsdatei vergrößern. '
             'RAM-Schutz auf Stark stellen, Hintergrundprogramme schließen und die Windows-Auslagerungsdatei systemverwaltet lassen.'
             if de else
-            'Windows memory was exhausted: the renderer reported host-memory errors or Windows had to grow the page file. '
-            'Set RAM guard to Strong, close background programs and keep the Windows page file system-managed.')
+            tr('Windows memory was exhausted: the renderer reported host-memory errors or Windows had to grow the page file. '
+            'Set RAM guard to Strong, close background programs and keep the Windows page file system-managed.'))
 
 
 def cache_status(lines):
@@ -194,9 +196,9 @@ def cache_conflict_advice(status, de=True):
         'Dieser Lauf konnte ihn nicht nutzen und musste Shader neu berechnen. '
         'Schließe weitere Spielinstanzen oder warte auf die Shader-Vorbereitung, dann starte einmal neu. '
         'Den Cache nicht löschen.' if de else
-        'Another game or preparation process held the shader program cache. '
+        tr('Another game or preparation process held the shader program cache. '
         'This run could not use it and had to compile shaders again. '
-        'Close other game instances or let shader preparation finish, then restart once. Do not delete the cache.')]
+        'Close other game instances or let shader preparation finish, then restart once. Do not delete the cache.'))]
 
 
 def summarize(lines):
@@ -262,7 +264,7 @@ def cpu_pressure(summary):
 def describe(summary, de=True):
     if not summary:
         return []
-    t = lambda d, e: d if de else e
+    t = lambda d, e: d if de else tr(e)
     s = summary
     lines = [
         ('ok' if s['fps'] >= 55 and not s['over100'] else 'warn', t(
@@ -319,7 +321,7 @@ def compare(before, after, de=True):
     """Reborn Auto's verdict on two runs of the same scenes: 'better', 'same', 'worse' or None (too little measured), and
     the lines that say why. Per minute for the long-frame counts (two runs are never the same length); a few percent of
     fps or a frame or two either way is noise, not a result."""
-    t = lambda d, e: d if de else e
+    t = lambda d, e: d if de else tr(e)
     if not before or not after or min(before.get('seconds', 0), after.get('seconds', 0)) < AUTO_MIN_SECONDS:
         return None, [t(f'Für einen Vergleich braucht jede Runde mindestens {AUTO_MIN_SECONDS} s auswertbare Spielzeit.',
                         f'A comparison needs at least {AUTO_MIN_SECONDS} s of usable play in each run.')]
@@ -345,7 +347,7 @@ def compare(before, after, de=True):
 
 def suggest(summary, current, measured_settings, de=True):
     """Never modify a file. Return a small proposed delta and its explanations."""
-    t = lambda d, e: d if de else e
+    t = lambda d, e: d if de else tr(e)
     if not summary or summary.get('schema') != 2 or summary.get('seconds', 0) < 30:
         return {}, [t('Für Vorschläge fehlen mindestens 30 s auswertbare Spielzeit.',
                       'Suggestions need at least 30 seconds of usable play measurements.')]

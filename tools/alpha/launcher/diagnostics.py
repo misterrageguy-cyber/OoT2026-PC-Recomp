@@ -11,6 +11,7 @@ import uuid
 import struct
 import performance
 import crash_symbols
+from pt_br import tr
 
 # engine/host/ocr_instance.h: these returns happen before logs/caches are opened.
 STARTUP_BLOCKED = {73: 'game_folder_in_use', 74: 'game_folder_lock_failed'}
@@ -21,10 +22,10 @@ def startup_block_message(code, de=True):
         return ('In diesem Spielordner läuft bereits das Spiel oder die Shader-Vorbereitung. '
                 'Schließe das Spiel oder warte auf das Ende der Vorbereitung und versuche es erneut. '
                 'Deine Shader-Caches wurden nicht verändert.' if de else
-                'The game or shader preparation is already running in this game folder. '
-                'Close the game or let preparation finish, then try again. Your shader caches have not been changed.')
+                tr('The game or shader preparation is already running in this game folder. '
+                'Close the game or let preparation finish, then try again. Your shader caches have not been changed.'))
     return ('Der Spielordner konnte nicht reserviert werden. Prüfe, ob der Ordner erreichbar und beschreibbar ist.' if de else
-            'The game folder could not be reserved. Check that the folder is accessible and writable.')
+            tr('The game folder could not be reserved. Check that the folder is accessible and writable.'))
 
 ENV_KEYS = ('PROTON_VERSION', 'WINEVERSION', 'SteamGameId', 'SteamAppId', 'DXVK_VERSION',
             'HOS_HEADLESS', 'HOS_FPS_MAX', 'HOS_AUDIO_TRACE', 'RX_VK_CAP_PREWARM',
