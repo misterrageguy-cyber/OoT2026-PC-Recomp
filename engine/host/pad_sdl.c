@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>   /* (sqrt: a stick's full push) */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include "hos_sdl.h"
@@ -464,6 +465,21 @@ static void pads_poll(void) {
                the dead zone. Values are already clamped and the circle keeps them, so this changes nothing otherwise. */
             hos_filter_stick((int16_t)v[0], (int16_t)v[1], z, v);
             hos_filter_stick((int16_t)v[2], (int16_t)v[3], z, v + 2);
+            /* (hookshot) A push past 92% of the travel is a full one, in its direction. SDL's Switch driver widens an axis's
+               range to the furthest it has read: after a hard click at full tilt the same full push forward read ~30600
+               (93-95%), and the game rolls only from a full one (a player's recording: clicking the left stick stopped
+               rolling when moving forward). HOS_STICK_FULL_PUSH=0: as before */
+            static int full_push = -1;
+            if (full_push < 0) full_push = !getenv("HOS_STICK_FULL_PUSH") || atoi(getenv("HOS_STICK_FULL_PUSH")) != 0;
+            for (int st = 0; full_push && st < 4; st += 2) {
+                const double m = sqrt((double)v[st] * v[st] + (double)v[st + 1] * v[st + 1]);
+                if (m >= 30146.0 && m < 32767.0) {   /* (30146: 92% of 32767) */
+                    for (int a = st; a < st + 2; a++) {
+                        const double x = v[a] * 32767.0 / m;
+                        v[a] = x >= 32767 ? 32767 : x <= -32767 ? -32767 : (int32_t)(x < 0 ? x - 0.5 : x + 0.5);
+                    }
+                }
+            }
             /* Camera inversion changes output, not whether the physical stick crossed its rest position. Otherwise
                toggling the setting admits a held phantom axis, which stays admitted after the setting is restored (#2273). */
             if (inv_x) v[2] = -v[2];
