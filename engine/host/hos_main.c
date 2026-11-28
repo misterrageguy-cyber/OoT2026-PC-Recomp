@@ -771,19 +771,32 @@ static int oot_gamedata_set_bool(Ctx *c, uint32_t hash, int value);
 static int oot_gamedata_string(Ctx *c, uint32_t hash, char *buf, size_t size);
 static int oot_event_playing(Ctx *c);
 
-/* The first adult night's time lock: f_8347c020 holds the clock at 20:00 while the saved Bool
-   HrlField_isFirstNightTime_Adult (0x8592aa82) is 1 and quest 0x4dbca27f is not Ready. The flag belongs to Hyrule
-   Field's first night only. A save in any other map that still holds it cannot leave night: clear it there with the
-   game's own Bool, once, and say so, never while an event (the escape's cutscene) is running. HOS_OOT_FIRST_NIGHT_FIX=0
-   turns the repair off for a run. Returns 1 when it cleared the flag. */
+static const char *oot_gamedata_queue_bool(Ctx *c, uint32_t hash, int value);
+
+/* The first adult night's time lock: f_8347c020 holds the clock (at 20:00) while quest Meet_DekuTree (0x4dbca27f) is not
+   Ready and the saved Bool HrlField_HasEnteredFirstTime_Adult (0x8592aa82) is 1. The Temple of Time sets it when Link
+   becomes adult; only the arrival from the Market's main gate onto the field clears it. So the lock belongs to the Temple
+   (inside the Market's maps), the ruined Market and the Chamber of Sages: a save anywhere else that still holds it
+   (reached by a warp, a teleport, or saved in the field with it set) cannot leave night. Clear it there with the game's
+   own Bool setter, which queues the save's copy too, and say so; never while an event is running (the field's arrival
+   clears it itself). HOS_OOT_FIRST_NIGHT_FIX=0 turns the repair off for a run. Returns 1 when it cleared the flag. */
 static int oot_first_night_fix(Ctx *c, const char *map) {
     static int on = -1;
-    if (on < 0) on = (!getenv("HOS_OOT_FIRST_NIGHT_FIX") || atoi(getenv("HOS_OOT_FIRST_NIGHT_FIX")) != 0);
-    if (!on || !map[0] || !strncmp(map, "HyruleField", 11) || oot_event_playing(c)) return 0;
+    if (on < 0) on = !getenv("HOS_OOT_FIRST_NIGHT_FIX") || atoi(getenv("HOS_OOT_FIRST_NIGHT_FIX")) != 0;
+    if (!on || !map[0] || oot_event_playing(c)) return 0;
+    if (!strncmp(map, "Market", 6) || !strncmp(map, "SageRoom", 8)) {   /* (the lock's own maps, Link adult or age unknown) */
+        int child = 0;   /* (Sequence_IsChildhood) */
+        if (!oot_gamedata_bool(c, 0xcea220d3u, &child) || !child) return 0;
+    }
     int set = 0;
     if (!oot_gamedata_bool(c, 0x8592aa82u, &set) || !set) return 0;
-    if (!oot_gamedata_set_bool(c, 0x8592aa82u, 0)) return 0;
-    hos_log("oot: cleared the first adult night's time lock (the save was in %s, outside Hyrule Field)", map);
+    const char *missing = oot_gamedata_queue_bool(c, 0x8592aa82u, 0);
+    if (missing) {   /* (another game build: said once, a report's log then shows why the night stayed) */
+        static int said;
+        if (!said) said = 1, hos_log("oot: the first adult night's time lock is set in %s, but %s was not found: left", map, missing);
+        return 0;
+    }
+    hos_log("oot: cleared the first adult night's time lock (the save was in %s, away from the Temple and the ruined Market)", map);
     return 1;
 }
 
@@ -1018,6 +1031,22 @@ static uint64_t oot_singleton(Ctx *c, uint64_t slot) {
     const uint64_t holder = recomp_load64(c, slot);
     return holder ? recomp_load64(c, holder) : 0;
 }
+
+/* The game's Bool setter (f_806a2b20: manager, value, hash) queues the live value and the copy the next save writes: a
+   write of the live byte alone lasts until the next load. On the game's thread (the player update). NULL when queued,
+   else what was missing (another game build) */
+static const char *oot_gamedata_queue_bool(Ctx *c, uint32_t hash, int value) {
+    A64Fn set_bool = a64_lookup(0x806a2b20ULL);
+    if (!set_bool) return "the game's Bool setter";
+    const uint64_t mgr = oot_singleton(c, OOT_GAMEDATA_SLOT);
+    if (!mgr) return "the game data manager";
+    const Ctx saved = *c;
+    c->x[0] = mgr, c->x[1] = value != 0, c->x[2] = hash;
+    set_bool(c);
+    *c = saved;
+    return NULL;
+}
+
 
 /* GameDataMgr getters by MurMur3 name hash: f_8022d9c0 (bool) and f_80cd0ea0 (String64). 1 when found. */
 static int oot_gamedata_bool(Ctx *c, uint32_t hash, int *value) {

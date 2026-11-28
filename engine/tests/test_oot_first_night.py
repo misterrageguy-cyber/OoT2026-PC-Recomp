@@ -68,12 +68,14 @@ static int oot_gamedata_bool(Ctx *c, uint32_t hash, int *value) {
     if (hash == 0x8592aa82u) { *value = flag; return 1; }
     return 0;
 }
-__attribute__((unused)) static int oot_gamedata_set_bool(Ctx *c, uint32_t hash, int value) {
+static int setter_missing;           /* another game build: the game's Bool setter not found */
+static const char *oot_gamedata_queue_bool(Ctx *c, uint32_t hash, int value) {
     (void)c;
-    if (hash != 0x8592aa82u) return 0;
+    if (setter_missing) return "the game's Bool setter";
+    if (hash != 0x8592aa82u) return "a wrong Bool";
     if (flag != value) cleared++;
     flag = value;
-    return 1;
+    return NULL;
 }
 static int oot_gamedata_string(Ctx *c, uint32_t hash, char *buf, size_t size) {
     (void)c;
@@ -119,48 +121,59 @@ int main(void) {
     puts("PASS: HOS_OOT_FIRST_NIGHT_FIX=0 leaves the flag alone");
     return 0;
 #else
-    /* The report's state: the adult first-night flag left set in a save that is in the Market. */
-    flag = 1, map_name = "Market_Child", switch_on = 1, cleared = 0;
+    /* Hyrule Field (reached by a warp, a teleport or a save there): the lock is cleared, through the game's setter. */
+    flag = 1, child = 0, map_name = "HyruleField_Adult", switch_on = 1, cleared = 0;
     oot_inventory_refresh(&c, now);
-    check("the flag is cleared outside Hyrule Field", 0, 1);
+    check("the flag is cleared in Hyrule Field", 0, 1);
 
-    /* Hyrule Field is where the first night belongs: the repair must not touch it. */
+    /* Elsewhere too (Kakariko). */
     now += 500000000LL;
-    flag = 1, map_name = "HyruleField", cleared = 0;
+    flag = 1, child = 0, map_name = "KakarikoVillage_Adult", cleared = 0;
     oot_inventory_refresh(&c, now);
-    check("the flag is left alone in Hyrule Field", 1, 0);
+    check("the flag is cleared away from the Market", 0, 1);
 
-    /* A save that is already clear is not written again. */
+    /* The Market (the Temple of Time is in its maps) and the Chamber of Sages keep the lock for adult Link. */
     now += 500000000LL;
-    flag = 0, map_name = "Market_Child", switch_on = 1, cleared = 0;
+    flag = 1, child = 0, map_name = "Market_Adult", cleared = 0;
+    oot_inventory_refresh(&c, now);
+    check("the ruined Market keeps the lock for adult Link", 1, 0);
+    now += 500000000LL;
+    flag = 1, child = 0, map_name = "SageRoom", cleared = 0;
+    oot_inventory_refresh(&c, now);
+    check("the Chamber of Sages keeps the lock for adult Link", 1, 0);
+
+    /* A child in the Market with the flag left over: cleared. */
+    now += 500000000LL;
+    flag = 1, child = 1, map_name = "Market_Child", cleared = 0;
+    oot_inventory_refresh(&c, now);
+    check("a child's Market save is cleared", 0, 1);
+
+    /* A clear flag is not written again; no map: nothing decided. */
+    now += 500000000LL;
+    flag = 0, child = 0, map_name = "HyruleField_Adult", cleared = 0;
     oot_inventory_refresh(&c, now);
     check("a clear flag is left clear", 0, 0);
-
-    /* No map name this refresh: nothing to decide on. */
     now += 500000000LL;
-    flag = 1, map_name = "", switch_on = 1, cleared = 0;
+    flag = 1, map_name = "", cleared = 0;
     oot_inventory_refresh(&c, now);
     check("an empty map leaves the flag", 1, 0);
 
-    /* An event running (the escape's cutscene, say) leaves the flag for a later refresh. */
+    /* An event running leaves it for a later refresh; after the event it clears. */
     now += 500000000LL;
-    flag = 1, map_name = "Market_Child", switch_on = 1, event_playing = 1, cleared = 0;
+    flag = 1, child = 0, map_name = "HyruleField_Adult", event_playing = 1, cleared = 0;
     oot_inventory_refresh(&c, now);
     check("an event running leaves the flag", 1, 0);
-
-    /* The event over, the next refresh clears it. */
     now += 500000000LL;
     event_playing = 0, cleared = 0;
     oot_inventory_refresh(&c, now);
     check("after the event it clears", 0, 1);
 
-    /* A map change after the Field: the next refresh clears it. */
+    /* Another game build without the setter: left, nothing written. */
     now += 500000000LL;
-    flag = 1, map_name = "Market_Child", switch_on = 1, cleared = 0;
+    flag = 1, setter_missing = 1, cleared = 0;
     oot_inventory_refresh(&c, now);
-    check("a later map clears it", 0, 1);
-
-    puts("PASS: the first adult night's time lock is cleared outside Hyrule Field, and only there");
+    check("no setter: the flag is left", 1, 0);
+    puts("PASS: the first adult night's time lock is cleared everywhere but the Temple, the ruined Market and the Chamber of Sages, through the game's setter");
     return 0;
 #endif
 }
