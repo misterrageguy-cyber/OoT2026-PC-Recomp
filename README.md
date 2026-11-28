@@ -4,15 +4,15 @@ This repository contains the **Ocarina Reborn launcher, patched engine and build
 
 A native Windows x64 version of **The Legend of Zelda: Ocarina of Time (Switch 2)**, built on your PC from your own `.nup` game file.
 
-**Current release: v1.1.7 · November 25, 2026**
+**Current release: v1.1.8 · November 28, 2026**
 
 [Download the latest release](https://github.com/ocarina-pc-native-build/ocarina-pc-native-build.github.io/releases/latest) · [Website](https://ocarina-pc-native-build.github.io/) · [Discord](https://discord.gg/vDPAcc6JnY)
 
 ## Source code
 
-The actual **v1.1.7 source** is here: [engine and renderer](engine/), [game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The original [engine builder source](engine/builder/) is retained alongside the Ocarina Reborn launcher.
+The actual **v1.1.8 source** is here: [engine and renderer](engine/), [game-build pipeline](engine/nx2/), [Ocarina Reborn launcher](tools/alpha/launcher/), [installer/build scripts](scripts/), [custom hooks and graphics](tools/alpha/hud/), [tests](tools/alpha/tests/) and [build instructions](BUILDING.md). The original [engine builder source](engine/builder/) is retained alongside the Ocarina Reborn launcher.
 
-`engine/` contains the already-patched sources used by the released installer, including custom tunic colors and the classic counters fix. Classic-voice preparation imports a user-selected ZIP; recordings are not bundled. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.1.7 source archives contain this project source; the website lives in its separate repository.
+`engine/` contains the already-patched sources used by the released installer, including custom tunic colors and the classic counters fix. Classic-voice preparation imports a user-selected ZIP; recordings are not bundled. `SOURCE-MANIFEST.json` records the engine file hashes and the matching installer SHA-256. GitHub's v1.1.8 source archives contain this project source; the website lives in its separate repository.
 
 ## Get started
 
@@ -34,29 +34,25 @@ You need Windows x64, a Vulkan-capable graphics card and your own supported game
 
 NVIDIA's DLSS files are downloaded separately through the launcher after accepting NVIDIA's license.
 
-## What's new in v1.1.7
+## What's new in v1.1.8
 
-**Ocarina Reborn v1.1.7 — Stability & Smoothness Update**
+**Ocarina Reborn v1.1.8 — Fixes & Sharper Textures**
 
-**🛠️ Crash fixes**
-- Fixed a crash while models load when a model's memory ran full (for example on the Gerudo Valley bridge as adult Link).
-- Fixed a rare loading crash caused by two game threads running at the same time that must never overlap.
+**🌙 First adult night**
+- A save stuck at 20:00 in the first adult night now runs its clock again in Hyrule Field too, not only outside it.
+- The fix is now kept in your save, so the night no longer comes back after loading.
+- In the Market, the Temple of Time and the Chamber of Sages the game keeps its own night, as intended.
 
-**⚡ Smoother play**
-- Fewer stutters: the game no longer waits for GPU work it does not need when it reads its visibility tables. The biggest difference is when the GPU is the bottleneck, e.g. at high resolutions.
-- Fewer area reloads at the edge of Castle Town Market: turning back and forth no longer makes the game reload the neighbouring area again and again.
+**🎨 Graphics**
+- Sharper textures with **FSR 3.1, FSR 3.1.6 and FSR 4**: the upscaler now gets texture detail for your output resolution instead of the lower render resolution.
+- Fixed large dark rectangles on the floor in Ganon's Tower (for example the room of the two Iron Knuckles and its corridor).
 
-**🎬 Movies**
-- Movie sound no longer drifts behind the picture at high frame rates.
-- Movies keep their 16:9 shape on screens narrower than 16:9.
-
-**🎮 Gameplay & controls**
-- Fixed a save that could stay stuck at 20:00 (first adult night) outside Hyrule Field. The clock runs again, and the Sun's Song works.
-- Plus is now Tab only, no longer also Enter. Some controller software sends Enter when you press A, which opened the pause menu. Your old controls are updated automatically; a custom Plus key you chose yourself stays.
+**🎮 Controls**
+- A stick pushed past 92% now counts as a full push. Some controllers read slightly short of full tilt after a while, which could stop Link from rolling forward.
 
 **ℹ️ Updating**
-- Install over your existing version, then let the launcher update the game. This update rebuilds the game code once, so it takes a few minutes longer than usual.
-- Saves, settings and shader caches stay.
+- Install over your existing version, then let the launcher update the game. The game code is rebuilt once, so it takes a few minutes longer than usual.
+- Shader caches stay: no full shader preparation is needed for this update. Saves and settings stay.
 
 **📊 Help us improve**
 - If you notice stutters or crashes, press **Ctrl+F8** when it happens, close the game and create a **Debug Package** in the launcher.

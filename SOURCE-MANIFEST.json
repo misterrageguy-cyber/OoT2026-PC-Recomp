@@ -1,6 +1,6 @@
 {
-  "version": "1.1.7",
-  "installer_stamp": "20261125-134029",
+  "version": "1.1.8",
+  "installer_stamp": "20261128-105028",
   "engine_base": "v2.3.2",
   "engine_source_sha256": {
     "engine/.gitattributes": "e5f3ddcef39226a920751f1f54d040b0a2fadecf2dfd423d4652c5840c23a7bc",
@@ -1071,7 +1071,7 @@
     "engine/gpu/vk/texture_budget.h": "2d90c6794028c6815d7474e188b0262fd92596d309e21f137e421ec9f420c1fd",
     "engine/gpu/vk/threaded_rendering.h": "57bb242d280af62cc410741dcbeca7f62841f607988640f58cdff5bfea1e1941",
     "engine/gpu/vk/translate_wait.h": "4dadb65e75aa28cc5b28cb23998f47b913214533e4782c390ba1c8254bd053cb",
-    "engine/gpu/vk/upscaler_rows.h": "1ed53e01e4d75c0677738c220ed0920c47b02c6c4fcce43190a77737d7f77ef8",
+    "engine/gpu/vk/upscaler_rows.h": "72f02036fa0866e6298a98c2212b8ae1cb7afc95d15b818326077517e0e723e6",
     "engine/gpu/vk/vk_antilag.cpp": "d28894fc7acd82cd94bf955a8c87acd39fa4ea4b6f90f8f0e65f62958bf63934",
     "engine/gpu/vk/vk_antilag.h": "e43538dde4493328eef266c1580a983e2187645c613d00a108fa92ed1376b5be",
     "engine/gpu/vk/vk_api.h": "e35949b2dc06ef33d1eaeb3e76394fc20c15c27fa3a384ac27579a3fcfae2536",
@@ -1081,7 +1081,7 @@
     "engine/gpu/vk/vk_coopmat.cpp": "a633ce1913b08ae05c7c9ab4584aab1e3682f1385b6b9d018a9cfc5098870365",
     "engine/gpu/vk/vk_dlss.cpp": "5ce3c881dfe2c9a90149048a7426e7ee2696bc5195bed19c6bb038ec4a40c807",
     "engine/gpu/vk/vk_dlss.h": "610e48c3a883d7ad0308298ccbbf471bb0ee509e3fdbb084dff7036a31788693",
-    "engine/gpu/vk/vk_draw.cpp": "5fafa8a0877ebfa2e95e19a5aa332c4557e6a6aab7bbfdaa6294b6008878b9fe",
+    "engine/gpu/vk/vk_draw.cpp": "08d863ae47bbaad1a5655e25032e0df231cd009f943b136df38ae4eb3ab9023b",
     "engine/gpu/vk/vk_draw.h": "73b9883ecc8c8af279c7e36574ab45e5d2689b36f9577a3f6f280738e272ded2",
     "engine/gpu/vk/vk_dump.cpp": "70914c6425ec5459f8dc5526c817dc950d77c8b088fdae94241348b512f11d3e",
     "engine/gpu/vk/vk_dump.h": "71b0bcb8a7751b1a6a8c428929129f67a845b1e5b02782ca2bce9e35edad5ce7",
@@ -1174,7 +1174,7 @@
     "engine/host/hos_crash_record.c": "f1c4e3c55d7402837b2978cef83abe10d3db47521b86231e93155cad7f6dfa6c",
     "engine/host/hos_crash_record.h": "9240eed1c8e15c1514a521b6915ce81c3a95ff0f3951875abaa09ccd2118ca5a",
     "engine/host/hos_hostcall.c": "b14e09f78299fe0f255b0f4ef84a0a8793966a63309747ac734f341738db1eaa",
-    "engine/host/hos_main.c": "606eec40a655e04eddbbb652c80a5a8457027cab268beed6533b05da982ccb2b",
+    "engine/host/hos_main.c": "718e8417dda345208087755ce6ae401dbff618f0148c0626687cfa824b2fcb9e",
     "engine/host/hos_mem.c": "e1542c5355958c5ec169f9ad3876225aad45a149ff2410da91ea9b775a9107a8",
     "engine/host/hos_motion.h": "43bec7bee9c1b200c79d9d6e96a8f4a8a07c5d1f2de51adfacea6d63a559d243",
     "engine/host/hos_paths.h": "7c4865201bd969695fd80b1de171bb4fc806d3b60d5fcec9bc8f7fa36c2a4843",
@@ -1233,6 +1233,7 @@
     "engine/host/ocr_view.c": "b9b7f358010fa7b77e4ca1927f6b1a2de044f0506891067e03eefc712e76e8ca",
     "engine/host/oot_autoload.c": "fb831e26338f56e94e4af0e53042f9672b672e6a9808988d618eb1474ab120c0",
     "engine/host/oot_autoload.h": "e5edcdcc7d4e858895878f1d7367ced9332a8050bb98cc106459fb8435060d4a",
+    "engine/host/oot_box_light.c": "09930983aa524100b5908485aa2e80f72c4e761a8a9c421e5a7f12c766513f91",
     "engine/host/oot_damage.c": "55cf37789c49cb3e2a71c983d932956b725283aac580bd349fb5806c05479b77",
     "engine/host/oot_fov.c": "acefd40592185ef8d2651c6bf658e1421b9a06d6fad606160431ffc32278e0fd",
     "engine/host/oot_heap_retry.c": "71884443684a7b8be4fcf4d1761109d9a1fd05674c13b2c9d1b9bd025804fbfc",
@@ -1244,7 +1245,7 @@
     "engine/host/oot_text_size.c": "6f3c83133026bb5d5579ec7aa61016b79c6fc8ba9ec6e070f64ab89564a61d64",
     "engine/host/options_path.c": "a882f777a588bf4c4a8eb17cac26b776540f1350452d891757725e9d45058c24",
     "engine/host/options_path.h": "88b2481909b3c899d38270c8b1b6fbb1edcbfc00dc8df27569df32f720b4c901",
-    "engine/host/pad_sdl.c": "321fc1466ee7a05189037ebee448123c80f724c7d07b30de60ba064658d3d906",
+    "engine/host/pad_sdl.c": "9fc565ff6bdddf1b05b982af17dea66d4ef22047b3afd65b113723ba5b63710c",
     "engine/host/pgo_rt.c": "6f2f86dda1f8590e796150f2ca28bd4540dbcf93311325080bed28b58f4598f0",
     "engine/host/posix/direct.h": "66ae483179fafc200388e72c2597ffb7e1fca5a2f1bb78f8eadeb691e9346f1b",
     "engine/host/posix/display_sdl.c": "f71e06b9da5e610f1fe1a15a3aa6a7904e8d820954df9d51ccf88fe40ef1f2b9",
@@ -1306,7 +1307,7 @@
     "engine/nx2/ocr_view.py": "e470a34314beaf84a39559f68b9e2912b488b1f0e29dece3fdede90bcc9a509f",
     "engine/nx2/oot_fov.py": "48b9107689a63f71703404030c84d93be54d09f1e381feaccdfb4cca56e3cd4c",
     "engine/nx2/oot_jitter.py": "e61119c4f38fc5adcbf6d8383ae26d8e78b321f17a659045d254b66c0d9bcd34",
-    "engine/nx2/oot_patches.py": "b76517cd74232b93d62c0706bc1b2ac600d3d56e94e77b17d5c41a0fd113848b",
+    "engine/nx2/oot_patches.py": "635e49e992f132a6fe77f63df2c2c7f0408d90fe5d949a788fbeffaa531e0d54",
     "engine/nx2/oot_wide.py": "ade583cda887e1d29ab4aef3cc5f31b22518dfc9e3375497fccc32353805d985",
     "engine/nx2/pgo_pieces.py": "24bcd8eefd96cc2bf87e87ff8fd1db904e466a6323dec7906284d8b3e2925d76",
     "engine/nx2/pipeline_share.py": "aeed07f5c75e467db2ca1cffc64d2f392d5fa92f7254e9eef60748584e8b27f6",
@@ -1918,7 +1919,7 @@
     "engine/tests/test_ocarina_reborn_launch.py": "379cf090de0c85223bf99fa5c1a5dfbef54508e34bf90713be4c6e335719d8f7",
     "engine/tests/test_ocarina_wait.py": "09539987ca06700af27f4ef6982aee3649769f42ce240648580dec505886ad9d",
     "engine/tests/test_oot_damage.py": "9ed25cdba8dd64a8bc400b911774bea1148d0f91fe3cf438fdbec88f86025fc3",
-    "engine/tests/test_oot_first_night.py": "6046c67b07e300c4bb60bdd4041d8a819402c3ef31bda3865258881a5a2d03ff",
+    "engine/tests/test_oot_first_night.py": "90f28eca2dc32e494107b08b38e8ec79c71e2ba894755a924ac27eecee1c45d6",
     "engine/tests/test_oot_fov.py": "85f677c4c6952e293294fedf42810d55941f6c53160811f0c7d537bbf3dbd675",
     "engine/tests/test_oot_heap_retry.py": "0a24920c7a96289d447ded161383f2cb9cab6ba5f308f98aa2d6cfa7c7c8fc2f",
     "engine/tests/test_oot_jitter.py": "5b457dbaff0897fd004233e3fb5f0c646a5ee8a78059d23158c9d17094e0e22b",
@@ -2193,7 +2194,7 @@
     "engine/tests/test_upscale_independent.py": "4e4252ee082d8f10638403db4ffdd14d4ab737ce98f4d3dadea12bc3adf52406",
     "engine/tests/test_upscale_label.py": "32530629b2dcb4bd197be4b82da446c2adb2ece3686b153bb853ed0795780bce",
     "engine/tests/test_upscaler_round_trip.py": "91189c955986c5089417b93c3f1fa801a0e0f10470d2b582743334e2a21e8506",
-    "engine/tests/test_upscaler_rows.cpp": "7328b4ee58a299f44c8f595702c31efdb71e5ed90fe694fc5df49a1d8cdbecad",
+    "engine/tests/test_upscaler_rows.cpp": "fbad64fe15c31e77a38747f4740c88683bf65851cc9c95138ce63f9eeba6104c",
     "engine/tests/test_upscaler_rows.py": "5002cf0a8025a160215099ddb177b9906f323bb92ccc1537e3d8b23e61ae437a",
     "engine/tests/test_utf8_paths.py": "2bdd37e402b7dfdfd2518f66ebb6ab6f65df25d51782ef619a9efaf44efc61b4",
     "engine/tests/test_validate_spirv.py": "23defaccbd42c7f0593e211381bf46fb16f441a7f52be51d1b38fcdd785705df",
@@ -2669,10 +2670,10 @@
     "engine/wgpu-native/wgpu-native-meta/webgpu.yml": "f9e2ef6f1b5f91ad1c077c15c6fba5f55e6f52935af2adef40bc5597b06bb5ca",
     "engine/wgpu-native/wgpu-native-meta/wgpu-native-git-tag": "390263a8ff03ba3577a2d161b36b5bceb3efa9b668b9dd8aa225aa308aefd03a"
   },
-  "notes": "Corresponding source for v1.1.7: model-heap crash fix, loading-crash guard for pinned threads, partial-page write-back tracking, neighbouring-area hold, movie picture pacing and 16:9 shape, first-adult-night clock fix, Plus on Tab only. No game data, translated game code or bundled recordings.",
-  "distribution_status": "release 1.1.7; no bundled recordings",
+  "notes": "Corresponding source for v1.1.8: first-adult-night clock fix in Hyrule Field and in the save, FSR 3.1/3.1.6/4 texture LOD bias, Ganons Tower box-light reset, stick full-push threshold. No game data, translated game code or bundled recordings.",
+  "distribution_status": "release 1.1.8; no bundled recordings",
   "git_normalized_source_sha256": {
     "engine/gpu/build-shadertool.bat": "9c799d781e874d8f224ee44b54ecc2c21cf7f4d872c62046177129506811ca77"
   },
-  "installer_sha256": "db389c456a3c5e673bef416978b69d0179d0f5b893f9ca9057f760d97990701b"
+  "installer_sha256": "fd1686e13a200af4e64e9faba1751e7badbea0f330872594b31d9d622c3de914"
 }
