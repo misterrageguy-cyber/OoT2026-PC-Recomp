@@ -912,6 +912,25 @@ def patch_ocb(s):
     return s[:at] + body.replace(OCB_ANCHOR, OCB_ANCHOR + OCB_CALL, 1) + s[end:], 1
 
 
+# (hookshot) The box manager's acquire (f_831eaa90): right after its virtual callback, a reused box light starts from the
+# constructor's neutral parameters (host/oot_box_light.c: Ganon's Tower's dark squares)
+BOX_LIGHT_OLD = "{ uint64_t _t = c->x[8]; c->x[30] = 0x831eab10ULL; A64_ICALL(c, _t); }\n"
+BOX_LIGHT_NEW = (BOX_LIGHT_OLD + "    hos_oot_box_light_acquired(c);   /* (nx2/oot_patches.py: host/oot_box_light.c) */\n")
+BOX_LIGHT_DECL = "void hos_oot_box_light_acquired(Ctx *c);\n"
+
+
+def patch_box_light(s):
+    """(text, 1 when made now or found made)"""
+    if BOX_LIGHT_NEW in s:
+        return s, 1
+    if s.count(BOX_LIGHT_OLD) != 1 or s.count('#include "a64.h"\n') != 1:
+        return s, 0
+    s = s.replace(BOX_LIGHT_OLD, BOX_LIGHT_NEW, 1)
+    if BOX_LIGHT_DECL not in s:
+        s = s.replace('#include "a64.h"\n', '#include "a64.h"\n' + BOX_LIGHT_DECL, 1)
+    return s, 1
+
+
 def patch_file(s, name, protect_hearts=False):
     """One lifted file's patches (apply(), and nx2/chunks.py edit_c, a process per file): (its text, the places counted in it, the
     lines to print). The counts add up over the files; report() decides from the sums"""
@@ -1065,6 +1084,11 @@ def patch_file(s, name, protect_hearts=False):
     if ocb != out:
         lines.append("oot_patches: the neighbouring area's hold in " + name)
     out = ocb
+    box, found = patch_box_light(out) if protect_hearts else (out, 0)
+    counts["box light"] += found
+    if box != out:
+        lines.append("oot_patches: the box lights' reset at reuse in " + name)
+    out = box
     out, whole = patch_whole_frames(out)
     counts["whole sites"] += out.count(WHOLE_MARK)   # (made now, or by an earlier run over this file)
     if whole:
@@ -1155,6 +1179,8 @@ def report(paths, counts, protect_hearts=False):
                            or heap_sites[2] < len(OBJECT_ALLOC_SITES)):
         print("oot_patches: WARNING: the OptimizeChangeBank allocations were found %s times, not once each: a full heap is "
               "not tried again" % heap_sites)
+    if protect_hearts and total["box light"] < 1:
+        print("oot_patches: WARNING: the box manager's acquire was not found: reused box lights keep their old dimming")
     if protect_hearts and total["ocb hold"] != 1:
         print("oot_patches: WARNING: the neighbouring area's pick was found %d times, not once: no hold" % total["ocb hold"])
     step_sites = total["step sites"]   # (the divides with the hook)
