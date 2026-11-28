@@ -240,19 +240,19 @@ inline bool render_fixed(int upscaler) { return full_scale(upscaler) && native_o
 
 /// The texture LOD bias the upscalers add to the game's world materials (the samplers it biases below 0: -0.5 everywhere, for
 /// its network's 3/4 share, about log2(0.75)). share: the Render resolution's in 1/10000 of the output, 0 at Auto (the
-/// game's dynamic size, 3/4 of the output in play). offset: DLSS's extra step, below.
-///  - DLSS and DLAA: NVIDIA's guide (DLSS Programming Guide 3.5): the game's bias at native size + log2(render / output)
-///    - 1.0, so DLSS's network gets the texture detail of the output's size and a little more, which it resolves over its
-///    frames. The game's materials are tuned to -0.5 at 3/4, about 0 at native size, so on top of its -0.5 that is
-///    log2(share / 0.75) + offset, offset -1 by default (RX_VK_DLSS_LOD_OFFSET): Quality (67 %) -1.17, Performance -1.58,
-///    DLAA -0.58, Auto -1. Without the -1 DLSS was given the render size's own texture detail (Quality -0.17, DLAA and Auto
-///    nothing), the soft textures it then upscaled
-///  - FSR 3.1, FSR 4 and XeSS: log2(share / 0.75) below 75 % (the mips the output's size wants), 0 at Auto and above. XeSS's
-///    guide asks for log2(render / output) on top of the game's bias at native size, the same here: the game's -0.5 at 3/4
-///  - the game's own, Off, FSR 4's and XeSS's native AA: 0
+/// game's dynamic size, 3/4 of the output in play). offset: the extra step below (-1 by default, RX_VK_DLSS_LOD_OFFSET).
+///  - DLSS, DLAA, FSR 3.1 (and the separate FSR 3.1.6), FSR 4 and FSR 4's native AA: NVIDIA's guide (DLSS Programming Guide 3.5) and AMD's FSR 3.1 / FSR 4
+///    specification both ask for the game's bias at native size + log2(render / output) - 1.0, so the temporal upscaler gets
+///    the texture detail of the output's size and a little more, which it resolves over its frames. The game's materials are
+///    tuned to -0.5 at 3/4, about 0 at native size, so on top of its -0.5 that is log2(share / 0.75) + offset, offset -1 by
+///    default (RX_VK_DLSS_LOD_OFFSET): Quality (67 %) -1.17, Performance -1.58, Native AA / 100 % -0.58, Auto -1. Without the
+///    -1 the upscaler was given the render size's own texture detail (Quality -0.17, Native AA and Auto nothing)
+///  - XeSS: log2(share / 0.75) below 75 % (the mips the output's size wants), 0 at Auto and above. XeSS's guide asks for
+///    log2(render / output) on top of the game's bias at native size, the same here: the game's -0.5 at 3/4
+///  - the game's own, Off and XeSS's native AA: 0
 inline float upscale_lod_bias_for(int upscaler, int share, float offset) {
-    if (is_dlss(upscaler)) {
-        const float r = upscaler == DLAA ? 1.0f : share > 0 ? (float)share / 10000.0f : 0.75f;
+    if (is_dlss(upscaler) || is_fsr4(upscaler) || upscaler == FSR3 || upscaler == FSR316) {
+        const float r = full_scale(upscaler) ? 1.0f : share > 0 ? (float)share / 10000.0f : 0.75f;
         return std::min(0.0f, std::log2(r / 0.75f) + offset);
     }
     if (!scales_by_mode(upscaler) || share <= 0) return 0.0f;

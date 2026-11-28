@@ -297,12 +297,18 @@ int main() {
         CHECK("offset 0: the render size's own detail (as before)", near(ur::upscale_lod_bias_for(DLSS, 6667, 0.0f), std::log2(6667 / 7500.0f)) &&
                                                                       ur::upscale_lod_bias_for(DLSS, 0, 0.0f) == 0.0f &&
                                                                       ur::upscale_lod_bias_for(DLAA, 0, 0.0f) == 0.0f);
-        CHECK("FSR: the output's mips below 3/4 only", near(ur::upscale_lod_bias_for(ur::FSR3, 5000, -1.0f), std::log2(5000 / 7500.0f)) &&
-                                                         ur::upscale_lod_bias_for(ur::FSR4, 0, -1.0f) == 0.0f &&
-                                                         ur::upscale_lod_bias_for(ur::FSR3, 10000, -1.0f) == 0.0f);
-        CHECK("no bias for the game's own, Off and FSR 4's native AA",
-              ur::upscale_lod_bias_for(GAME, 6667, -1.0f) == 0.0f && ur::upscale_lod_bias_for(ur::OFF, 5000, -1.0f) == 0.0f &&
-                  ur::upscale_lod_bias_for(ur::FSR4_AA, 0, -1.0f) == 0.0f);
+        CHECK("FSR 3.1 / FSR 4: same -1.0 offset as DLSS",
+              near(ur::upscale_lod_bias_for(ur::FSR3, 5000, -1.0f), -1.585f) &&
+                  near(ur::upscale_lod_bias_for(ur::FSR4, 0, -1.0f), -1.0f) &&
+                  near(ur::upscale_lod_bias_for(ur::FSR3, 10000, -1.0f), -0.585f) &&
+                  near(ur::upscale_lod_bias_for(ur::FSR4_AA, 0, -1.0f), -0.585f) &&
+                  near(ur::upscale_lod_bias_for(ur::FSR316, 5000, -1.0f), -1.585f));
+        CHECK("XeSS: the output's mips below 3/4 only",
+              near(ur::upscale_lod_bias_for(ur::XESS, 5000, -1.0f), std::log2(5000 / 7500.0f)) &&
+                  ur::upscale_lod_bias_for(ur::XESS, 0, -1.0f) == 0.0f &&
+                  ur::upscale_lod_bias_for(ur::XESS_AA, 0, -1.0f) == 0.0f);
+        CHECK("no bias for the game's own and Off",
+              ur::upscale_lod_bias_for(GAME, 6667, -1.0f) == 0.0f && ur::upscale_lod_bias_for(ur::OFF, 5000, -1.0f) == 0.0f);
     }
     {
         const unsigned available = ur::bit(GAME) | ur::bit(ur::FSR3) | ur::bit(ur::FSR316) | ur::fsr4_bits(true) | ur::bit(ur::OFF);

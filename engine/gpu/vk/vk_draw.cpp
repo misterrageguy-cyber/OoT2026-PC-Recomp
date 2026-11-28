@@ -3097,10 +3097,11 @@ uint32_t aniso_override() {
 }
 // (hookshot) The upscalers' texture LOD bias. OoT draws its 3D at 3/4 of the output and gives its world's materials a LOD bias of
 // -0.5 for that (sampler_make's log line). An upscaler that draws from another share adds to the samplers the game biases below 0
-// (upscaler_rows.h upscale_lod_bias_for): DLSS and DLAA NVIDIA's log2(render / output) - 1 in all (Quality -1.17 more, DLAA -0.58,
-// Auto -1), FSR 3.1 and FSR 4 log2(share / 0.75) below 75 %; 0 with the game's own upscale, Off and FSR 4's native AA.
-// RX_VK_UPSCALE_LOD_BIAS=0: off. RX_VK_DLSS_LOD_OFFSET=<steps>: DLSS's -1 for a run (0: the render size's own detail, as
-// before). Part of every sampler's key; the menu's Upscaler, Render resolution and Quality preset rows move the samplers' generation
+// (upscaler_rows.h upscale_lod_bias_for): DLSS, DLAA, FSR 3.1, FSR 4 and FSR 4's native AA use log2(render / output) - 1 in all
+// (Quality -1.17 more, Native AA / 100% -0.58, Auto -1), XeSS uses log2(share / 0.75) below 75 %; 0 with the game's own upscale,
+// Off and XeSS's native AA. RX_VK_UPSCALE_LOD_BIAS=0: off. RX_VK_DLSS_LOD_OFFSET=<steps>: the -1 offset for a run (0: the render
+// size's own detail, as before). Part of every sampler's key; the menu's Upscaler, Render resolution and Quality preset rows move
+// the samplers' generation
 float upscale_lod_bias() {
     static const bool off = getenv("RX_VK_UPSCALE_LOD_BIAS") && atoi(getenv("RX_VK_UPSCALE_LOD_BIAS")) == 0;
     if (off) return 0.0f;
